@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
@@ -6,7 +6,6 @@ import { HomePage } from './pages/HomePage';
 import { TermsPage } from './pages/TermsPage';
 import { HistoryTimelinePage } from './pages/HistoryTimelinePage';
 import { getTheme, ThemeName } from './theme/themes';
-import { GlobalLoader } from './components/GlobalLoader';
 import './i18n';
 
 type FontSize = 'small' | 'medium' | 'large';
@@ -90,12 +89,6 @@ function App() {
   const handleContrastModeChange = (mode: ContrastMode) => {
     setContrastMode(mode);
     localStorage.setItem('abgp-contrast', mode);
-  };
-
-  const handleAccessibilitySettingsChange = (newSettings: Partial<AccessibilitySettings>) => {
-    const updated = { ...accessibilitySettings, ...newSettings };
-    setAccessibilitySettings(updated);
-    localStorage.setItem('abgp-accessibility', JSON.stringify(updated));
   };
 
   // Apply all accessibility settings

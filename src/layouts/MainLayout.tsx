@@ -63,9 +63,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   currentTheme,
   onThemeChange,
   fontSize,
-  onFontSizeChange,
-  contrastMode,
-  onContrastModeChange,
+  onFontSizeChange: _onFontSizeChange,
+  contrastMode: _contrastMode,
+  onContrastModeChange: _onContrastModeChange,
   loading = false,
 }) => {
   const { t, i18n } = useTranslation();

@@ -19,17 +19,6 @@ import {
   TrendingUp,
 } from '@mui/icons-material';
 
-// Utility function to check if element is in viewport
-function isElementInViewport(el: HTMLElement): boolean {
-  const rect = el.getBoundingClientRect();
-  return (
-    rect.top < 88 &&
-    rect.left >= 0 &&
-    rect.bottom > 0 &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-  );
-}
-
 // Impression Click Tracker HOC
 interface ImpressionClickTrackerHOCProps {
   children: React.ReactNode;

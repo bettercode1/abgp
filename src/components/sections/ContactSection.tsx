@@ -9,7 +9,6 @@ import {
   TextField,
   Button,
   useTheme,
-  Divider,
 } from '@mui/material';
 import {
   Person,

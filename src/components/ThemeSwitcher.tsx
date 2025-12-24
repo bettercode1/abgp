@@ -2,7 +2,6 @@ import React from 'react';
 import { IconButton, Menu, MenuItem, Tooltip, Box } from '@mui/material';
 import { Palette, Check } from '@mui/icons-material';
 import { ThemeName } from '../theme/themes';
-import { useTranslation } from 'react-i18next';
 
 interface ThemeSwitcherProps {
   currentTheme: ThemeName;

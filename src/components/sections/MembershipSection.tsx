@@ -12,7 +12,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   useTheme,
 } from '@mui/material';
 import {
