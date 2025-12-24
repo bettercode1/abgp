@@ -43,8 +43,8 @@ interface MainLayoutProps {
   onThemeChange: (theme: ThemeName) => void;
   fontSize: 'small' | 'medium' | 'large';
   onFontSizeChange: (size: 'small' | 'medium' | 'large') => void;
-  contrastMode: 'light' | 'dark' | 'high';
-  onContrastModeChange: (mode: 'light' | 'dark' | 'high') => void;
+  contrastMode: 'light';
+  onContrastModeChange: (mode: 'light') => void;
   loading?: boolean;
 }
 

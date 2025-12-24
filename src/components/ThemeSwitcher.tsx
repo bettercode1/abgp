@@ -11,9 +11,7 @@ interface ThemeSwitcherProps {
 const themeNames: { key: ThemeName; label: string }[] = [
   { key: 'tricolor', label: 'Tricolor' },
   { key: 'minimal', label: 'Minimal' },
-  { key: 'highContrast', label: 'High Contrast' },
   { key: 'maroonGold', label: 'Maroon-Gold' },
-  { key: 'dark', label: 'Dark Mode' },
 ];
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({

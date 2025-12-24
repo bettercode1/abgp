@@ -176,76 +176,6 @@ export const minimalTheme: ThemeOptions = {
   ] as ThemeOptions['shadows'],
 };
 
-// High-Contrast Accessibility Theme
-export const highContrastTheme: ThemeOptions = {
-  palette: {
-    primary: {
-      main: '#000000',
-      light: '#333333',
-      dark: '#000000',
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#ffeb3b', // Bright yellow
-      light: '#fff176',
-      dark: '#fbc02d',
-      contrastText: '#000000',
-    },
-    background: {
-      default: '#ffffff',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#000000',
-      secondary: '#000000',
-    },
-    divider: '#000000',
-  },
-  typography: {
-    fontFamily: '"Arial", "Helvetica", sans-serif',
-    fontSize: 16,
-    h1: {
-      fontWeight: 700,
-      fontSize: '2.75rem',
-    },
-    h2: {
-      fontWeight: 700,
-      fontSize: '2.25rem',
-    },
-  },
-  shape: {
-    borderRadius: 2,
-  },
-  components: {
-    MuiContainer: {
-      styleOverrides: {
-        maxWidthLg: {
-          maxWidth: '1400px !important',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderWidth: 3,
-          fontWeight: 700,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderWidth: 3,
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
 // Traditional Maroon-Gold Theme
 export const maroonGoldTheme: ThemeOptions = {
   palette: {
@@ -295,56 +225,12 @@ export const maroonGoldTheme: ThemeOptions = {
   },
 };
 
-// Dark Mode Theme
-export const darkTheme: ThemeOptions = {
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00e5ff', // Cyan
-      light: '#62efff',
-      dark: '#00b2cc',
-      contrastText: '#000000',
-    },
-    secondary: {
-      main: '#ff9800', // Orange
-      light: '#ffb74d',
-      dark: '#f57c00',
-      contrastText: '#000000',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-    text: {
-      primary: '#ffffff',
-      secondary: '#b0b0b0',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", sans-serif',
-  },
-  shape: {
-    borderRadius: 4,
-  },
-  components: {
-    MuiContainer: {
-      styleOverrides: {
-        maxWidthLg: {
-          maxWidth: '1400px !important',
-        },
-      },
-    },
-  },
-};
-
-export type ThemeName = 'tricolor' | 'minimal' | 'highContrast' | 'maroonGold' | 'dark';
+export type ThemeName = 'tricolor' | 'minimal' | 'maroonGold';
 
 export const themeMap: Record<ThemeName, ThemeOptions> = {
   tricolor: tricolorTheme,
   minimal: minimalTheme,
-  highContrast: highContrastTheme,
   maroonGold: maroonGoldTheme,
-  dark: darkTheme,
 };
 
 export const getTheme = (themeName: ThemeName) => {

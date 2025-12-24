@@ -9,10 +9,10 @@ import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
 
 type FontSize = 'small' | 'medium' | 'large';
-type ContrastMode = 'light' | 'dark' | 'high';
+type ContrastMode = 'light';
 
 interface AccessibilitySettings {
-  colorMode: 'normal' | 'highContrast' | 'darkContrast';
+  colorMode: 'normal';
   highlightLinks: boolean;
   textSize: number;
   lineHeight: number;
@@ -44,16 +44,11 @@ function App() {
     // Load saved preferences
     const savedTheme = localStorage.getItem('abgp-theme') as ThemeName;
     const savedFontSize = localStorage.getItem('abgp-fontSize') as FontSize;
-    const savedContrast = localStorage.getItem('abgp-contrast') as ContrastMode;
-
-    if (savedTheme && ['tricolor', 'minimal', 'highContrast', 'maroonGold', 'dark'].includes(savedTheme)) {
+    if (savedTheme && ['tricolor', 'minimal', 'maroonGold'].includes(savedTheme)) {
       setCurrentTheme(savedTheme);
     }
     if (savedFontSize && ['small', 'medium', 'large'].includes(savedFontSize)) {
       setFontSize(savedFontSize);
-    }
-    if (savedContrast && ['light', 'dark', 'high'].includes(savedContrast)) {
-      setContrastMode(savedContrast);
     }
 
     // Simulate initial load
@@ -68,17 +63,6 @@ function App() {
   const handleThemeChange = (theme: ThemeName) => {
     setCurrentTheme(theme);
     localStorage.setItem('abgp-theme', theme);
-    // Sync contrast mode with theme if applicable
-    if (theme === 'highContrast') {
-      setContrastMode('high');
-      localStorage.setItem('abgp-contrast', 'high');
-    } else if (theme === 'dark') {
-      setContrastMode('dark');
-      localStorage.setItem('abgp-contrast', 'dark');
-    } else if (contrastMode !== 'light') {
-      setContrastMode('light');
-      localStorage.setItem('abgp-contrast', 'light');
-    }
   };
 
   const handleFontSizeChange = (size: FontSize) => {
@@ -86,9 +70,9 @@ function App() {
     localStorage.setItem('abgp-fontSize', size);
   };
 
-  const handleContrastModeChange = (mode: ContrastMode) => {
-    setContrastMode(mode);
-    localStorage.setItem('abgp-contrast', mode);
+  const handleContrastModeChange = (_mode: ContrastMode) => {
+    // No-op or keep for API compatibility if needed, but we only have 'light' now
+    setContrastMode('light');
   };
 
   // Apply all accessibility settings
@@ -126,18 +110,8 @@ function App() {
       body.classList.remove('highlight-links');
     }
 
-    // 7. Contrast Mode (Sync with theme)
-    if (accessibilitySettings.colorMode === 'highContrast') {
-      setCurrentTheme('highContrast');
-    } else if (accessibilitySettings.colorMode === 'darkContrast') {
-      setCurrentTheme('dark');
-    } else if (accessibilitySettings.colorMode === 'normal') {
-      // Logic from handleThemeChange might be better here to revert to light
-      if (currentTheme === 'highContrast' || currentTheme === 'dark') {
-         setCurrentTheme('tricolor');
-      }
-    }
-  }, [accessibilitySettings, currentTheme]);
+    // 7. Contrast Mode (Sync with theme - removed High Contrast and Dark)
+  }, [accessibilitySettings]);
 
   return (
     <ThemeProvider theme={theme}>
