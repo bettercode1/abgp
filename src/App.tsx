@@ -29,7 +29,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   
   // Accessibility settings
-  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>({
+  const [accessibilitySettings] = useState<AccessibilitySettings>({
     colorMode: 'normal',
     highlightLinks: false,
     textSize: 100,
