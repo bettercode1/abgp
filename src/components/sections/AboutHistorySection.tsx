@@ -14,6 +14,7 @@ import {
 import { History as HistoryIcon, ArrowForward } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import historyImg from '../../assets/abgp-2/about/history_1.jpg';
 
 const timelineItems = [
   { year: '1974', key: 'history.1974' },
@@ -55,9 +56,17 @@ export const AboutHistorySection: React.FC = () => {
 
                 <Divider sx={{ my: 3 }} />
 
-                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 3 }}>
                   <strong>Note:</strong> {t('about.brand')}
                 </Typography>
+
+                <Button
+                  variant="outlined"
+                  endIcon={<ArrowForward />}
+                  onClick={() => navigate('/about')}
+                >
+                  {t('about.readMore')}
+                </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -138,6 +147,10 @@ export const AboutHistorySection: React.FC = () => {
                 >
                   {t('history.readMore')}
                 </Button>
+                
+                <Box sx={{ mt: 3, borderRadius: 2, overflow: 'hidden', height: 150 }}>
+                  <Box component="img" src={historyImg} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="ABGP History" />
+                </Box>
               </CardContent>
             </Card>
           </Grid>

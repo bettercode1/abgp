@@ -14,6 +14,7 @@ import {
   ListItemText,
   useTheme,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle,
   Gavel,
@@ -38,6 +39,7 @@ const constitutionPoints = [
 export const MembershipSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -144,8 +146,7 @@ export const MembershipSection: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={() => {
-                    // Future route to constitution page
-                    console.log('Navigate to constitution page');
+                    navigate('/constitution');
                   }}
                 >
                   {t('membership.cta.view')}

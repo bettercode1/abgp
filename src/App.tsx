@@ -2,9 +2,20 @@ import { useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
+import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
 import { TermsPage } from './pages/TermsPage';
+import { AboutPage } from './pages/AboutPage';
+import { CourtDecisionsPage } from './pages/CourtDecisionsPage';
 import { HistoryTimelinePage } from './pages/HistoryTimelinePage';
+import { ConstitutionPage } from './pages/ConstitutionPage';
+import { BlogsPage } from './pages/BlogsPage';
+import { FAQPage } from './pages/FAQPage';
+import { MediaPage } from './pages/MediaPage';
+import { PetitionPage } from './pages/PetitionPage';
+import { ActivitiesPage } from './pages/ActivitiesPage';
+import { GrahakGyanDeepPage } from './pages/GrahakGyanDeepPage';
+import { GrahakSpandanaPage } from './pages/GrahakSpandanaPage';
 import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
 
@@ -138,6 +149,7 @@ function App() {
         `}
       </style>
       <BrowserRouter>
+        <ScrollToTop />
         <MainLayout
           currentTheme={currentTheme}
           onThemeChange={handleThemeChange}
@@ -149,8 +161,18 @@ function App() {
         >
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/court-decisions" element={<CourtDecisionsPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/history" element={<HistoryTimelinePage />} />
+            <Route path="/constitution" element={<ConstitutionPage />} />
+            <Route path="/blogs" element={<BlogsPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/media" element={<MediaPage />} />
+                    <Route path="/petition" element={<PetitionPage />} />
+                    <Route path="/activities" element={<ActivitiesPage />} />
+                    <Route path="/gyandeep" element={<GrahakGyanDeepPage />} />
+                    <Route path="/spandana" element={<GrahakSpandanaPage />} />
           </Routes>
         </MainLayout>
       </BrowserRouter>

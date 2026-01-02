@@ -21,6 +21,7 @@ import {
   Timeline,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import logoFinal from '../../assets/abgp-2/homepage/logo_final.jpg';
 
 export const HeroSection: React.FC = () => {
   const { t } = useTranslation();
@@ -55,6 +56,12 @@ export const HeroSection: React.FC = () => {
         <Grid container spacing={4}>
           {/* Main Content */}
           <Grid item xs={12} md={7}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Box component="img" src={logoFinal} sx={{ width: 60, height: 60, borderRadius: '50%' }} alt="ABGP Logo" />
+              <Typography variant="subtitle1" sx={{ color: theme.palette.primary.main, fontWeight: 700 }}>
+                Akhil Bhartiya Grahak Panchayat
+              </Typography>
+            </Box>
             <Typography
               variant="h1"
               component="h1"

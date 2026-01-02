@@ -109,7 +109,7 @@ const milestones: Milestone[] = [
   {
     year: '1970s',
     title: 'Restless India, Awakened Pune',
-    description: 'Social unrest inspires Pune youth under Bindu Madhav Joshi',
+    description: 'Social and political restlessness inspires Pune youth under late Shri Bindu Madhav Joshi.',
     icon: <History />,
     trackerId: 'milestone-1',
     displayName: 'Restless India, Awakened Pune',
@@ -118,7 +118,7 @@ const milestones: Milestone[] = [
   {
     year: '1974',
     title: 'Youth to Consumer Power',
-    description: 'Yuvak Mahamandal Janata Grahak Sangh formed with Sudhir Phadke, PL Deshpande',
+    description: 'Yuvak Mahamandal Janata Grahak Sangh formed with personalities like Sudhir Phadke, PL Deshpande, Prof. Dandekar, and GV Behere.',
     icon: <People />,
     trackerId: 'milestone-2',
     displayName: 'Youth to Consumer Power',
@@ -127,7 +127,7 @@ const milestones: Milestone[] = [
   {
     year: 'Diwali 1974',
     title: 'First Grahak Experiment',
-    description: 'Festival commodities supplied through Grahak Sanghs',
+    description: 'Successful attempt to supply festive commodities through created Grahak Sanghs in Pune.',
     icon: <Celebration />,
     trackerId: 'milestone-3',
     displayName: 'First Grahak Experiment',
@@ -136,7 +136,7 @@ const milestones: Milestone[] = [
   {
     year: '1974',
     title: 'Historic Textile Boycott',
-    description: 'Laxmi Road boycott, direct producer-to-consumer sales',
+    description: 'Laxmi Road boycott; movement volunteers procured textiles directly from producers to sell at cheaper rates.',
     icon: <ShoppingCart />,
     trackerId: 'milestone-4',
     displayName: 'Historic Textile Boycott',
@@ -144,8 +144,8 @@ const milestones: Milestone[] = [
   },
   {
     year: '1974',
-    title: 'Nationwide Blessing',
-    description: 'Jayaprakash Narayan blesses Pune initiative',
+    title: 'National Blessing',
+    description: 'Jaiprakash Narayan blesses the movement during his visit to Pune.',
     icon: <ThumbUp />,
     trackerId: 'milestone-5',
     displayName: 'Nationwide Blessing',
@@ -153,8 +153,8 @@ const milestones: Milestone[] = [
   },
   {
     year: '23 Dec 1975',
-    title: 'ABGP is Born',
-    description: 'Justice MC Chagla inaugurates: "What Pune thinks today..."',
+    title: 'ABGP Formal Inauguration',
+    description: 'Justice MC Chagla inaugurates ABGP: "What Pune thinks today, India will think subsequently."',
     icon: <Gavel />,
     trackerId: 'milestone-6',
     displayName: 'ABGP is Born',
@@ -163,7 +163,7 @@ const milestones: Milestone[] = [
   {
     year: '1980s-2010s',
     title: 'From Pune to Bharat',
-    description: 'Nationwide expansion under Nana\'s leadership',
+    description: 'Hard work under leadership of Nana and subsequent leaders takes movement to 25+ states.',
     icon: <Public />,
     trackerId: 'milestone-7',
     displayName: 'From Pune to Bharat',
@@ -171,8 +171,8 @@ const milestones: Milestone[] = [
   },
   {
     year: '2017',
-    title: '25+ States, 200+ Districts',
-    description: 'Massive national presence achieved',
+    title: 'National Expansion',
+    description: 'ABGP reaches more than 25 states and nearly 200 districts across the country.',
     icon: <TrendingUp />,
     trackerId: 'milestone-8',
     displayName: '25+ States, 200+ Districts',

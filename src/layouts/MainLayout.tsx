@@ -52,9 +52,13 @@ const navigationItems = [
   { key: 'nav.home', path: '/' },
   { key: 'nav.about', path: '/about' },
   { key: 'nav.activities', path: '/activities' },
+  { key: 'nav.gyandeep', path: '/gyandeep' },
+  { key: 'nav.spandana', path: '/spandana' },
   { key: 'nav.membership', path: '/membership' },
   { key: 'nav.media', path: '/media' },
   { key: 'nav.blogs', path: '/blogs' },
+  { key: 'nav.faq', path: '/faq' },
+  { key: 'nav.petition', path: '/petition' },
   { key: 'nav.contact', path: '/contact' },
 ];
 
@@ -422,6 +426,42 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     {t(item.key)}
                   </Link>
                 ))}
+                <Link
+                  component={RouterLink}
+                  to="/constitution"
+                  color="inherit"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.9rem',
+                    opacity: 0.8,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      opacity: 1,
+                      color: theme.palette.secondary.main,
+                      transform: 'translateX(5px)',
+                    },
+                  }}
+                >
+                  ABGP Constitution
+                </Link>
+                <Link
+                  component={RouterLink}
+                  to="/court-decisions"
+                  color="inherit"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.9rem',
+                    opacity: 0.8,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      opacity: 1,
+                      color: theme.palette.secondary.main,
+                      transform: 'translateX(5px)',
+                    },
+                  }}
+                >
+                  Court Decisions
+                </Link>
               </Stack>
             </Grid>
 
