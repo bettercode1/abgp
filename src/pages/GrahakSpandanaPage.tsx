@@ -27,20 +27,20 @@ export const GrahakSpandanaPage: React.FC = () => {
   const theme = useTheme();
 
   const prants = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar (Dakshin)', 'Bihar (Uttar)', 
-    'Chattisgarh', 'Delhi', 'Gujarat', 'Haryana', 'Himachal', 'Jammu Kashmir', 
-    'Jharkhand', 'Karnataka', 'Kerala', 'MP (Madhyabharat)', 'MP (Mahakaushal)', 
-    'MP (Malwa)', 'Maharashtra (Devgiri)', 'Maharashtra (Konkan)', 'Madhya Maharashtra', 
-    'Maharashtra (Vidharbh)', 'Meghalaya', 'Odisha (Pashchim)', 'Odisha (Purba)', 
-    'Punjab', 'Rajasthan (Chittor)', 'Rajasthan (Jaipur)', 'Rajasthan (Jodhpur)', 
-    'Sikkim', 'Tamilnadu (Dakshin)', 'Tamilnadu (Uttar)', 'Telangana', 'UP (Avadh)', 
-    'UP (Braj)', 'UP (Goraksha)', 'UP (Kanpur)', 'UP (Kashi)', 'UP (Meerut)', 'Uttarakhand'
+    t('prant.andhra'), t('prant.arunachal'), t('prant.assam'), t('prant.biharDakshin'), t('prant.biharUttar'), 
+    t('prant.chattisgarh'), t('prant.delhi'), t('prant.gujarat'), t('prant.haryana'), t('prant.himachal'), t('prant.jammuKashmir'), 
+    t('prant.jharkhand'), t('prant.karnataka'), t('prant.kerala'), t('prant.mpMadhyabharat'), t('prant.mpMahakaushal'), 
+    t('prant.mpMalwa'), t('prant.maharashtraDevgiri'), t('prant.maharashtraKonkan'), t('prant.madhyaMaharashtra'), 
+    t('prant.maharashtraVidharbh'), t('prant.meghalaya'), t('prant.odishaPashchim'), t('prant.odishaPurba'), 
+    t('prant.punjab'), t('prant.rajasthanChittor'), t('prant.rajasthanJaipur'), t('prant.rajasthanJodhpur'), 
+    t('prant.sikkim'), t('prant.tamilnaduDakshin'), t('prant.tamilnaduUttar'), t('prant.telangana'), t('prant.upAvadh'), 
+    t('prant.upBraj'), t('prant.upGoraksha'), t('prant.upKanpur'), t('prant.upKashi'), t('prant.upMeerut'), t('prant.uttarakhand')
   ];
 
   const sectors = [
-    'Agriculture Sector', 'Food Sector', 'Health Sector', 'Education Sector', 
-    'RERA/Housing Sector', 'Financial Transaction Sector', 'Environmental Sector', 
-    'Transportation Sector', 'Communication Sector'
+    t('sector.agriculture'), t('sector.food'), t('sector.health'), t('sector.education'), 
+    t('sector.rera'), t('sector.financial'), t('sector.environmental'), 
+    t('sector.transportation'), t('sector.communication')
   ];
 
   return (
@@ -50,15 +50,15 @@ export const GrahakSpandanaPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">Grahak Spandana</Typography>
+          <Typography color="text.primary">{t('nav.spandana')}</Typography>
         </Breadcrumbs>
 
         <Paper elevation={0} sx={{ p: { xs: 4, md: 8 }, borderRadius: 4, backgroundColor: theme.palette.secondary.main, color: 'white', mb: 6 }}>
           <Typography variant="h2" fontWeight={800} gutterBottom>
-            Grahak Spandana
+            {t('spandana.hero.title')}
           </Typography>
           <Typography variant="h4" fontWeight={400} sx={{ opacity: 0.9 }}>
-            ABGP Presence and Specialized Focus Areas Across India
+            {t('spandana.hero.subtitle')}
           </Typography>
         </Paper>
 
@@ -68,7 +68,7 @@ export const GrahakSpandanaPage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                 <Map color="primary" fontSize="large" />
                 <Typography variant="h4" fontWeight={800} color="primary">
-                  Active Prants (States)
+                  {t('spandana.prants.title')}
                 </Typography>
               </Box>
               <Grid container spacing={1}>
@@ -93,7 +93,7 @@ export const GrahakSpandanaPage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                 <Business color="primary" fontSize="large" />
                 <Typography variant="h4" fontWeight={800} color="primary">
-                  Grahak Sanghatan Sectors
+                  {t('spandana.sectors.title')}
                 </Typography>
               </Box>
               <Grid container spacing={3}>
@@ -115,29 +115,29 @@ export const GrahakSpandanaPage: React.FC = () => {
               <Card sx={{ p: 4, borderRadius: 4, border: `2px solid ${theme.palette.secondary.main}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <Campaign color="secondary" fontSize="large" />
-                  <Typography variant="h5" fontWeight={800} color="secondary">Grahak Jagaran</Typography>
+                  <Typography variant="h5" fontWeight={800} color="secondary">{t('spandana.jagaran.title')}</Typography>
                 </Box>
                 <Stack spacing={2}>
-                  <Chip label="Programs" variant="filled" color="secondary" />
-                  <Chip label="Training Sessions" variant="filled" color="secondary" />
-                  <Chip label="Seminars" variant="filled" color="secondary" />
-                  <Chip label="Workshops" variant="filled" color="secondary" />
+                  <Chip label={t('spandana.jagaran.programs')} variant="filled" color="secondary" />
+                  <Chip label={t('spandana.jagaran.training')} variant="filled" color="secondary" />
+                  <Chip label={t('spandana.jagaran.seminars')} variant="filled" color="secondary" />
+                  <Chip label={t('spandana.jagaran.workshops')} variant="filled" color="secondary" />
                 </Stack>
               </Card>
 
               <Card sx={{ p: 4, borderRadius: 4, backgroundColor: theme.palette.primary.main, color: 'white' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <SupportAgent fontSize="large" />
-                  <Typography variant="h5" fontWeight={800}>Grahak Margadarshan</Typography>
+                  <Typography variant="h5" fontWeight={800}>{t('spandana.margadarshan.title')}</Typography>
                 </Box>
                 <Stack spacing={2}>
                   <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                    <Typography fontWeight={700}>Margadarshan Seva Kendra</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>Physical guidance centers across locations.</Typography>
+                    <Typography fontWeight={700}>{t('spandana.margadarshan.kendras')}</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>{t('spandana.margadarshan.kendrasDesc')}</Typography>
                   </Box>
                   <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                    <Typography fontWeight={700}>Online Margadarshan Seva</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>Digital support for remote consumers.</Typography>
+                    <Typography fontWeight={700}>{t('spandana.margadarshan.online')}</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>{t('spandana.margadarshan.onlineDesc')}</Typography>
                   </Box>
                 </Stack>
               </Card>
@@ -146,6 +146,7 @@ export const GrahakSpandanaPage: React.FC = () => {
         </Grid>
       </Container>
     </Box>
+
   );
 };
 

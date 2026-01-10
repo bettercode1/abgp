@@ -23,25 +23,25 @@ export const ConstitutionPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">Constitution</Typography>
+          <Typography color="text.primary">{t('nav.constitution')}</Typography>
         </Breadcrumbs>
 
         <Paper elevation={3} sx={{ p: { xs: 3, md: 6 }, borderRadius: 2 }}>
           <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography variant="h3" component="h1" fontWeight={800} color="primary" gutterBottom>
-              ABGP Constitution
+              {t('constitution.title')}
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              Amended - 21st Sept. 2014
+              {t('constitution.amended')}
             </Typography>
             <Typography variant="h5" fontWeight={600} sx={{ mt: 2 }}>
-              AKHIL BHARATIYA GRAHAK PANCHAYAT
+              {t('constitution.fullName')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
-              [Registered under Societies Registration Act, 1860] (Regn. No. S/9194)
+              {t('constitution.registration')}
             </Typography>
             <Typography variant="h4" fontWeight={700} sx={{ mt: 4, textTransform: 'uppercase' }}>
-              Memorandum of Association
+              {t('constitution.memorandumTitle')}
             </Typography>
           </Box>
 
@@ -49,199 +49,199 @@ export const ConstitutionPage: React.FC = () => {
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h5" fontWeight={700} gutterBottom>
-              1. NAME :
+              {t('constitution.nameTitle')}
             </Typography>
             <Typography variant="body1" paragraph>
-              The name of the association is ‘Akhil Bhartiya Grahak Panchayat’ and will be hereinafter referred to as ‘Panchayat’ in the Memorandum of Association and Rules Regulations made there under.
+              {t('constitution.nameContent')}
             </Typography>
 
             <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
-              2. ADDRESS :
+              {t('constitution.addressTitle')}
             </Typography>
             <Typography variant="body1" paragraph>
-              The registered address of the Panchayat, is C-4 /156, Keshav puram, Delhi. -110035. or such other place [s] as the Executive committee will decide from time to time. The registered office of the Panchayat shall situate in Union Territory of Delhi.
+              {t('constitution.addressContent')}
             </Typography>
 
             <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
-              3. AREA OF OPERATION :
+              {t('constitution.areaTitle')}
             </Typography>
             <Typography variant="body1" paragraph>
-              Whole of India will remain the jurisdiction of the Panchayat.
+              {t('constitution.areaContent')}
             </Typography>
 
             <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
-              4. OBJECTS :
+              {t('constitution.objectsTitle')}
             </Typography>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              The aims and objects for which the Panchayat is established are;
+              {t('constitution.objectsSubtitle')}
             </Typography>
 
             <Box sx={{ pl: { xs: 0, md: 4 } }}>
               <Typography variant="body1" paragraph>
-                <strong>A.</strong> To unite consumers into a closely knit, disciplined cadre organization and to develop organized strong independent consumer movement and to inculcate in them the sense of trusteeship, service and patriotism.
+                <strong>A.</strong> {t('constitution.objectA')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>B.</strong> To educate the consumer at large and the members in particular through various means such as books, periodicals, leaflets, video cassettes and other mass media and to make them conscious of their rights & responsibilities and to strengthen the consumer Resistance Movement.
+                <strong>B.</strong> {t('constitution.objectB')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>C.</strong> To assist the consumers to protect their interests against any of the unhealthy practices in the market and to do all within its means to establish their rights.
+                <strong>C.</strong> {t('constitution.objectC')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>D.</strong> To disseminate information to the members in particular and the consumer at large in general by arranging lectures, meetings, seminars, exhibitions, documentaries and all possible mass media.
+                <strong>D.</strong> {t('constitution.objectD')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>E.</strong> To establish research centers and to conduct higher education centers for activating ‘Bhartiya Grahak Neeti’ of the consumer movement, to start such centers in schools, colleges and universities and to encourage and assist them.
+                <strong>E.</strong> {t('constitution.objectE')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>F.</strong> To solve consumers grievances by legal remedies such as filling of suits and proceedings in the courts of Law in the name of ‘Panchayat’ where ever necessary.
+                <strong>F.</strong> {t('constitution.objectF')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>G.</strong> To help the nation by making efforts to correct the price structure, distribution and marketing conditions through various consumer activities.
+                <strong>G.</strong> {t('constitution.objectG')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>H.</strong> To take all other steps to achieve the goal of socio-economic welfare of the consumers in general, and it’s members in particular.
+                <strong>H.</strong> {t('constitution.objectH')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>I.</strong> To strive mainly for safeguarding the rights of the consumers throughout the country. To organize the consumers to fight for their rights. In establishing the rights of the consumers, the ‘Panchayat,’ will not work for profit motive and it will only help to safeguard their interest.
+                <strong>I.</strong> {t('constitution.objectI')}
               </Typography>
               <Typography variant="body1" paragraph>
-                The Panchayat will also help all organizations with similar objects. The benefits of the Panchayat will not be denied on account of caste, creed, sex, religion and gender.
+                {t('constitution.objectI_2')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>J.</strong> To do all other acts helping the above referred charitable and social purposes.
+                <strong>J.</strong> {t('constitution.objectJ')}
               </Typography>
               <Typography variant="body1" paragraph>
-                <strong>K.</strong> The office Bearers of the Panchayat shall not contest any political elections.
+                <strong>K.</strong> {t('constitution.objectK')}
               </Typography>
             </Box>
 
             <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
-              5. FINANCIAL UTILIZATION :
+              {t('constitution.financialTitle')}
             </Typography>
             <Typography variant="body1" paragraph>
-              All the incomes, earnings, moveable or immovable properties of the society shall be solely utilized and applied towards the promotion of its aims and object only as set forth in the Memorandum of Association and no profit thereon shall be paid or transferred directly or indirectly by way of dividends, bonus profits or in any manner whatsoever to the present or past members of the society or to any person claiming through anyone or more of the present or the past members. No member of the society shall have any personal claim on any movables or immovable properties of the Society or make any profits, Whatsoever by virtue of this membership.
+              {t('constitution.financialContent')}
             </Typography>
           </Box>
 
           <Box sx={{ textAlign: 'center', my: 8 }}>
             <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
-              RULES & REGULATIONS
+              {t('constitution.rulesTitle')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
-              [Registered under Societies Registration Act, 1860] [Regd. No : S/9194 Delhi]
+              {t('constitution.rulesSubtitle')}
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-I
+              {t('constitution.part1Title')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>1. Name of the Society :-</strong> The name of the society is AKHIL Bhartiya Grahak Panchayat and will be hereinafter referred to as ‘Panchayat’ in the Memorandum of Association and Rules & Regulations made hereunder.
+              <strong>{t('constitution.part1NameTitle')}</strong> {t('constitution.part1NameContent')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>2. Registered office of the Panchayat :-</strong> The registered office of the Panchayat will be in the National Capital Territory of Delhi and is presently located at C-4 / 156, Keshav Puram, Delhi -35. The office of the Panchayat may be shifted to some other place(s) as may be decided by National Executive committee from time to time.
+              <strong>{t('constitution.part1OfficeTitle')}</strong> {t('constitution.part1OfficeContent')}
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-II: GENERAL BODY OF THE PANCHAYAT
+              {t('constitution.part2Title')}
             </Typography>
             <Typography variant="body1" paragraph>
-              The General Body of the Panchayat shall consist of all the categories of members of the Panchayat as mentioned in part-III hereinafter.
+              {t('constitution.part2Content')}
             </Typography>
             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
-              FUNCTIONS OF THE GENERAL BODY (SADHARAN SABHA)
+              {t('constitution.part2FunctionsTitle')}
             </Typography>
             <Typography variant="body1" component="div">
               <Box component="ul" sx={{ pl: 3 }}>
-                <li>To hold at least one Annual General Body Meeting.</li>
-                <li>To elect five Active members of the panchayat to be included in the National executive Council after every three years.</li>
-                <li>To review and take note of the work done by National Executive Committee in the preceding year.</li>
-                <li>To discuss the accounts, Income & Expenditure, vis-a-vis, activities carried out by the Panchayat in the preceding financial year and to give suggestions to the National Executive committee in that behalf.</li>
-                <li>To impart guidelines to the National Executive committee preparing the budget for the next financial year.</li>
-                <li>To approve and give its consent about the various activities carried out by the National Executive Committee in the preceding year and to give suggestions for the forth coming financial year.</li>
-                <li>To amend the rules and regulations of the Panchayat by not less than 2/3rd majority of the members of the General Body as and when the amendment is deemed necessary by the Panchayat.</li>
-                <li>The General Body of the Panchayat shall follow the procedure, laid down in section 12 of the Societies Registration Act, 1860 to make any change in its name or to alter, abridge or amend its objects and / or rules and regulations.</li>
+                <li>{t('constitution.part2FunctionsList1')}</li>
+                <li>{t('constitution.part2FunctionsList2')}</li>
+                <li>{t('constitution.part2FunctionsList3')}</li>
+                <li>{t('constitution.part2FunctionsList4')}</li>
+                <li>{t('constitution.part2FunctionsList5')}</li>
+                <li>{t('constitution.part2FunctionsList6')}</li>
+                <li>{t('constitution.part2FunctionsList7')}</li>
+                <li>{t('constitution.part2FunctionsList8')}</li>
               </Box>
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-III: CLASSIFICATION OF MEMBERS
+              {t('constitution.part3Title')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>(A) ORDINARY MEMBERS:</strong> A citizen of India who agrees with the aims and objects of the Panchayat and is ready to abide by its rules and regulations and has attained the age of majority shall be eligible to become a member of the Panchayat. This membership is without voting right.
+              <strong>{t('constitution.part3OrdinaryTitle')}</strong> {t('constitution.part3OrdinaryContent')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>(B) FOUNDER MEMBERS:</strong> The persons, by virtue of being initial signatory to the Memorandum of Association and Rules and Regulations of the Panchayat, shall be Founder Members of the Panchayat. They have voting rights.
+              <strong>{t('constitution.part3FounderTitle')}</strong> {t('constitution.part3FounderContent')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>(C) ACTIVE MEMBERS:</strong> Those who devote themselves to the activities of the panchayat by voluntarily participating in the activities of the panchayat for a considerable period of at least two years, shall be considered as an Active Member.
+              <strong>{t('constitution.part3ActiveTitle')}</strong> {t('constitution.part3ActiveContent')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>(D) LIFE MEMBERS:</strong> Those who pay one time life subscription of Rs.5000/= shall be treated as life members, on recommendation of the Natl. Ex. Commiittee.
+              <strong>{t('constitution.part3LifeTitle')}</strong> {t('constitution.part3LifeContent')}
             </Typography>
             <Typography variant="body1" paragraph>
-              <strong>(E) INVITEE MEMBERS:</strong> Experts, scholars, economists, consumer activists or specialists in different disciplines or persons of distinguished status in the country shall be nominated as ‘Invitee Members’ by the National Executive committee.
+              <strong>{t('constitution.part3InviteeTitle')}</strong> {t('constitution.part3InviteeContent')}
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-IV: NATIONAL EXECUTIVE COUNCIL [RASHTRIYA KARYAKARI PARISHAD]
+              {t('constitution.part4Title')}
             </Typography>
             <Typography variant="body1" component="div">
               <Box component="ol" sx={{ pl: 3 }}>
-                <li>All the founder members of the Panchayat.</li>
-                <li>The Sanghtak of each affiliated prant Grahak Panchayat.</li>
-                <li>Adhyaksha, Upadhyaksha, Sachiv and Koshadhyaksha of each Prant and one lady representative from the prant.</li>
-                <li>In addition to above, 5 active members from each affiliated organization shall be the members of NEC.</li>
+                <li>{t('constitution.part4List1')}</li>
+                <li>{t('constitution.part4List2')}</li>
+                <li>{t('constitution.part4List3')}</li>
+                <li>{t('constitution.part4List4')}</li>
               </Box>
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-V: FUNCTIONS OF NATIONAL EXECUTIVE COUNCIL
+              {t('constitution.part5Title')}
             </Typography>
             <Typography variant="body1" component="div">
               <Box component="ol" sx={{ pl: 3 }}>
-                <li>To hold at least one Annual Meeting of the parishad to review overall working and to frame policies.</li>
-                <li>To elect the National Executive Committee of the Panchayat after every 3 years.</li>
-                <li>To elect Rashtriya Adhyaksha, Upadhyaksha, Rashtriya sachiv, Rashtriya Koshadhyaksha after every three years.</li>
-                <li>To review issues related to consumers and suggest improvements.</li>
+                <li>{t('constitution.part5List1')}</li>
+                <li>{t('constitution.part5List2')}</li>
+                <li>{t('constitution.part5List3')}</li>
+                <li>{t('constitution.part5List4')}</li>
               </Box>
             </Typography>
           </Box>
 
           <Box sx={{ mb: 6 }}>
             <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
-              PART-VI: NATIONAL EXECUTIVE COMMITTEE [RASHTRIYA KARYAKARINI]
+              {t('constitution.part6Title')}
             </Typography>
             <Typography variant="body1" paragraph>
-              The National President, vice presidents, secretary and treasurer may nominate rashtriya sanghatak at National level and prant sanghatak at prant level.
+              {t('constitution.part6Content')}
             </Typography>
             <Typography variant="body1" component="div">
               <Box component="ul" sx={{ listStyle: 'none', pl: 0 }}>
-                <li>1. National Vice President – Two</li>
-                <li>2. Rashtriya Sanghtan Mantri – One</li>
-                <li>3. National secretaries – One</li>
-                <li>4. National Joint Secretaries – Two</li>
-                <li>5. National Treasurer – One</li>
-                <li>6. Members of Executive Committee – Max. 6</li>
+                <li>{t('constitution.part6List1')}</li>
+                <li>{t('constitution.part6List2')}</li>
+                <li>{t('constitution.part6List3')}</li>
+                <li>{t('constitution.part6List4')}</li>
+                <li>{t('constitution.part6List5')}</li>
+                <li>{t('constitution.part6List6')}</li>
               </Box>
             </Typography>
           </Box>
 
           <Box sx={{ mt: 6, p: 3, backgroundColor: theme.palette.primary.main, color: 'white', borderRadius: 2 }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
-              Note on Winding Up
+              {t('constitution.windingTitle')}
             </Typography>
             <Typography variant="body2">
-              The Panchayat shall not be dissolved unless two third of the members shall have expressed a wish for such dissolution. Upon dissolution, any remaining property shall be given to some other society with similar objects as determined by the members.
+              {t('constitution.windingContent')}
             </Typography>
           </Box>
         </Paper>

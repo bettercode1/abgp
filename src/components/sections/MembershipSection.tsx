@@ -23,17 +23,17 @@ import {
 import { useTranslation } from 'react-i18next';
 
 const membershipBenefits = [
-  'Unite with consumers across India',
-  'Access to educational resources',
-  'Legal assistance and guidance',
-  'Participate in consumer movement',
+  'membership.benefit1',
+  'membership.benefit2',
+  'membership.benefit3',
+  'membership.benefit4',
 ];
 
 const constitutionPoints = [
-  'Unite consumers across the nation',
-  'Educate consumers about their rights',
-  'Provide legal assistance when needed',
-  'Establish research centers for consumer welfare',
+  'membership.constPoint1',
+  'membership.constPoint2',
+  'membership.constPoint3',
+  'membership.constPoint4',
 ];
 
 export const MembershipSection: React.FC = () => {
@@ -99,7 +99,7 @@ export const MembershipSection: React.FC = () => {
                       <ListItemIcon>
                         <CheckCircle color="success" fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText primary={benefit} />
+                      <ListItemText primary={t(benefit)} />
                     </ListItem>
                   ))}
                 </List>
@@ -110,8 +110,11 @@ export const MembershipSection: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={() => {
-                    window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
+                    // TODO: Replace with new Razorpay integration
+                    // window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
+                    console.log('Membership apply button clicked - waiting for new Razorpay integration');
                   }}
+                  disabled
                 >
                   {t('membership.cta.apply')}
                 </Button>
@@ -135,7 +138,7 @@ export const MembershipSection: React.FC = () => {
                       <ListItemIcon>
                         <Gavel color="primary" fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText primary={point} />
+                      <ListItemText primary={t(point)} />
                     </ListItem>
                   ))}
                 </List>

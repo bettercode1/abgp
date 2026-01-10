@@ -27,16 +27,16 @@ export const CourtDecisionsPage: React.FC = () => {
             {t('nav.home')}
           </Link>
           <Link component={RouterLink} to="/about" color="inherit" underline="hover">
-            About ABGP
+            {t('nav.about')}
           </Link>
-          <Typography color="text.primary">Court Decisions</Typography>
+          <Typography color="text.primary">{t('nav.courtDecisions')}</Typography>
         </Breadcrumbs>
 
         <Paper elevation={3} sx={{ p: { xs: 3, md: 6 }, borderRadius: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
             <Gavel color="primary" sx={{ fontSize: 40 }} />
             <Typography variant="h3" component="h1" fontWeight={800} color="primary">
-              Court Decisions
+              {t('court.title')}
             </Typography>
           </Box>
 
@@ -44,44 +44,44 @@ export const CourtDecisionsPage: React.FC = () => {
 
           <Box sx={{ mb: 8 }}>
             <Typography variant="h5" fontWeight={700} gutterBottom color="secondary">
-              Allahabad High Court Ruling on RTI Act
+              {t('court.allahabadTitle')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-              Bench: Hon'ble Sudhir Agarwal, J. & Hon'ble Shashi Kant, J.
+              {t('court.allahabadBench')}
             </Typography>
             <Typography variant="subtitle2" color="text.secondary" paragraph>
-              Petition Case No: 7222 of 2018 (Shri Mukul vs. State of UP & Others)
+              {t('court.allahabadCase')}
             </Typography>
 
             <Box sx={{ mt: 4, p: 3, backgroundColor: theme.palette.action.hover, borderRadius: 2, borderLeft: `6px solid ${theme.palette.primary.main}` }}>
               <Typography variant="h6" fontWeight={700} gutterBottom>
-                Key Order Highlights:
+                {t('court.highlightsTitle')}
               </Typography>
               <Typography variant="body1" component="div">
                 <ol>
-                  <li><strong>Expeditious Decisions:</strong> Under the Statute, Appellate Authorities are supposed to decide the matter expeditiously. Fixing dates of several months is not the intention of the Legislature.</li>
-                  <li><strong>Transparency:</strong> The Statute has been framed for public welfare and encouraging transparency. Therefore, authorities under the Right to Information Act, 2005 must decide matters expeditiously.</li>
-                  <li><strong>30-Day Deadline:</strong> The court ordered that the appeal in question be finalized by the authority concerned within 30 days from the date of production of a certified copy of the order.</li>
+                  <li><strong>{t('court.highlight1Title')}</strong> {t('court.highlight1Text')}</li>
+                  <li><strong>{t('court.highlight2Title')}</strong> {t('court.highlight2Text')}</li>
+                  <li><strong>{t('court.highlight3Title')}</strong> {t('court.highlight3Text')}</li>
                 </ol>
               </Typography>
             </Box>
 
             <Box sx={{ mt: 6 }}>
               <Typography variant="h6" fontWeight={700} gutterBottom color="primary">
-                अपील: सूचना आयोग को कोर्ट न समझे
+                {t('court.appealTitle')}
               </Typography>
               <Typography variant="body1" paragraph>
-                इलाहाबाद हाईकोर्ट ने महत्वपूर्ण निर्णय देते हुए साफ किया कि सूचना का अधिकार अधिनियम 2005 में सिर्फ 30 दिन में सूचना देने का नियम है न कि तारीख पर तारीख देने का!
+                {t('court.appealBody1')}
               </Typography>
               <Typography variant="body1" paragraph>
-                सभी कार्यकर्ताओं से अपील है कि सभी लोग आयोग में अपील दाखिल करते समय इस आदेश की प्रति संलग्न जरूर करें और आयोग को निर्देशित करें कि आयोग इस आदेश का पालन करते हुए 30 दिन में सूचना दिलवाए न कि तारिख पर तारिख लगाए। ऐसा न करने पर आयोग के खिलाफ माननीय उच्च न्यायालय के आदेश का पालन न कर रहे हैं कहकर कोर्ट में अवमान याचिका (Contempt Petition) दे सकते हैं।
+                {t('court.appealBody2')}
               </Typography>
             </Box>
           </Box>
 
           <Alert severity="info" sx={{ mt: 4 }}>
-            <AlertTitle sx={{ fontWeight: 700 }}>Official Document</AlertTitle>
-            View the full court decision PDF: <Link href="/court-decisions.pdf" target="_blank" rel="noopener">Court Decisions – Akhil Bhartiya Grahak Panchayat.pdf</Link>
+            <AlertTitle sx={{ fontWeight: 700 }}>{t('court.officialTitle')}</AlertTitle>
+            {t('court.officialText')} <Link href="/court-decisions.pdf" target="_blank" rel="noopener">Court Decisions – Akhil Bhartiya Grahak Panchayat.pdf</Link>
           </Alert>
         </Paper>
       </Container>

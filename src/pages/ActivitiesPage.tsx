@@ -39,40 +39,40 @@ export const ActivitiesPage: React.FC = () => {
 
   const activityCategories = [
     {
-      title: 'Jagaranathmak Activities',
-      desc: 'Spreading awareness on issues that affect citizens and empowering them with knowledge.',
+      title: t('activities.cat.jagaran.title'),
+      desc: t('activities.cat.jagaran.desc'),
       icon: <Psychology fontSize="large" color="primary" />,
     },
     {
-      title: 'Andolanathmak Activities',
-      desc: 'Leading issue-based movements that demand systemic change.',
+      title: t('activities.cat.andolan.title'),
+      desc: t('activities.cat.andolan.desc'),
       icon: <Campaign fontSize="large" color="primary" />,
     },
     {
-      title: 'Sanghatanatmaka Activities',
-      desc: 'Building a strong, disciplined cadre of consumer activists across the nation.',
+      title: t('activities.cat.sanghatan.title'),
+      desc: t('activities.cat.sanghatan.desc'),
       icon: <Groups fontSize="large" color="primary" />,
     },
     {
-      title: 'Grahak Margadarshan Seva',
-      desc: 'Providing direct guidance and support to consumers for grievance redressal.',
+      title: t('activities.cat.margadarshan.title'),
+      desc: t('activities.cat.margadarshan.desc'),
       icon: <SupportAgent fontSize="large" color="primary" />,
     },
   ];
 
   const focusAayams = [
-    'Annam (Food)',
-    'Vastra (Clothing)',
-    'Aavas (Housing)',
-    'Aarogya (Health)',
-    'Shikshana (Education)',
-    'Vyavahaar (Financial Transactions)',
+    t('activities.annam'),
+    t('activities.vastra'),
+    t('activities.aavas'),
+    t('activities.aarogya'),
+    t('activities.shikshana'),
+    t('activities.vyavahaar'),
   ];
 
   const observanceDays = [
-    'Consumer Rights Day (March 15th)',
-    'National Consumer Day (December 24th)',
-    'Samarpan Diwas (Bindu Madhav Joshi Punyatithi)',
+    t('activities.observance.rights', 'Consumer Rights Day (March 15th)'),
+    t('activities.observance.national', 'National Consumer Day (December 24th)'),
+    t('activities.observance.samarpan', 'Samarpan Diwas (Bindu Madhav Joshi Punyatithi)'),
   ];
 
   return (
@@ -82,14 +82,14 @@ export const ActivitiesPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">Activities</Typography>
+          <Typography color="text.primary">{t('nav.activities')}</Typography>
         </Breadcrumbs>
 
         <Typography variant="h3" fontWeight={800} color="primary" gutterBottom>
-          ABGP Activities & Focus Areas
+          {t('activities.hero.title')}
         </Typography>
         <Typography variant="h6" color="text.secondary" paragraph sx={{ mb: 6, maxWidth: '800px' }}>
-          Organizing consumers through Sanghatan, awareness through Jaagaran, movement-based actions, and Grahak guidance.
+          {t('activities.hero.subtitle')}
         </Typography>
 
         <Grid container spacing={4} sx={{ mb: 8 }}>
@@ -114,10 +114,10 @@ export const ActivitiesPage: React.FC = () => {
           <Grid item xs={12} md={7}>
             <Paper sx={{ p: 4, borderRadius: 4, mb: 4 }}>
               <Typography variant="h5" fontWeight={700} gutterBottom color="secondary">
-                The Six Core Aayams
+                {t('activities.aayams.title')}
               </Typography>
               <Typography variant="body1" paragraph>
-                ABGP believes that a Grahak cannot thrive without these essentials and structures activities around them:
+                {t('activities.aayams.subtitle')}
               </Typography>
               <Grid container spacing={2}>
                 {focusAayams.map((aayam, index) => (
@@ -132,10 +132,10 @@ export const ActivitiesPage: React.FC = () => {
             </Paper>
 
             <Typography variant="h5" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
-              Memorandums & Representations
+              {t('activities.memo.title')}
             </Typography>
             <Typography variant="body1" paragraph>
-              ABGP regularly submits memorandums to government authorities, ministers, and regulatory bodies to advocate for consumer interests.
+              {t('activities.memo.text')}
             </Typography>
             <Card sx={{ borderRadius: 4, overflow: 'hidden', mb: 4 }}>
               <CardMedia
@@ -146,7 +146,7 @@ export const ActivitiesPage: React.FC = () => {
               />
               <CardContent>
                 <Typography variant="caption" color="text.secondary">
-                  ABGP Karyakartas submitting a memorandum for consumer rights.
+                  {t('activities.memo.caption')}
                 </Typography>
               </CardContent>
             </Card>
@@ -157,7 +157,7 @@ export const ActivitiesPage: React.FC = () => {
               <Card sx={{ p: 4, borderRadius: 4, backgroundColor: theme.palette.primary.main, color: 'white' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <EventAvailable fontSize="large" />
-                  <Typography variant="h5" fontWeight={700}>Important Observances</Typography>
+                  <Typography variant="h5" fontWeight={700}>{t('activities.observances.title')}</Typography>
                 </Box>
                 <List>
                   {observanceDays.map((day, index) => (
@@ -175,23 +175,23 @@ export const ActivitiesPage: React.FC = () => {
               <Card sx={{ p: 4, borderRadius: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <HistoryEdu fontSize="large" color="primary" />
-                  <Typography variant="h5" fontWeight={700}>Important Events</Typography>
+                  <Typography variant="h5" fontWeight={700}>{t('activities.events.title')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  ABGP organizes several state and national level events including:
+                  {t('activities.events.subtitle')}
                 </Typography>
                 <Stack spacing={2}>
                   <Box sx={{ p: 2, borderRadius: 2, backgroundColor: theme.palette.grey[100] }}>
-                    <Typography variant="subtitle2" fontWeight={700}>National Conferences</Typography>
-                    <Typography variant="body2">Gathering of Karyakartas from all 42 Prants.</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>{t('activities.events.conf')}</Typography>
+                    <Typography variant="body2">{t('activities.events.confDesc')}</Typography>
                   </Box>
                   <Box sx={{ p: 2, borderRadius: 2, backgroundColor: theme.palette.grey[100] }}>
-                    <Typography variant="subtitle2" fontWeight={700}>Training Workshops</Typography>
-                    <Typography variant="body2">Capacity building for legal and technical consumer issues.</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>{t('activities.events.workshops')}</Typography>
+                    <Typography variant="body2">{t('activities.events.workshopsDesc')}</Typography>
                   </Box>
                   <Box sx={{ p: 2, borderRadius: 2, backgroundColor: theme.palette.grey[100] }}>
-                    <Typography variant="subtitle2" fontWeight={700}>Awareness Rallies</Typography>
-                    <Typography variant="body2">Public engagement for major consumer rights causes.</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>{t('activities.events.rallies')}</Typography>
+                    <Typography variant="body2">{t('activities.events.ralliesDesc')}</Typography>
                   </Box>
                 </Stack>
               </Card>
@@ -200,6 +200,7 @@ export const ActivitiesPage: React.FC = () => {
         </Grid>
       </Container>
     </Box>
+
   );
 };
 

@@ -39,7 +39,7 @@ export const ContactSection: React.FC = () => {
     e.preventDefault();
     // Handle form submission - placeholder for future API integration
     console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
+    alert(t('contact.form.success'));
     setFormData({ name: '', email: '', message: '' });
   };
 
@@ -69,7 +69,7 @@ export const ContactSection: React.FC = () => {
             <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
-                  Key Contact
+                  {t('contact.keyContact')}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Person color="primary" sx={{ mr: 2 }} />

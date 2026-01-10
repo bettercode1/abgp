@@ -43,29 +43,29 @@ export const AboutPage: React.FC = () => {
   const theme = useTheme();
 
   const philosophyPoints = [
-    { title: 'The Consumer is King', desc: 'Considered king of all economic transactions.' },
-    { title: 'Kingpin of Democracy', desc: 'The pivot around which the wheel of democracy revolves.' },
-    { title: 'Capital of Economy', desc: 'The vital life breadth of the economy.' },
+    { title: t('about.philosophy.point1.title'), desc: t('about.philosophy.point1.desc') },
+    { title: t('about.philosophy.point2.title'), desc: t('about.philosophy.point2.desc') },
+    { title: t('about.philosophy.point3.title'), desc: t('about.philosophy.point3.desc') },
   ];
 
   const leaderQuotes = [
     {
-      quote: "I have briefed about the activities of Grahak Panchayat. The whole nation is in need of such work. The youth should undertake this constructive work.",
+      quote: t('about.quotes.jp.text', "I have briefed about the activities of Grahak Panchayat. The whole nation is in need of such work. The youth should undertake this constructive work."),
       author: "Shri Jay Prakash Narayan",
       date: "23rd Jan 1974"
     },
     {
-      quote: "Friends, remember, consumer is the kingpin in a rural democracy. Had Gandhiji been alive today he would have given this work to nation as 'One Point Programme'.",
+      quote: t('about.quotes.chagla.text', "Friends, remember, consumer is the kingpin in a rural democracy. Had Gandhiji been alive today he would have given this work to nation as 'One Point Programme'."),
       author: "Justice M C Chagla",
       date: "23rd Feb 1975"
     },
     {
-      quote: "The work of Grahak Panchayat is right effort in the right direction. You should strive to take this activity to every city and village.",
+      quote: t('about.quotes.president.text', "The work of Grahak Panchayat is right effort in the right direction. You should strive to take this activity to every city and village."),
       author: "President Frakrudin Ali Ahmad",
       date: "14th Jan 1975"
     },
     {
-      quote: "The work started by Grahak Panchayat has the potential of restructuring the nation's economic order. Such work must spread throughout the country.",
+      quote: t('about.quotes.shah.text', "The work started by Grahak Panchayat has the potential of restructuring the nation's economic order. Such work must spread throughout the country."),
       author: "Chief Justice J C Shah",
       date: "23rd Feb 1976"
     }
@@ -78,30 +78,30 @@ export const AboutPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">About ABGP</Typography>
+          <Typography color="text.primary">{t('nav.about')}</Typography>
         </Breadcrumbs>
 
         {/* Hero Section */}
         <Paper elevation={0} sx={{ p: { xs: 4, md: 8 }, borderRadius: 4, backgroundColor: theme.palette.primary.main, color: 'white', mb: 6, position: 'relative', overflow: 'hidden' }}>
           <Box sx={{ position: 'relative', zIndex: 1 }}>
             <Typography variant="h2" fontWeight={800} gutterBottom sx={{ fontSize: { xs: '2.5rem', md: '3.75rem' } }}>
-              About ABGP
+              {t('about.hero.title')}
             </Typography>
             <Typography variant="h5" sx={{ opacity: 0.9, maxWidth: '800px', mb: 4 }}>
-              ABGP is a national-level organization committed to serving society through the welfare of Grahaks (consumers).
+              {t('about.hero.subtitle')}
             </Typography>
             <Stack direction="row" spacing={4} flexWrap="wrap">
               <Box>
                 <Typography variant="h4" fontWeight={800}>42</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Prants active</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>{t('about.hero.stats.prants')}</Typography>
               </Box>
               <Box>
                 <Typography variant="h4" fontWeight={800}>450+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Jillas covered</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>{t('about.hero.stats.jillas')}</Typography>
               </Box>
               <Box>
                 <Typography variant="h4" fontWeight={800}>1,200+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Locations across India</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>{t('about.hero.stats.locations')}</Typography>
               </Box>
             </Stack>
           </Box>
@@ -116,25 +116,20 @@ export const AboutPage: React.FC = () => {
             {/* Overview Section */}
             <Box sx={{ mb: 8 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                National Consumer Movement
+                {t('about.overview.title')}
               </Typography>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', lineHeight: 1.8 }}>
-                Since the Swarna Jayanti Varsh, our goal has been to transform the Grahak Andolan into a 
-                Jan Andolan—a true people’s movement. ABGP addresses key national consumer issues such as 
-                food adulteration, MRP violations, railway concerns, banking depositor rights, cyber safety, 
-                misleading advertisements, and OTT platform regulations.
+                {t('about.overview.text')}
               </Typography>
             </Box>
 
             {/* Philosophy Section */}
             <Box sx={{ mb: 8 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                ABGP Philosophy
+                {t('about.philosophy.title')}
               </Typography>
               <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
-                Our ancient Indian Philosophy is founded by seers and the way of life has been ordained by them. 
-                We apply the same principles and values to consumer movement, using body, mind, intellect and soul 
-                in proper proportion. A self restrained consumer policy based on three core principles:
+                {t('about.philosophy.text')}
               </Typography>
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 {philosophyPoints.map((point, index) => (
@@ -152,7 +147,7 @@ export const AboutPage: React.FC = () => {
             {/* Theme Section */}
             <Box sx={{ mb: 8 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                ABGP Theme & Representation
+                {t('about.theme.title')}
               </Typography>
               <Grid container spacing={4} alignItems="center">
                 <Grid item xs={12} sm={4}>
@@ -160,16 +155,14 @@ export const AboutPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={12} sm={8}>
                   <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
-                    The ABGP Theme reflects our deep-rooted values. At its heart stands <strong>Swami Vivekananda</strong>, 
-                    whose ideals of strength, selfless service, and national awakening serve as our guiding force.
+                    {t('about.theme.text')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 3, mt: 4, alignItems: 'center', p: 3, backgroundColor: theme.palette.action.hover, borderRadius: 4 }}>
                     <Box component="img" src={emblem} sx={{ width: 80, height: 80, borderRadius: '50%' }} alt="ABGP Emblem" />
                     <Box>
-                      <Typography variant="h6" fontWeight={700}>Significance of the Eagle</Typography>
+                      <Typography variant="h6" fontWeight={700}>{t('about.theme.eagle.title')}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        The eagle symbolizes sharp vision, clarity, and foresight. Its wide-spread wings represent 
-                        the expansive reach of ABGP in serving society.
+                        {t('about.theme.eagle.desc')}
                       </Typography>
                     </Box>
                   </Box>
@@ -180,7 +173,7 @@ export const AboutPage: React.FC = () => {
             {/* Leadership Quotes */}
             <Box sx={{ mb: 8 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                What They Said
+                {t('about.quotes.title')}
               </Typography>
               <Grid container spacing={3}>
                 {leaderQuotes.map((q, index) => (
@@ -201,7 +194,7 @@ export const AboutPage: React.FC = () => {
             {/* Historical Moments */}
             <Box sx={{ mb: 8 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                Historical Moments
+                {t('about.moments.title')}
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
@@ -220,16 +213,16 @@ export const AboutPage: React.FC = () => {
               {/* Structure Card */}
               <Card sx={{ p: 3, borderRadius: 4, border: `2px solid ${theme.palette.primary.main}` }}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>
-                  Structure of ABGP
+                  {t('about.structure.title')}
                 </Typography>
                 <List>
                   <ListItem>
                     <ListItemIcon><GroupsIcon color="primary" /></ListItemIcon>
-                    <ListItemText primary="General Body" secondary="Sarva Sadharan Sabha" />
+                    <ListItemText primary={t('about.structure.general')} secondary={t('about.structure.generalDesc')} />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><TrendingUpIcon color="primary" /></ListItemIcon>
-                    <ListItemText primary="National Executive Council" secondary="Rashtriya Karyakari Parishad" />
+                    <ListItemText primary={t('about.structure.executive')} secondary={t('about.structure.executiveDesc')} />
                   </ListItem>
                 </List>
               </Card>
@@ -242,7 +235,7 @@ export const AboutPage: React.FC = () => {
               {/* Quick Links */}
               <Card sx={{ p: 3, borderRadius: 4, backgroundColor: theme.palette.secondary.main, color: 'white' }}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>
-                  Quick Navigation
+                  {t('about.navigation.title')}
                 </Typography>
                 <Stack spacing={2}>
                   <Button 
@@ -251,7 +244,7 @@ export const AboutPage: React.FC = () => {
                     sx={{ backgroundColor: 'white', color: theme.palette.secondary.main, '&:hover': { backgroundColor: '#f0f0f0' } }}
                     startIcon={<HistoryIcon />}
                   >
-                    View History Timeline
+                    {t('about.navigation.history')}
                   </Button>
                   <Button 
                     component={RouterLink} to="/constitution" 
@@ -259,7 +252,7 @@ export const AboutPage: React.FC = () => {
                     sx={{ backgroundColor: 'white', color: theme.palette.secondary.main, '&:hover': { backgroundColor: '#f0f0f0' } }}
                     startIcon={<VerifiedUserIcon />}
                   >
-                    ABGP Constitution
+                    {t('about.navigation.constitution')}
                   </Button>
                   <Button 
                     component={RouterLink} to="/court-decisions" 
@@ -267,7 +260,7 @@ export const AboutPage: React.FC = () => {
                     sx={{ backgroundColor: 'white', color: theme.palette.secondary.main, '&:hover': { backgroundColor: '#f0f0f0' } }}
                     startIcon={<GavelIcon />}
                   >
-                    Court Decisions
+                    {t('about.navigation.court')}
                   </Button>
                 </Stack>
               </Card>
@@ -275,27 +268,27 @@ export const AboutPage: React.FC = () => {
               {/* Sector Awareness */}
               <Card sx={{ p: 3, borderRadius: 4 }}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>
-                  Consumer Awareness
+                  {t('about.awareness.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  Empowering consumers across key sectors with knowledge and rights.
+                  {t('about.awareness.desc')}
                 </Typography>
                 <Stack spacing={1}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SecurityIcon fontSize="small" color="primary" />
-                    <Typography variant="body2">Cyber Safety</Typography>
+                    <Typography variant="body2">{t('about.awareness.cyber')}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <LanguageIcon fontSize="small" color="primary" />
-                    <Typography variant="body2">Misleading Ads</Typography>
+                    <Typography variant="body2">{t('about.awareness.ads')}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TipsIcon fontSize="small" color="primary" />
-                    <Typography variant="body2">Food Adulteration</Typography>
+                    <Typography variant="body2">{t('about.awareness.food')}</Typography>
                   </Box>
                 </Stack>
                 <Button sx={{ mt: 2 }} component={RouterLink} to="/faq">
-                  Learn More in FAQs
+                  {t('about.awareness.faq')}
                 </Button>
               </Card>
             </Stack>
@@ -303,5 +296,6 @@ export const AboutPage: React.FC = () => {
         </Grid>
       </Container>
     </Box>
+
   );
 };

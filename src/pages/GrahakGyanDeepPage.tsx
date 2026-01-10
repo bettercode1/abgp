@@ -39,70 +39,70 @@ export const GrahakGyanDeepPage: React.FC = () => {
   const theme = useTheme();
 
   const consumerRights = [
-    { title: 'Right to Safety', desc: 'Protection against goods and services which are hazardous to life and property.' },
-    { title: 'Right to Information', desc: 'To be informed about quality, quantity, purity, standard and price.' },
-    { title: 'Right to Choose', desc: 'Assurance of access to a variety of goods and services at competitive prices.' },
-    { title: 'Right to be Heard', desc: 'Consumer\'s interests will receive due consideration at appropriate forums.' },
-    { title: 'Right to Redressal', desc: 'Right to seek redressal against unfair trade practices or exploitation.' },
-    { title: 'Right to Education', desc: 'To acquire knowledge and skill to be an informed consumer.' },
+    { title: t('gyandeep.rights.safety'), desc: t('gyandeep.rights.safetyDesc') },
+    { title: t('gyandeep.rights.info'), desc: t('gyandeep.rights.infoDesc') },
+    { title: t('gyandeep.rights.choose'), desc: t('gyandeep.rights.chooseDesc') },
+    { title: t('gyandeep.rights.heard'), desc: t('gyandeep.rights.heardDesc') },
+    { title: t('gyandeep.rights.redressal'), desc: t('gyandeep.rights.redressalDesc') },
+    { title: t('gyandeep.rights.education'), desc: t('gyandeep.rights.educationDesc') },
   ];
 
   const consumerResponsibilities = [
-    'Be Aware of your Rights and Duties',
-    'Check Labels and Terms before purchase',
-    'Ask for Bills, Receipts and Warranties',
-    'Use Products/Services Wisely and Sustainably',
-    'Report Unfair Practices',
+    t('gyandeep.resp.aware'),
+    t('gyandeep.resp.labels'),
+    t('gyandeep.resp.bills'),
+    t('gyandeep.resp.wise'),
+    t('gyandeep.resp.report'),
   ];
 
   const sectors = [
     {
-      title: 'Environment',
+      title: t('gyandeep.sectors.env'),
       icon: <Nature color="success" />,
       points: [
-        'Choose eco-friendly products',
-        'Avoid plastic use',
-        'Be cautious of greenwashing in ads',
-        'Support sustainable practices',
+        t('gyandeep.sectors.env.p1', 'Choose eco-friendly products'),
+        t('gyandeep.sectors.env.p2', 'Avoid plastic use'),
+        t('gyandeep.sectors.env.p3', 'Be cautious of greenwashing in ads'),
+        t('gyandeep.sectors.env.p4', 'Support sustainable practices'),
       ],
     },
     {
-      title: 'Food',
+      title: t('gyandeep.sectors.food'),
       icon: <Restaurant color="warning" />,
       points: [
-        'Check FSSAI license on products',
-        'Read expiry date and ingredients',
-        'Be aware of food adulteration',
-        'File complaints via Food Safety helpline',
+        t('gyandeep.sectors.food.p1', 'Check FSSAI license on products'),
+        t('gyandeep.sectors.food.p2', 'Read expiry date and ingredients'),
+        t('gyandeep.sectors.food.p3', 'Be aware of food adulteration'),
+        t('gyandeep.sectors.food.p4', 'File complaints via Food Safety helpline'),
       ],
     },
     {
-      title: 'Cyber',
+      title: t('gyandeep.sectors.cyber'),
       icon: <Security color="info" />,
       points: [
-        'Beware of phishing and scams',
-        'Use secure websites and payments',
-        'Read privacy policies',
-        'Report cyber fraud to cybercrime.gov.in',
+        t('gyandeep.sectors.cyber.p1', 'Beware of phishing and scams'),
+        t('gyandeep.sectors.cyber.p2', 'Use secure websites and payments'),
+        t('gyandeep.sectors.cyber.p3', 'Read privacy policies'),
+        t('gyandeep.sectors.cyber.p4', 'Report cyber fraud to cybercrime.gov.in'),
       ],
     },
     {
-      title: 'Real Estate',
+      title: t('gyandeep.sectors.estate'),
       icon: <HomeWork color="secondary" />,
       points: [
-        'Register only with RERA-approved builders',
-        'Demand proper legal documents',
-        'Lodge complaints at RERA portal',
+        t('gyandeep.sectors.estate.p1', 'Register only with RERA-approved builders'),
+        t('gyandeep.sectors.estate.p2', 'Demand proper legal documents'),
+        t('gyandeep.sectors.estate.p3', 'Lodge complaints at RERA portal'),
       ],
     },
     {
-      title: 'Education',
+      title: t('gyandeep.sectors.edu'),
       icon: <School color="error" />,
       points: [
-        'Know your rights as student/parent',
-        'Ask for fee breakdown/refund policies',
-        'Check accreditation of institutions',
-        'Report unfair practices',
+        t('gyandeep.sectors.edu.p1', 'Know your rights as student/parent'),
+        t('gyandeep.sectors.edu.p2', 'Ask for fee breakdown/refund policies'),
+        t('gyandeep.sectors.edu.p3', 'Check accreditation of institutions'),
+        t('gyandeep.sectors.edu.p4', 'Report unfair practices'),
       ],
     },
   ];
@@ -114,15 +114,15 @@ export const GrahakGyanDeepPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">Grahak Gyan Deep</Typography>
+          <Typography color="text.primary">{t('nav.gyandeep')}</Typography>
         </Breadcrumbs>
 
         <Paper elevation={0} sx={{ p: { xs: 4, md: 8 }, borderRadius: 4, backgroundColor: '#1a237e', color: 'white', mb: 6 }}>
           <Typography variant="h2" fontWeight={800} gutterBottom>
-            Grahak Gyan Deep
+            {t('gyandeep.hero.title')}
           </Typography>
           <Typography variant="h4" fontWeight={400} sx={{ opacity: 0.9 }}>
-            Empowering Every Consumer with Knowledge
+            {t('gyandeep.hero.subtitle')}
           </Typography>
         </Paper>
 
@@ -130,29 +130,27 @@ export const GrahakGyanDeepPage: React.FC = () => {
           <Grid item xs={12} md={7}>
             <Box sx={{ mb: 6 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                Who is a Consumer?
+                {t('gyandeep.who.title')}
               </Typography>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', lineHeight: 1.8 }}>
-                Under the Consumer Protection Act (CPA) 2019, a consumer is a person who buys goods or avails 
-                services for personal use. This includes online and offline shoppers, as well as those 
-                using telecom, banking, healthcare, or transport services.
+                {t('gyandeep.who.text')}
               </Typography>
               <Card sx={{ p: 3, backgroundColor: theme.palette.action.hover, borderRadius: 3 }}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>
-                  You are a Consumer when:
+                  {t('gyandeep.who.when.title')}
                 </Typography>
                 <Stack spacing={1}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ShoppingBag color="primary" fontSize="small" />
-                    <Typography>You shop online or in-store</Typography>
+                    <Typography>{t('gyandeep.who.when.shop')}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Restaurant color="primary" fontSize="small" />
-                    <Typography>You dine at restaurants or book travel</Typography>
+                    <Typography>{t('gyandeep.who.when.dine')}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Assignment color="primary" fontSize="small" />
-                    <Typography>You use banking, healthcare or transport services</Typography>
+                    <Typography>{t('gyandeep.who.when.services')}</Typography>
                   </Box>
                 </Stack>
               </Card>
@@ -160,10 +158,10 @@ export const GrahakGyanDeepPage: React.FC = () => {
 
             <Box sx={{ mb: 6 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                ⚖️ Consumer Rights
+                ⚖️ {t('gyandeep.rights.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Under the Consumer Protection Act, 2019, every consumer is entitled to:
+                {t('gyandeep.rights.subtitle')}
               </Typography>
               <Grid container spacing={3}>
                 {consumerRights.map((right, index) => (
@@ -184,7 +182,7 @@ export const GrahakGyanDeepPage: React.FC = () => {
 
             <Box sx={{ mb: 6 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                ✅ Consumer Responsibilities
+                ✅ {t('gyandeep.resp.title')}
               </Typography>
               <Paper sx={{ p: 4, borderRadius: 3 }}>
                 <List>
@@ -206,7 +204,7 @@ export const GrahakGyanDeepPage: React.FC = () => {
             <Stack spacing={4}>
               <Card sx={{ p: 4, borderRadius: 4, border: `2px solid ${theme.palette.primary.main}` }}>
                 <Typography variant="h5" fontWeight={800} gutterBottom color="primary">
-                  Consumer Awareness Across Key Sectors
+                  {t('gyandeep.sectors.title')}
                 </Typography>
                 <Stack spacing={3}>
                   {sectors.map((sector, index) => (
@@ -232,18 +230,17 @@ export const GrahakGyanDeepPage: React.FC = () => {
               <Card sx={{ p: 4, borderRadius: 4, backgroundColor: theme.palette.error.main, color: 'white' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <ReportProblem />
-                  <Typography variant="h6" fontWeight={800}>Report Unfair Practices</Typography>
+                  <Typography variant="h6" fontWeight={800}>{t('gyandeep.report.title')}</Typography>
                 </Box>
                 <Typography variant="body2" paragraph>
-                  Don't be a silent victim! If you face exploitation, reach out to ABGP Margadarshan Seva or 
-                  use the National Consumer Helpline.
+                  {t('gyandeep.report.text')}
                 </Typography>
                 <Button 
                   component={RouterLink} to="/contact" 
                   variant="contained" 
                   sx={{ backgroundColor: 'white', color: theme.palette.error.main, '&:hover': { backgroundColor: '#f0f0f0' } }}
                 >
-                  Get Help Now
+                  {t('gyandeep.report.cta')}
                 </Button>
               </Card>
             </Stack>
@@ -251,6 +248,7 @@ export const GrahakGyanDeepPage: React.FC = () => {
         </Grid>
       </Container>
     </Box>
+
   );
 };
 

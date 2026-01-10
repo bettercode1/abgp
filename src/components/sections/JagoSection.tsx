@@ -21,25 +21,25 @@ const jagoCards = [
   {
     image: jagoGrahak,
     titleKey: 'jago.card.awareness',
-    description: 'Educational modules and resources to empower consumers with knowledge.',
+    descriptionKey: 'jago.card.awareness.desc',
     link: '/gyandeep',
   },
   {
     image: grahak1,
     titleKey: 'jago.card.rights',
-    description: 'Understanding your rights as a consumer and how to exercise them.',
+    descriptionKey: 'jago.card.rights.desc',
     link: '/gyandeep',
   },
   {
     image: grahak2,
     titleKey: 'jago.card.campaigns',
-    description: 'Ongoing initiatives and programs to raise consumer awareness.',
+    descriptionKey: 'jago.card.campaigns.desc',
     link: '/activities',
   },
   {
     image: icon1,
     titleKey: 'jago.card.stories',
-    description: 'Inspiring success stories from consumers and ABGP initiatives.',
+    descriptionKey: 'jago.card.stories.desc',
     link: '/media',
   },
 ];
@@ -95,7 +95,7 @@ export const JagoSection: React.FC = () => {
                       {t(card.titleKey)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {card.description}
+                      {t(card.descriptionKey)}
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>

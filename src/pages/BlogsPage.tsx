@@ -18,44 +18,44 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarToday, Person } from '@mui/icons-material';
 
-const blogs = [
-  {
-    id: 1,
-    title: 'Precautions to be taken while Purchasing Flat',
-    date: 'Mar 24, 2017',
-    author: 'Vijay Sagar',
-    content: `नमस्कार आप सभी लोग ग्राहक पंचायत के काम मे गत कई सालोसे अवगत है. हर एक आदमी का एक सपना होता है की अपना घर हो. देहात मे अभी भी जगह लेके स्वतंत्र घर का नियोजन करते है. मगर शहरोमे ऐसा नियोजन करनेवाले बहूत अमीर लोग होते है. हम आज शहरोमे फ्लॅट या अपार्टमेंट ही […]`,
-    category: 'Real Estate',
-  },
-  {
-    id: 2,
-    title: 'National consumer case of flat purchaser jointly file',
-    date: 'Mar 24, 2017',
-    author: 'Vijay Sagar',
-    content: `*3 Cheers to all flat purchaser consumers.* on 7 Oct 2016 National Commission Full Bench has given historical judgement in case no *97/2016* All Flat buyer consumers can jointly file complaint under sec *12 (1)(c)* of CPA and ask relief from National Commission irrespective of cost of compensation and this case can be filed by […]`,
-    category: 'Consumer Rights',
-  },
-  {
-    id: 3,
-    title: 'Land reforms act',
-    date: 'Mar 24, 2017',
-    author: 'Vijay Sagar',
-    content: `जमीनीला कूळ लागणे हा वाक्यप्रयोग आता आपल्याला चांगला माहिती झाला आहे. कूळ म्हणजे काय? कूळ कसा तयार होतो? कूळाचे कोणते हक्क असतात? आणि शेत जमीन व कूळ यांचे कायदेशीर संबंध काय असतात? याची आज आपण माहिती घेऊ.” कसेल त्याची जमीन ” असे तत्व घेऊन कूळ कायदा अस्तित्वात आला. दुसर्‍याची जमीन कायदेशीररित्या कसणारा व प्रत्यक्ष कष्ट […]`,
-    category: 'Law',
-  },
-  {
-    id: 4,
-    title: 'RERA Act Suggestions',
-    date: 'Mar 24, 2017',
-    author: 'Vijay Sagar',
-    content: `प्रती, श्री देवेंद्र फडणवीसजी मा. मुख्य मंत्री, महाराष्ट्र राज्य, मंत्रालय, मुंबई 400032 विषय: महाराष्ट्र राज्याने दि.8 डिसेंबर 2016 रोजी राजपत्रात प्रसिध्दी केलेला रेरा कायदा रद्द करून केंद्र सरकारने लागू केलेला रेरा कायदा जसा आहे तसा स्वीकारणे बाबत मा. महोदय, अखिल भारतीय ग्राहक पंचायत पुणे ने आपणास प्रत्यक्ष भेटून जून 2016 मधे पुणे येथील 40 बिल्डर […]`,
-    category: 'Policy',
-  },
-];
-
 export const BlogsPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+
+  const blogs = [
+    {
+      id: 1,
+      title: t('media.blog.item1.title'),
+      date: t('media.blog.item1.date'),
+      author: t('media.blog.item1.author'),
+      content: t('media.blog.item1.content'),
+      category: t('media.blog.category.realEstate'),
+    },
+    {
+      id: 2,
+      title: t('media.blog.item2.title'),
+      date: t('media.blog.item2.date'),
+      author: t('media.blog.item2.author'),
+      content: t('media.blog.item2.content'),
+      category: t('media.blog.category.consumerRights'),
+    },
+    {
+      id: 3,
+      title: t('media.blog.item3.title'),
+      date: t('media.blog.item3.date'),
+      author: t('media.blog.item3.author'),
+      content: t('media.blog.item3.content'),
+      category: t('media.blog.category.law'),
+    },
+    {
+      id: 4,
+      title: t('media.blog.item4.title'),
+      date: t('media.blog.item4.date'),
+      author: t('media.blog.item4.author'),
+      content: t('media.blog.item4.content'),
+      category: t('media.blog.category.policy'),
+    },
+  ];
 
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
@@ -68,7 +68,7 @@ export const BlogsPage: React.FC = () => {
         </Breadcrumbs>
 
         <Typography variant="h3" component="h1" fontWeight={800} color="primary" gutterBottom sx={{ mb: 6 }}>
-          ABGP Blog Posts
+          {t('media.blog.pageTitle')}
         </Typography>
 
         <Grid container spacing={4}>
@@ -99,8 +99,8 @@ export const BlogsPage: React.FC = () => {
                     {blog.content}
                   </Typography>
 
-                  <Button variant="outlined" color="primary">
-                    Read More →
+                  <Button variant="outlined" color="primary" component={RouterLink} to="/blogs">
+                    {t('media.readMore')} →
                   </Button>
                 </CardContent>
               </Card>

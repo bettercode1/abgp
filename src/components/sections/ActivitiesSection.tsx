@@ -21,22 +21,22 @@ const activityTypes = [
   {
     icon: Groups,
     key: 'activities.sanghatan',
-    description: 'Building organizational strength through structured consumer groups.',
+    descriptionKey: 'activities.sanghatan.desc',
   },
   {
     icon: Campaign,
     key: 'activities.jaagaran',
-    description: 'Raising awareness through educational campaigns and programs.',
+    descriptionKey: 'activities.jaagaran.desc',
   },
   {
     icon: TrendingUp,
     key: 'activities.aandolan',
-    description: 'Movement-based actions for consumer rights and welfare.',
+    descriptionKey: 'activities.aandolan.desc',
   },
   {
     icon: Support,
     key: 'activities.margadarshan',
-    description: 'Providing guidance and support services to consumers.',
+    descriptionKey: 'activities.margadarshan.desc',
   },
 ];
 
@@ -105,7 +105,7 @@ export const ActivitiesSection: React.FC = () => {
                       {t(activity.key)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {activity.description}
+                      {t(activity.descriptionKey)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -122,7 +122,7 @@ export const ActivitiesSection: React.FC = () => {
             gutterBottom
             sx={{ textAlign: 'center', mb: 3, fontWeight: 600 }}
           >
-            Key Sectors
+            {t('activities.keySectors')}
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 2 }}>
             {sectors.map((sector, index) => (

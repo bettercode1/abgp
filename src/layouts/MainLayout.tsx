@@ -95,19 +95,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center', width: 280 }}>
-      <Box
-        component="img"
-        src={logoImage}
-        alt="Akhil Bhartiya Grahak Panchayat Logo"
-        sx={{
-          height: 60,
-          width: 'auto',
-          maxWidth: '200px',
-          objectFit: 'contain',
-          my: 2,
-          mx: 'auto',
-        }}
-      />
+        <Box
+          component="img"
+          src={logoImage}
+          alt={t('header.fullName')}
+          sx={{
+            height: 60,
+            width: 'auto',
+            maxWidth: '200px',
+            objectFit: 'contain',
+            my: 2,
+            mx: 'auto',
+          }}
+        />
       <Divider />
       <List>
         {navigationItems.map((item) => (
@@ -213,7 +213,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <Box
                 component="img"
                 src={logoImage}
-                alt="Akhil Bhartiya Grahak Panchayat Logo"
+                alt={t('header.fullName')}
                 sx={{
                   height: { xs: 60, sm: 70, md: 80 },
                   width: 'auto',
@@ -230,8 +230,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 color="secondary"
                 size="small"
                 onClick={() => {
-                  window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
+                  // TODO: Replace with new Razorpay integration
+                  // window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
+                  console.log('Donate button clicked - waiting for new Razorpay integration');
                 }}
+                disabled
               >
                 {t('header.donate')}
               </Button>
@@ -402,7 +405,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             {/* Navigation Links Section */}
             <Grid item xs={12} sm={6} md={2}>
               <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
-                {t('nav.quickLinks') || 'Quick Links'}
+                {t('nav.quickLinks')}
               </Typography>
               <Stack spacing={1.5}>
                 {navigationItems.map((item) => (
@@ -441,126 +444,126 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                       transform: 'translateX(5px)',
                     },
                   }}
-                >
-                  ABGP Constitution
-                </Link>
-                <Link
-                  component={RouterLink}
-                  to="/court-decisions"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    opacity: 0.8,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      opacity: 1,
-                      color: theme.palette.secondary.main,
-                      transform: 'translateX(5px)',
-                    },
-                  }}
-                >
-                  Court Decisions
-                </Link>
-              </Stack>
-            </Grid>
+                  >
+                    {t('nav.constitution')}
+                  </Link>
+                  <Link
+                    component={RouterLink}
+                    to="/court-decisions"
+                    color="inherit"
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      opacity: 0.8,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        opacity: 1,
+                        color: theme.palette.secondary.main,
+                        transform: 'translateX(5px)',
+                      },
+                    }}
+                  >
+                    {t('nav.courtDecisions')}
+                  </Link>
+                </Stack>
+              </Grid>
 
-            {/* Social Connect Section */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
-                Connect with Us
-              </Typography>
-              <Stack spacing={1}>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<Facebook />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#1877F2' },
-                  }}
-                >
-                  Facebook
-                </Button>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<Twitter />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#1DA1F2' },
-                  }}
-                >
-                  Twitter
-                </Button>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<YouTube />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#FF0000' },
-                  }}
-                >
-                  YouTube
-                </Button>
-              </Stack>
-            </Grid>
+              {/* Social Connect Section */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+                  {t('footer.connect')}
+                </Typography>
+                <Stack spacing={1}>
+                  <Button
+                    component="a"
+                    href="#"
+                    color="inherit"
+                    startIcon={<Facebook />}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: '#1877F2' },
+                    }}
+                  >
+                    {t('footer.social.facebook')}
+                  </Button>
+                  <Button
+                    component="a"
+                    href="#"
+                    color="inherit"
+                    startIcon={<Twitter />}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: '#1DA1F2' },
+                    }}
+                  >
+                    {t('footer.social.twitter')}
+                  </Button>
+                  <Button
+                    component="a"
+                    href="#"
+                    color="inherit"
+                    startIcon={<YouTube />}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: '#FF0000' },
+                    }}
+                  >
+                    {t('footer.social.youtube')}
+                  </Button>
+                </Stack>
+              </Grid>
 
-            {/* Legal Section */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
-                Legal & Support
-              </Typography>
-              <Stack spacing={1.5}>
-                <Link
-                  component={RouterLink}
-                  to="/terms"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
-                  {t('footer.terms')}
-                </Link>
-                <Link
-                  href="#"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
-                  {t('footer.privacy')}
-                </Link>
-                <Link
-                  href="#"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
-                  Help Center
-                </Link>
-              </Stack>
-            </Grid>
+              {/* Legal Section */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+                  {t('footer.legal')}
+                </Typography>
+                <Stack spacing={1.5}>
+                  <Link
+                    component={RouterLink}
+                    to="/terms"
+                    color="inherit"
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
+                    }}
+                  >
+                    {t('footer.terms')}
+                  </Link>
+                  <Link
+                    href="#"
+                    color="inherit"
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
+                    }}
+                  >
+                    {t('footer.privacy')}
+                  </Link>
+                  <Link
+                    href="#"
+                    color="inherit"
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.9rem',
+                      opacity: 0.8,
+                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
+                    }}
+                  >
+                    {t('footer.help')}
+                  </Link>
+                </Stack>
+              </Grid>
           </Grid>
         </Container>
       </Box>

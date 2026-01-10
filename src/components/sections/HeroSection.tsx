@@ -59,7 +59,7 @@ export const HeroSection: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <Box component="img" src={logoFinal} sx={{ width: 60, height: 60, borderRadius: '50%' }} alt="ABGP Logo" />
               <Typography variant="subtitle1" sx={{ color: theme.palette.primary.main, fontWeight: 700 }}>
-                Akhil Bhartiya Grahak Panchayat
+                {t('hero.title')}
               </Typography>
             </Box>
             <Typography
@@ -160,7 +160,7 @@ export const HeroSection: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Timeline color="primary" sx={{ mr: 1 }} />
                   <Typography variant="h6" color="primary">
-                    Timeline
+                    {t('history.title')}
                   </Typography>
                 </Box>
                 <List dense>

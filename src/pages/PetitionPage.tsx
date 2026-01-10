@@ -38,112 +38,111 @@ export const PetitionPage: React.FC = () => {
           <Link component={RouterLink} to="/" color="inherit" underline="hover">
             {t('nav.home')}
           </Link>
-          <Typography color="text.primary">Petition</Typography>
+          <Typography color="text.primary">{t('nav.petition')}</Typography>
         </Breadcrumbs>
 
         <Paper elevation={3} sx={{ p: { xs: 3, md: 6 }, borderRadius: 2 }}>
           <Typography variant="h3" component="h1" fontWeight={800} color="primary" gutterBottom textAlign="center">
-            About Us Petition
+            {t('petition.title')}
           </Typography>
           
           <Box sx={{ my: 4, p: 3, border: '2px dashed', borderColor: theme.palette.primary.main, borderRadius: 2, textAlign: 'center' }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
-              [Sign the Petition Below]
+              {t('petition.signTitle')}
             </Typography>
             {!signed ? (
               <Box component="form" onSubmit={handleSignPetition} sx={{ mt: 2 }}>
                 <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} justifyContent="center">
-                  <TextField size="small" placeholder="Your Full Name" required />
-                  <TextField size="small" placeholder="Your Email" type="email" required />
-                  <Button variant="contained" type="submit">Sign Petition</Button>
+                  <TextField size="small" placeholder={t('petition.placeholderName')} required />
+                  <TextField size="small" placeholder={t('petition.placeholderEmail')} type="email" required />
+                  <Button variant="contained" type="submit">{t('petition.signButton')}</Button>
                 </Stack>
               </Box>
             ) : (
-              <Alert severity="success">Thank you for signing the petition!</Alert>
+              <Alert severity="success">{t('petition.signSuccess')}</Alert>
             )}
           </Box>
 
           <Typography variant="body1" paragraph fontWeight={500}>
-            Dear Consumer,
+            {t('petition.dearConsumer')}
           </Typography>
           <Typography variant="body1" paragraph>
-            After signing petition, If you are not getting refund from airline company. Then please drop all details 
-            (Travel date, Amount, Airlines Company, Communication details with airlines Company) to <strong>help@abgpindia.com</strong>
+            {t('petition.refundNote')}
           </Typography>
 
           <Typography variant="body1" sx={{ mt: 4, fontStyle: 'italic' }}>
-            Regards,<br />
-            <strong>Akhil bhartiya grahak Panchayat</strong>
+            {t('petition.regards')}<br />
+            <strong>{t('petition.orgName')}</strong>
           </Typography>
 
           <Divider sx={{ my: 6 }} />
 
           <Box sx={{ backgroundColor: theme.palette.grey[100], p: { xs: 3, md: 4 }, borderRadius: 2 }}>
             <Typography variant="h5" fontWeight={700} gutterBottom>
-              To,<br />
-              The Aviation Minister<br />
-              Govt of India,
+              {t('petition.to')}<br />
+              {t('petition.minister')}<br />
+              {t('petition.govt')}
             </Typography>
 
             <Typography variant="h6" fontWeight={700} sx={{ mt: 3, mb: 2 }}>
-              Subject: Refund of Airfare amount of lockdown period.
+              {t('petition.subject')}
             </Typography>
 
             <Typography variant="body1" fontWeight={700} color="secondary" sx={{ mb: 3 }}>
-              सभी विमान कंपनी को तिकीट के पैसे वापस देने का आदेश दे.
+              {t('petition.subjectHindi')}
             </Typography>
 
             <Typography variant="body1" paragraph>
-              Sir,
+              {t('petition.sir')}
             </Typography>
 
             <Typography variant="body1" paragraph>
-              Govt has declared lock down of Nation and all domestic and international flights have been cancelled.
+              {t('petition.body1')}
             </Typography>
 
             <Typography variant="body1" paragraph>
-              DGCA as well as UN has asked to refund the airfare but almost all airlines are not refunding the amount of customer. Instead they are giving credit note and forcing consumers to fly with there airline.
+              {t('petition.body2')}
             </Typography>
 
             <Typography variant="body1" paragraph>
-              Airlines are using our money interest free and without giving service further forcing consumers to fly without reason.
+              {t('petition.body3')}
             </Typography>
 
             <Typography variant="body1" paragraph fontWeight={700}>
-              Request your kind honour to direct all airlines to refund amount of consumers instead of credit shells.
+              {t('petition.request')}
             </Typography>
 
             <Divider sx={{ my: 3 }} />
 
             <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', lineHeight: 1.8 }}>
-              सरकार ने लॉक डाऊन चालू करने के बाद विमान कंपनी ने ग्राहक की रकम वापस नही की हैं! विमान कंपनिया सभी ग्राहक को जबरन ट्रॅव्हल करने को मजबूर कर रही है तथा जमा राशी पर ब्याज भी नहीं दे रही है!
+              {t('petition.hindiBody1')}
             </Typography>
 
             <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              सरकार को आनुरोध हैं की सभी विमान कंपनी को आदेश दे की सभी ग्राहक की जमा राशी वापस करे!
+              {t('petition.hindiBody2')}
             </Typography>
           </Box>
 
           <Box sx={{ mt: 6 }}>
             <Typography variant="h6" fontWeight={700} gutterBottom>
-              Contact Information
+              {t('petition.contactTitle')}
             </Typography>
             <List>
               <ListItem disableGutters>
                 <ListItemIcon sx={{ minWidth: 40 }}><Home color="primary" /></ListItemIcon>
-                <ListItemText primary="Akhil Bharatiya Grahak Panchayat" secondary="634, Sadashiv Peth Pune 411030" />
+                <ListItemText primary={t('petition.orgName')} secondary={t('petition.orgAddress')} />
               </ListItem>
               <ListItem disableGutters>
                 <ListItemIcon sx={{ minWidth: 40 }}><Assignment color="primary" /></ListItemIcon>
-                <ListItemText primary="Website" secondary={<Link href="http://www.abgpindia.com" target="_blank">www.abgpindia.com</Link>} />
+                <ListItemText primary={t('petition.website')} secondary={<Link href="http://www.abgpindia.com" target="_blank">www.abgpindia.com</Link>} />
               </ListItem>
               <ListItem disableGutters>
                 <ListItemIcon sx={{ minWidth: 40 }}><Email color="primary" /></ListItemIcon>
-                <ListItemText primary="Email" secondary={<Link href="mailto:help@abgpindia.com">help@abgpindia.com</Link>} />
+                <ListItemText primary={t('petition.email')} secondary={<Link href="mailto:help@abgpindia.com">help@abgpindia.com</Link>} />
               </ListItem>
               <ListItem disableGutters>
                 <ListItemIcon sx={{ minWidth: 40 }}><Phone color="primary" /></ListItemIcon>
-                <ListItemText primary="Contact No" secondary="9422502315" />
+                <ListItemText primary={t('petition.phone')} secondary={t('petition.orgPhone')} />
               </ListItem>
             </List>
           </Box>
