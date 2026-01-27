@@ -26,6 +26,7 @@ const resources = {
       'header.donate': 'Donate',
       'header.membership': 'Online Membership',
       'nav.quickLinks': 'Quick Links',
+      'nav.gallery': 'Gallery',
       'lang.en': 'English',
       'lang.hi': 'हिंदी',
       'lang.mr': 'मराठी',
@@ -35,6 +36,29 @@ const resources = {
       'lang.ta': 'தமிழ்',
       'lang.bn': 'বাংলা',
       'lang.or': 'ଓଡ଼ିଆ',
+      
+      // Gallery Section
+      'gallery.title': 'Photo Gallery',
+      'gallery.subtitle': 'A collection of historical moments and events from ABGP\'s journey',
+      'gallery.searchPlaceholder': 'Search images...',
+      'gallery.imagesFound': 'images found',
+      'gallery.noImagesFound': 'No images found matching your search',
+      'gallery.image': 'Image',
+      'gallery.loading': 'Loading images...',
+      'gallery.viewAll': 'View All Images',
+      
+      // QuickMemo Section
+      'quickmemo.title': 'QuickMemos',
+      'quickmemo.subtitle': 'Recent updates, reports, and administrative memos from ABGP',
+      'quickmemo.view': 'View Memo',
+      'quickmemo.download': 'Download',
+      'quickmemo.item1.title': 'National Executive Update',
+      'quickmemo.item2.title': 'Prant Coordination Report',
+      'quickmemo.item3.title': 'Activity Guidelines 2025',
+      'quickmemo.item4.title': 'Membership Drive Update',
+      'quickmemo.item5.title': 'Annual Plan III',
+      'quickmemo.item6.title': 'Annual Plan II',
+      'quickmemo.item7.title': 'Annual Plan I',
       
       // Hero Section
       'hero.title': 'Akhil Bhartiya Grahak Panchayat (ABGP)',
@@ -154,8 +178,11 @@ const resources = {
       'membership.objectives': 'Core objectives: unite consumers, educate them, assist legally, establish research centers, and work without profit motive.',
       'membership.card.become': 'Become a Member',
       'membership.card.constitution': 'Constitution & Objectives',
+      'membership.card.executive': 'National Executive Committee',
+      'membership.executiveDescription': 'View the complete list of National Executive Committee members (2025-28)',
       'membership.cta.apply': 'Apply for Membership',
       'membership.cta.view': 'View Full Constitution',
+      'membership.cta.viewExecutive': 'View Executive Committee',
       
       // Media Section
       'media.title': 'Latest from ABGP',
@@ -216,6 +243,7 @@ const resources = {
       'about.theme.eagle.desc': 'The eagle symbolizes sharp vision, clarity, and foresight. Its wide-spread wings represent the expansive reach of ABGP in serving society.',
       'about.quotes.title': 'What They Said',
       'about.moments.title': 'Historical Moments',
+      'about.moments.subtitle': 'A collection of memorable moments from ABGP\'s journey',
       'about.structure.title': 'Structure of ABGP',
       'about.structure.general': 'General Body',
       'about.structure.generalDesc': 'Sarva Sadharan Sabha',
@@ -236,6 +264,9 @@ const resources = {
       'constitution.fullName': 'AKHIL BHARATIYA GRAHAK PANCHAYAT',
       'constitution.registration': '[Registered under Societies Registration Act, 1860] (Regn. No. S/9194)',
       'constitution.memorandumTitle': 'Memorandum of Association',
+      'constitution.memorandumDescription': 'View or download the complete Memorandum of Association document (Amended - 21 September 2014)',
+      'constitution.viewMoA': 'View Memorandum',
+      'constitution.downloadMoA': 'Download PDF',
       'constitution.nameTitle': '1. NAME :',
       'constitution.nameContent': 'The name of the association is ‘Akhil Bhartiya Grahak Panchayat’ and will be hereinafter referred to as ‘Panchayat’ in the Memorandum of Association and Rules Regulations made there under.',
       'constitution.addressTitle': '2. ADDRESS :',
@@ -515,6 +546,42 @@ const resources = {
       'membership.constPoint2': 'Educate consumers about their rights',
       'membership.constPoint3': 'Provide legal assistance when needed',
       'membership.constPoint4': 'Establish research centers for consumer welfare',
+      
+      // Prant Membership List
+      'prant.title': 'Prant Membership Contacts',
+      'prant.subtitle': 'Contact information for ABGP Prant leadership across India',
+      'prant.searchPlaceholder': 'Search by Prant name or contact person...',
+      'prant.totalPrants': '{{count}} Prants',
+      'prant.president': 'President',
+      'prant.sanghatak': 'Sanghatak',
+      'prant.sachiv': 'Sachiv',
+      'prant.email': 'Email',
+      'prant.noResults': 'No Prants found matching your search',
+      
+      // Kshetra Sanghatan Mantri List
+      'kshetra.title': 'Kshetra Sanghatan Mantri',
+      'kshetra.subtitle': 'Contact information for Kshetra level organization secretaries',
+      'kshetra.searchPlaceholder': 'Search by Kshetra name, Prant, or contact person...',
+      'kshetra.totalKshetra': '{{count}} Kshetra',
+      'kshetra.sanghatanMantri': 'Sanghatan Mantri',
+      'kshetra.contact': 'Contact',
+      'kshetra.email': 'Email',
+      'kshetra.responsibility': 'Responsibility',
+      'kshetra.responsibilityArea': 'Responsibility Area',
+      'kshetra.prant': 'Prant',
+      'kshetra.contactInfo': 'Contact Information',
+      'kshetra.noResults': 'No Kshetra found matching your search',
+      'kshetra.noData': 'Kshetra data will be available soon',
+      'kshetra.noDataMessage': 'Kshetra Sanghatan Mantri contact information is being updated. Please check back later.',
+      
+      // National Executive Committee
+      'executive.title': 'National Executive Committee 2025-28',
+      'executive.subtitle': 'Central Executive Committee members of Akhil Bhartiya Grahak Panchayat',
+      'executive.searchPlaceholder': 'Search by name, responsibility, or Prant...',
+      'executive.totalMembers': '{{count}} Members',
+      'executive.prant': 'Prant',
+      'executive.contact': 'Contact',
+      'executive.noResults': 'No members found matching your search',
 
       // Media Section News
       'media.news.item1.title': 'Grahak Panchayat made people aware – Bhopal',
@@ -639,9 +706,10 @@ const resources = {
       'media.blog.item4.content': 'To, Shri Devendra Fadnavis ji, Hon. Chief Minister, Maharashtra State, Mantralaya, Mumbai 400032 Subject: Regarding canceling the RERA Act published by Maharashtra State in the Gazette on December 8, 2016 and accepting the RERA Act implemented by the Central Government as it is. Hon. Sir, Akhil Bhartiya Grahak Panchayat Pune met you personally in June 2016 with 40 builders from Pune [...]',
 
       // Media Section Videos
-      'media.video.item1.title': 'ABGP Introduction Video',
+      'media.video.item1.title': 'ABGP Activity Highlights',
       'media.video.item2.title': 'Consumer Rights Explained',
       'media.video.item3.title': 'Annual Meeting Highlights',
+      'media.video.item4.title': 'Khed-Shivapur Toll Exposure',
 
       // Activities Page Expanded
       'activities.hero.title': 'ABGP Activities & Focus Areas',
@@ -819,6 +887,30 @@ const resources = {
       'header.donate': 'दान करें',
       'header.membership': 'ऑनलाइन सदस्यता',
       'nav.quickLinks': 'त्वरित लिंक',
+      'nav.gallery': 'गैलरी',
+      // Gallery Section
+      'gallery.title': 'फोटो गैलरी',
+      'gallery.subtitle': 'ABGP की यात्रा के ऐतिहासिक क्षणों और घटनाओं का संग्रह',
+      'gallery.searchPlaceholder': 'छवियां खोजें...',
+      'gallery.imagesFound': 'छवियां मिलीं',
+      'gallery.noImagesFound': 'आपकी खोज से मेल खाने वाली कोई छवि नहीं मिली',
+      'gallery.image': 'छवि',
+      'gallery.loading': 'छवियां लोड हो रही हैं...',
+      'gallery.viewAll': 'सभी छवियां देखें',
+      
+      // QuickMemo Section
+      'quickmemo.title': 'क्विक मेमो (QuickMemos)',
+      'quickmemo.subtitle': 'ABGP के हालिया अपडेट, रिपोर्ट और प्रशासनिक मेमो',
+      'quickmemo.view': 'मेमो देखें',
+      'quickmemo.download': 'डाउनलोड',
+      'quickmemo.item1.title': 'राष्ट्रीय कार्यकारिणी अपडेट',
+      'quickmemo.item2.title': 'प्रांत समन्वय रिपोर्ट',
+      'quickmemo.item3.title': 'गतिविधि दिशानिर्देश 2025',
+      'quickmemo.item4.title': 'सदस्यता अभियान अपडेट',
+      'quickmemo.item5.title': 'वार्षिक योजना III',
+      'quickmemo.item6.title': 'वार्षिक योजना II',
+      'quickmemo.item7.title': 'वार्षिक योजना I',
+      
       'lang.en': 'English',
       'lang.hi': 'हिंदी',
       'lang.mr': 'मराठी',
@@ -889,8 +981,11 @@ const resources = {
       'membership.objectives': 'मुख्य उद्देश्य: उपभोक्ताओं को एकजुट करना, उन्हें शिक्षित करना, कानूनी रूप से सहायता करना, शोध केंद्र स्थापित करना, और बिना लाभ मकसद के काम करना।',
       'membership.card.become': 'सदस्य बनें',
       'membership.card.constitution': 'संविधान और उद्देश्य',
+      'membership.card.executive': 'राष्ट्रीय कार्यकारिणी',
+      'membership.executiveDescription': 'राष्ट्रीय कार्यकारिणी सदस्यों की पूरी सूची देखें (2025-28)',
       'membership.cta.apply': 'सदस्यता के लिए आवेदन करें',
       'membership.cta.view': 'पूरा संविधान देखें',
+      'membership.cta.viewExecutive': 'कार्यकारिणी देखें',
       
       // Media Section
       'media.title': 'ABGP से नवीनतम',
@@ -951,6 +1046,7 @@ const resources = {
       'about.theme.eagle.desc': 'गरुड़ तीक्ष्ण दृष्टि, स्पष्टता और दूरदर्शिता का प्रतीक है। इसके फैले हुए पंख समाज की सेवा में ABGP की व्यापक पहुंच का प्रतिनिधित्व करते हैं।',
       'about.quotes.title': 'उन्होंने क्या कहा',
       'about.moments.title': 'ऐतिहासिक क्षण',
+      'about.moments.subtitle': 'ABGP की यात्रा के यादगार पलों का संग्रह',
       'about.structure.title': 'ABGP की संरचना',
       'about.structure.general': 'साधारण सभा',
       'about.structure.generalDesc': 'सर्व साधारण सभा',
@@ -989,6 +1085,42 @@ const resources = {
       'membership.constPoint2': 'उपभोक्ताओं को उनके अधिकारों के बारे में शिक्षित करें',
       'membership.constPoint3': 'आवश्यकता पड़ने पर कानूनी सहायता प्रदान करें',
       'membership.constPoint4': 'उपभोक्ता कल्याण के लिए अनुसंधान केंद्र स्थापित करें',
+      
+      // Prant Membership List
+      'prant.title': 'प्रांत सदस्यता संपर्क',
+      'prant.subtitle': 'भारत भर में ABGP प्रांत नेतृत्व के लिए संपर्क जानकारी',
+      'prant.searchPlaceholder': 'प्रांत नाम या संपर्क व्यक्ति से खोजें...',
+      'prant.totalPrants': '{{count}} प्रांत',
+      'prant.president': 'अध्यक्ष',
+      'prant.sanghatak': 'संघटक',
+      'prant.sachiv': 'सचिव',
+      'prant.email': 'ईमेल',
+      'prant.noResults': 'आपकी खोज से मेल खाने वाला कोई प्रांत नहीं मिला',
+      
+      // Kshetra Sanghatan Mantri List
+      'kshetra.title': 'क्षेत्र संघटन मंत्री',
+      'kshetra.subtitle': 'क्षेत्र स्तर के संगठन सचिवों के लिए संपर्क जानकारी',
+      'kshetra.searchPlaceholder': 'क्षेत्र नाम, प्रांत, या संपर्क व्यक्ति से खोजें...',
+      'kshetra.totalKshetra': '{{count}} क्षेत्र',
+      'kshetra.sanghatanMantri': 'संघटन मंत्री',
+      'kshetra.contact': 'संपर्क',
+      'kshetra.email': 'ईमेल',
+      'kshetra.responsibility': 'दायित्व',
+      'kshetra.responsibilityArea': 'दायित्व क्षेत्र',
+      'kshetra.prant': 'प्रांत',
+      'kshetra.contactInfo': 'संपर्क जानकारी',
+      'kshetra.noResults': 'आपकी खोज से मेल खाने वाला कोई क्षेत्र नहीं मिला',
+      'kshetra.noData': 'क्षेत्र डेटा जल्द ही उपलब्ध होगा',
+      'kshetra.noDataMessage': 'क्षेत्र संघटन मंत्री संपर्क जानकारी अपडेट की जा रही है। कृपया बाद में जांचें।',
+      
+      // National Executive Committee
+      'executive.title': 'राष्ट्रीय कार्यकारिणी 2025-28',
+      'executive.subtitle': 'अखिल भारतीय ग्राहक पंचायत के केन्द्रीय कार्यकारिणी सदस्य',
+      'executive.searchPlaceholder': 'नाम, दायित्व, या प्रांत से खोजें...',
+      'executive.totalMembers': '{{count}} सदस्य',
+      'executive.prant': 'प्रांत',
+      'executive.contact': 'संपर्क',
+      'executive.noResults': 'आपकी खोज से मेल खाने वाला कोई सदस्य नहीं मिला',
 
       // Media Section News
       'media.news.item1.title': 'ग्राकह पंचयत ने किया जागरूक – भोपाल',
@@ -1090,9 +1222,10 @@ const resources = {
       'media.blog.item4.content': 'सेवा में, श्री देवेंद्र फडणवीस जी, माननीय मुख्यमंत्री, महाराष्ट्र राज्य, मंत्रालय, मुंबई 400032 विषय: महाराष्ट्र राज्य द्वारा 8 दिसंबर 2016 को राजपत्र में प्रकाशित RERA अधिनियम को रद्द करने और केंद्र सरकार द्वारा लागू RERA अधिनियम को वैसे ही स्वीकार करने के संबंध में। माननीय महोदय, अखिल भारतीय ग्राहक पंचायत पुणे ने जून 2016 में पुणे के 40 बिल्डरों के साथ आपसे व्यक्तिगत रूप से मुलाकात की [...]',
 
       // Media Section Videos
-      'media.video.item1.title': 'ABGP परिचय वीडियो',
+      'media.video.item1.title': 'ABGP गतिविधि हाइलाइट्स',
       'media.video.item2.title': 'उपभोक्ता अधिकारों की व्याख्या',
       'media.video.item3.title': 'वार्षिक बैठक की मुख्य विशेषताएं',
+      'media.video.item4.title': 'खेड-शिवापुर टोल पोलखोल',
 
       // Activities Page Expanded
       'activities.hero.title': 'ABGP गतिविधियाँ और फोकस क्षेत्र',
@@ -1184,6 +1317,9 @@ const resources = {
       'constitution.fullName': 'अखिल भारतीय ग्राहक पंचायत',
       'constitution.registration': '[सोसाइटी पंजीकरण अधिनियम, १८६० के तहत पंजीकृत] (पंजीकरण संख्या S/9194)',
       'constitution.memorandumTitle': 'संस्था के ज्ञापन',
+      'constitution.memorandumDescription': 'संस्था के ज्ञापन दस्तावेज़ को देखें या डाउनलोड करें (संशोधित - 21 सितंबर 2014)',
+      'constitution.viewMoA': 'ज्ञापन देखें',
+      'constitution.downloadMoA': 'PDF डाउनलोड करें',
       'constitution.nameTitle': '१. नाम :',
       'constitution.nameContent': 'संघ का नाम ‘अखिल भारतीय ग्राहक पंचायत’ है और इसे इसके बाद संस्था के ज्ञापन और नियमों और विनियमों में ‘पंचायत’ के रूप में संदर्भित किया जाएगा।',
       'constitution.addressTitle': '२. पता :',
@@ -1443,6 +1579,30 @@ const resources = {
       'header.donate': 'दान करा',
       'header.membership': 'ऑनलाइन सदस्यत्व',
       'nav.quickLinks': 'द्रुत दुवे',
+      'nav.gallery': 'गॅलरी',
+      // Gallery Section
+      'gallery.title': 'फोटो गॅलरी',
+      'gallery.subtitle': 'ABGP च्या प्रवासातील ऐतिहासिक क्षण आणि घटनांचा संग्रह',
+      'gallery.searchPlaceholder': 'छवी शोधा...',
+      'gallery.imagesFound': 'छवी सापडल्या',
+      'gallery.noImagesFound': 'आपल्या शोधाशी जुळणारी कोणतीही छवी सापडली नाही',
+      'gallery.image': 'छवी',
+      'gallery.loading': 'छवी लोड होत आहेत...',
+      'gallery.viewAll': 'सर्व छवी पहा',
+      
+      // QuickMemo Section
+      'quickmemo.title': 'क्विक मेमो (QuickMemos)',
+      'quickmemo.subtitle': 'ABGP कडून अलीकडील अपडेट्स, अहवाल आणि प्रशासकीय मेमो',
+      'quickmemo.view': 'मेमो पहा',
+      'quickmemo.download': 'डाउनलोड',
+      'quickmemo.item1.title': 'राष्ट्रीय कार्यकारिणी अपडेट',
+      'quickmemo.item2.title': 'प्रांत समन्वय अहवाल',
+      'quickmemo.item3.title': 'कार्यवाही मार्गदर्शक तत्त्वे २०२५',
+      'quickmemo.item4.title': 'सदस्यता अभियान अपडेट',
+      'quickmemo.item5.title': 'वार्षिक योजना III',
+      'quickmemo.item6.title': 'वार्षिक योजना II',
+      'quickmemo.item7.title': 'वार्षिक योजना I',
+      
       'lang.en': 'English',
       'lang.hi': 'हिंदी',
       'lang.mr': 'मराठी',
@@ -1571,8 +1731,11 @@ const resources = {
       'membership.objectives': 'मुख्य उद्दिष्टे: ग्राहकांना एकत्र करणे, त्यांना शिक्षित करणे, कायदेशीर मदत करणे, संशोधन केंद्रे स्थापन करणे, आणि नफा हेतूशिवाय काम करणे.',
       'membership.card.become': 'सदस्य व्हा',
       'membership.card.constitution': 'संविधान आणि उद्दिष्टे',
+      'membership.card.executive': 'राष्ट्रीय कार्यकारिणी',
+      'membership.executiveDescription': 'राष्ट्रीय कार्यकारिणी सदस्यांची संपूर्ण यादी पहा (2025-28)',
       'membership.cta.apply': 'सदस्यत्वासाठी अर्ज करा',
       'membership.cta.view': 'संपूर्ण संविधान पहा',
+      'membership.cta.viewExecutive': 'कार्यकारिणी पहा',
       
       // Media Section
       'media.title': 'ABGP कडून ताजे',
@@ -1633,6 +1796,7 @@ const resources = {
       'about.theme.eagle.desc': 'गरुड तीक्ष्ण दृष्टी, स्पष्टता आणि दूरदृष्टीचे प्रतीक आहे. त्याचे पसरलेले पंख समाजाच्या सेवेत ABGP च्या व्यापक पोहोच दर्शवतात.',
       'about.quotes.title': 'ते काय म्हणाले',
       'about.moments.title': 'ऐतिहासिक क्षण',
+      'about.moments.subtitle': 'ABGP च्या प्रवासातील संस्मरणीय क्षणांचा संग्रह',
       'about.structure.title': 'ABGP ची रचना',
       'about.structure.general': 'साधारण सभा',
       'about.structure.generalDesc': 'सर्व साधारण सभा',
@@ -1671,6 +1835,42 @@ const resources = {
       'membership.constPoint2': 'ग्राहकांना त्यांच्या अधिकारांबद्दल शिक्षित करा',
       'membership.constPoint3': 'गरज पडल्यास कायदेशीर मदत प्रदान करा',
       'membership.constPoint4': 'ग्राहक कल्याणासाठी संशोधन केंद्रे स्थापन करा',
+      
+      // Prant Membership List
+      'prant.title': 'प्रांत सदस्यत्व संपर्क',
+      'prant.subtitle': 'भारतभरातील ABGP प्रांत नेतृत्वासाठी संपर्क माहिती',
+      'prant.searchPlaceholder': 'प्रांत नाव किंवा संपर्क व्यक्तीने शोधा...',
+      'prant.totalPrants': '{{count}} प्रांत',
+      'prant.president': 'अध्यक्ष',
+      'prant.sanghatak': 'संघटक',
+      'prant.sachiv': 'सचिव',
+      'prant.email': 'ईमेल',
+      'prant.noResults': 'आपल्या शोधाशी जुळणारा कोणताही प्रांत सापडला नाही',
+      
+      // Kshetra Sanghatan Mantri List
+      'kshetra.title': 'क्षेत्र संघटन मंत्री',
+      'kshetra.subtitle': 'क्षेत्र स्तराच्या संघटन सचिवांसाठी संपर्क माहिती',
+      'kshetra.searchPlaceholder': 'क्षेत्र नाव, प्रांत, किंवा संपर्क व्यक्तीने शोधा...',
+      'kshetra.totalKshetra': '{{count}} क्षेत्र',
+      'kshetra.sanghatanMantri': 'संघटन मंत्री',
+      'kshetra.contact': 'संपर्क',
+      'kshetra.email': 'ईमेल',
+      'kshetra.responsibility': 'दायित्व',
+      'kshetra.responsibilityArea': 'दायित्व क्षेत्र',
+      'kshetra.prant': 'प्रांत',
+      'kshetra.contactInfo': 'संपर्क माहिती',
+      'kshetra.noResults': 'आपल्या शोधाशी जुळणारा कोणताही क्षेत्र सापडला नाही',
+      'kshetra.noData': 'क्षेत्र डेटा लवकरच उपलब्ध होईल',
+      'kshetra.noDataMessage': 'क्षेत्र संघटन मंत्री संपर्क माहिती अपडेट केली जात आहे. कृपया नंतर तपासा.',
+      
+      // National Executive Committee
+      'executive.title': 'राष्ट्रीय कार्यकारिणी 2025-28',
+      'executive.subtitle': 'अखिल भारतीय ग्राहक पंचायतचे केन्द्रीय कार्यकारिणी सदस्य',
+      'executive.searchPlaceholder': 'नाव, दायित्व, किंवा प्रांताने शोधा...',
+      'executive.totalMembers': '{{count}} सदस्य',
+      'executive.prant': 'प्रांत',
+      'executive.contact': 'संपर्क',
+      'executive.noResults': 'आपल्या शोधाशी जुळणारा कोणताही सदस्य सापडला नाही',
 
       // Media Section News
       'media.news.item1.title': 'ग्राहक पंचायतीने केले जागरूक - भोपाळ',
@@ -1795,9 +1995,10 @@ const resources = {
       'media.blog.item4.content': 'प्रति, श्री देवेंद्र फडणवीसजी, मा. मुख्यमंत्री, महाराष्ट्र राज्य, मंत्रालय, मुंबई ४०००३२ विषय: महाराष्ट्र शासनाने दि. ८ डिसेंबर २०१६ रोजी राजपत्रात प्रसिद्ध केलेला रेरा कायदा रद्द करून केंद्र सरकारने लागू केलेला रेरा कायदा जसा आहे तसा स्वीकारणे बाबत. मा. महोदय, अखिल भारतीय ग्राहक पंचायत पुणे ने आपणास प्रत्यक्ष भेटून जून २०१६ मध्ये पुणे येथील ४० बिल्डर [...]',
 
       // Media Section Videos
-      'media.video.item1.title': 'ABGP परिचय व्हिडिओ',
+      'media.video.item1.title': 'ABGP उपक्रम ठळक वैशिष्ट्ये',
       'media.video.item2.title': 'ग्राहक अधिकारांचे स्पष्टीकरण',
       'media.video.item3.title': 'वार्षिक बैठकीची वैशिष्ट्ये',
+      'media.video.item4.title': 'खेड-शिवापूर टोल पोलखोल',
 
       // Activities Page Expanded
       'activities.hero.title': 'ABGP उपक्रम आणि फोकस क्षेत्रे',
@@ -1889,6 +2090,9 @@ const resources = {
       'constitution.fullName': 'अखिल भारतीय ग्राहक पंचायत',
       'constitution.registration': '[सोसायटी नोंदणी अधिनियम, १८६० अंतर्गत नोंदणीकृत] (नोंदणी क्रमांक S/9194)',
       'constitution.memorandumTitle': 'संस्थेचे स्मृतीपत्र',
+      'constitution.memorandumDescription': 'संस्थेचे स्मृतीपत्र दस्तऐवज पहा किंवा डाउनलोड करा (सुधारित - 21 सप्टेंबर 2014)',
+      'constitution.viewMoA': 'स्मृतीपत्र पहा',
+      'constitution.downloadMoA': 'PDF डाउनलोड करा',
       'constitution.nameTitle': '१. नाव :',
       'constitution.nameContent': 'संस्थेचे नाव ‘अखिल भारतीय ग्राहक पंचायत’ आहे आणि यापुढे स्मृतीपत्र आणि नियमावलीमध्ये याचा उल्लेख ‘पंचायत’ असा केला जाईल.',
       'constitution.addressTitle': '२. पत्ता :',

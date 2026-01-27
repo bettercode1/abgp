@@ -16,6 +16,8 @@ import { PetitionPage } from './pages/PetitionPage';
 import { ActivitiesPage } from './pages/ActivitiesPage';
 import { GrahakGyanDeepPage } from './pages/GrahakGyanDeepPage';
 import { GrahakSpandanaPage } from './pages/GrahakSpandanaPage';
+import { GalleryPage } from './pages/GalleryPage';
+import { NationalExecutivePage } from './pages/NationalExecutivePage';
 import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
 
@@ -173,6 +175,8 @@ function App() {
                     <Route path="/activities" element={<ActivitiesPage />} />
                     <Route path="/gyandeep" element={<GrahakGyanDeepPage />} />
                     <Route path="/spandana" element={<GrahakSpandanaPage />} />
+                    <Route path="/gallery" element={<GalleryPage />} />
+                    <Route path="/national-executive" element={<NationalExecutivePage />} />
           </Routes>
         </MainLayout>
       </BrowserRouter>

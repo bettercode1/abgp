@@ -38,6 +38,8 @@ import aayams from '../assets/abgp-2/about/aayams.jpg';
 import history2 from '../assets/abgp-2/about/history_2.jpg';
 import history3 from '../assets/abgp-2/about/history_3.jpg';
 
+import { HistoricalMomentsSection } from '../components/sections/HistoricalMomentsSection';
+
 export const AboutPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -192,19 +194,7 @@ export const AboutPage: React.FC = () => {
             </Box>
 
             {/* Historical Moments */}
-            <Box sx={{ mb: 8 }}>
-              <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-                {t('about.moments.title')}
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <Box component="img" src={history2} sx={{ width: '100%', borderRadius: 4, height: 250, objectFit: 'cover' }} alt="Historical Event 1" />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box component="img" src={history3} sx={{ width: '100%', borderRadius: 4, height: 250, objectFit: 'cover' }} alt="Historical Event 2" />
-                </Grid>
-              </Grid>
-            </Box>
+            <HistoricalMomentsSection />
           </Grid>
 
           {/* Sidebar */}

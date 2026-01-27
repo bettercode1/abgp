@@ -56,6 +56,7 @@ const navigationItems = [
   { key: 'nav.spandana', path: '/spandana' },
   { key: 'nav.membership', path: '/membership' },
   { key: 'nav.media', path: '/media' },
+  { key: 'nav.gallery', path: '/gallery' },
   { key: 'nav.blogs', path: '/blogs' },
   { key: 'nav.faq', path: '/faq' },
   { key: 'nav.petition', path: '/petition' },
@@ -379,24 +380,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         sx={{
           backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : theme.palette.grey[900],
           color: 'white',
-          pt: 8,
-          pb: 4,
+          pt: 4,
+          pb: 3,
           mt: 'auto',
-          borderTop: `4px solid ${theme.palette.secondary.main}`,
+          borderTop: `2px solid ${theme.palette.secondary.main}`,
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={4}>
+          <Grid container spacing={3}>
             {/* Brand Section */}
             <Grid item xs={12} sm={6} md={4}>
-              <Stack spacing={2}>
-                <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: 1 }}>
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ fontSize: '0.95rem' }}>
                   {t('header.fullName')}
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
+                <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.6, fontSize: '0.75rem' }}>
                   {t('header.shortDescription')}
                 </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.6, pt: 2 }}>
+                <Typography variant="caption" sx={{ opacity: 0.6, pt: 1, fontSize: '0.7rem' }}>
                   {t('footer.copyright')}
                 </Typography>
               </Stack>
@@ -404,10 +405,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
             {/* Navigation Links Section */}
             <Grid item xs={12} sm={6} md={2}>
-              <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                 {t('nav.quickLinks')}
               </Typography>
-              <Stack spacing={1.5}>
+              <Stack spacing={0.8}>
                 {navigationItems.map((item) => (
                   <Link
                     key={item.key}
@@ -416,13 +417,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     color="inherit"
                     sx={{
                       textDecoration: 'none',
-                      fontSize: '0.9rem',
+                      fontSize: '0.8rem',
                       opacity: 0.8,
                       transition: 'all 0.2s',
                       '&:hover': {
                         opacity: 1,
                         color: theme.palette.secondary.main,
-                        transform: 'translateX(5px)',
+                        transform: 'translateX(3px)',
                       },
                     }}
                   >
@@ -453,13 +454,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     color="inherit"
                     sx={{
                       textDecoration: 'none',
-                      fontSize: '0.9rem',
+                      fontSize: '0.8rem',
                       opacity: 0.8,
                       transition: 'all 0.2s',
                       '&:hover': {
                         opacity: 1,
                         color: theme.palette.secondary.main,
-                        transform: 'translateX(5px)',
+                        transform: 'translateX(3px)',
                       },
                     }}
                   >
@@ -470,18 +471,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
               {/* Social Connect Section */}
               <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                   {t('footer.connect')}
                 </Typography>
-                <Stack spacing={1}>
+                <Stack spacing={0.5}>
                   <Button
                     component="a"
                     href="#"
                     color="inherit"
-                    startIcon={<Facebook />}
+                    startIcon={<Facebook sx={{ fontSize: '1rem' }} />}
                     sx={{
                       justifyContent: 'flex-start',
                       textTransform: 'none',
+                      fontSize: '0.8rem',
+                      minHeight: '32px',
+                      padding: '4px 8px',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: '#1877F2' },
                     }}
@@ -492,10 +496,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     component="a"
                     href="#"
                     color="inherit"
-                    startIcon={<Twitter />}
+                    startIcon={<Twitter sx={{ fontSize: '1rem' }} />}
                     sx={{
                       justifyContent: 'flex-start',
                       textTransform: 'none',
+                      fontSize: '0.8rem',
+                      minHeight: '32px',
+                      padding: '4px 8px',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: '#1DA1F2' },
                     }}
@@ -506,10 +513,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     component="a"
                     href="#"
                     color="inherit"
-                    startIcon={<YouTube />}
+                    startIcon={<YouTube sx={{ fontSize: '1rem' }} />}
                     sx={{
                       justifyContent: 'flex-start',
                       textTransform: 'none',
+                      fontSize: '0.8rem',
+                      minHeight: '32px',
+                      padding: '4px 8px',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: '#FF0000' },
                     }}
@@ -521,17 +531,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
               {/* Legal Section */}
               <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                   {t('footer.legal')}
                 </Typography>
-                <Stack spacing={1.5}>
+                <Stack spacing={0.8}>
                   <Link
                     component={RouterLink}
                     to="/terms"
                     color="inherit"
                     sx={{
                       textDecoration: 'none',
-                      fontSize: '0.9rem',
+                      fontSize: '0.8rem',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: theme.palette.secondary.main },
                     }}
@@ -543,7 +553,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     color="inherit"
                     sx={{
                       textDecoration: 'none',
-                      fontSize: '0.9rem',
+                      fontSize: '0.8rem',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: theme.palette.secondary.main },
                     }}
@@ -555,7 +565,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     color="inherit"
                     sx={{
                       textDecoration: 'none',
-                      fontSize: '0.9rem',
+                      fontSize: '0.8rem',
                       opacity: 0.8,
                       '&:hover': { opacity: 1, color: theme.palette.secondary.main },
                     }}

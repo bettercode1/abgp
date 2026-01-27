@@ -314,18 +314,23 @@ export const MediaSection: React.FC = () => {
   const videosData = [
     {
       title: t('media.video.item1.title'),
-      thumbnail: 'https://via.placeholder.com/320x180?text=ABGP+Video',
-      youtubeId: 'sample1',
+      url: 'https://www.youtube.com/watch?v=wYdq4_tnKYs',
+      thumbnail: 'https://img.youtube.com/vi/wYdq4_tnKYs/mqdefault.jpg',
+    },
+    {
+      title: t('media.video.item4.title'),
+      url: 'https://www.facebook.com/lokmat/videos/309025663438664/',
+      thumbnail: 'https://via.placeholder.com/320x180?text=Lokmat+Toll+Exposure',
     },
     {
       title: t('media.video.item2.title'),
+      url: 'https://www.youtube.com/watch?v=sample2',
       thumbnail: 'https://via.placeholder.com/320x180?text=Consumer+Rights',
-      youtubeId: 'sample2',
     },
     {
       title: t('media.video.item3.title'),
+      url: 'https://www.youtube.com/watch?v=sample3',
       thumbnail: 'https://via.placeholder.com/320x180?text=Meeting+Highlights',
-      youtubeId: 'sample3',
     },
   ];
 
@@ -497,27 +502,47 @@ export const MediaSection: React.FC = () => {
               >
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardMedia
-                    component="div"
+                    component="img"
+                    height="180"
+                    image={item.thumbnail}
+                    alt={item.title}
                     sx={{
-                      height: 180,
                       backgroundColor: theme.palette.grey[300],
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => window.open(item.url, '_blank')}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: 180,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      position: 'relative',
+                      pointerEvents: 'none',
                     }}
                   >
                     <PlayCircleOutline
-                      sx={{ fontSize: 64, color: theme.palette.primary.main }}
+                      sx={{ fontSize: 64, color: 'white', opacity: 0.8 }}
                     />
-                  </CardMedia>
+                  </Box>
                   <CardContent>
                     <Typography variant="h6" gutterBottom fontWeight={600}>
                       {item.title}
                     </Typography>
                   </CardContent>
                   <CardActions>
-                    <Button size="small">{t('media.watch')}</Button>
+                    <Button 
+                      size="small"
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('media.watch')}
+                    </Button>
                   </CardActions>
                 </Card>
               </Box>

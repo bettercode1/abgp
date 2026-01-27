@@ -7,10 +7,19 @@ import {
   Divider,
   Breadcrumbs,
   Link,
+  Button,
+  Card,
+  CardContent,
+  Stack,
   useTheme,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import {
+  Description,
+  Download,
+  Visibility,
+} from '@mui/icons-material';
 
 export const ConstitutionPage: React.FC = () => {
   const { t } = useTranslation();
@@ -40,10 +49,76 @@ export const ConstitutionPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               {t('constitution.registration')}
             </Typography>
-            <Typography variant="h4" fontWeight={700} sx={{ mt: 4, textTransform: 'uppercase' }}>
-              {t('constitution.memorandumTitle')}
-            </Typography>
           </Box>
+
+          {/* Memorandum of Association PDF Section */}
+          <Card 
+            elevation={4}
+            sx={{ 
+              mb: 6, 
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              color: 'white',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+              <Stack spacing={3} alignItems="center">
+                <Description sx={{ fontSize: 64, opacity: 0.9 }} />
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" fontWeight={700} gutterBottom>
+                    {t('constitution.memorandumTitle')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.95, mb: 3 }}>
+                    {t('constitution.memorandumDescription')}
+                  </Typography>
+                </Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<Visibility />}
+                    href="/moa-abgp.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      backgroundColor: 'white',
+                      color: theme.palette.primary.main,
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.shadows[8],
+                      },
+                    }}
+                  >
+                    {t('constitution.viewMoA')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    startIcon={<Download />}
+                    href="/moa-abgp.pdf"
+                    download="MoA-ABGP.pdf"
+                    sx={{
+                      borderColor: 'white',
+                      color: 'white',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      '&:hover': {
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
+                    {t('constitution.downloadMoA')}
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
 
           <Divider sx={{ mb: 4 }} />
 

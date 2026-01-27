@@ -19,8 +19,11 @@ import {
   CheckCircle,
   Gavel,
   Article,
+  Person,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { PrantMembershipList } from './PrantMembershipList';
+import { KshetraSanghatanMantriList } from './KshetraSanghatanMantriList';
 
 const membershipBenefits = [
   'membership.benefit1',
@@ -157,7 +160,46 @@ export const MembershipSection: React.FC = () => {
               </CardActions>
             </Card>
           </Grid>
+
+          {/* National Executive Committee Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Person color="primary" sx={{ mr: 1, fontSize: 32 }} />
+                  <Typography variant="h5" component="h3" fontWeight={600}>
+                    {t('membership.card.executive')}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  {t('membership.executiveDescription')}
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ p: 2, pt: 0 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  size="large"
+                  onClick={() => {
+                    navigate('/national-executive');
+                  }}
+                >
+                  {t('membership.cta.viewExecutive')}
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
         </Grid>
+
+        {/* Prant Membership List */}
+        <Box sx={{ mt: 8 }}>
+          <PrantMembershipList />
+        </Box>
+
+        {/* Kshetra Sanghatan Mantri List */}
+        <Box sx={{ mt: 8 }}>
+          <KshetraSanghatanMantriList />
+        </Box>
       </Container>
     </Box>
   );
