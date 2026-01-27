@@ -14,7 +14,6 @@ import {
   TextField,
   InputAdornment,
   useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -306,7 +305,6 @@ const prantData: PrantData[] = [
 export const PrantMembershipList: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedPrant, setExpandedPrant] = useState<number | false>(false);
 

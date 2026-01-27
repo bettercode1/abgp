@@ -14,14 +14,12 @@ import {
   TextField,
   InputAdornment,
   useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   ExpandMore,
   Search,
   Phone,
   Email,
-  Person,
   LocationOn,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
@@ -157,7 +155,6 @@ const kshetraData: KshetraData[] = [
 export const KshetraSanghatanMantriList: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedKshetra, setExpandedKshetra] = useState<number | false>(false);
 

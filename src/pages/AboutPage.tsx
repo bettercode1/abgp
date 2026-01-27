@@ -35,8 +35,6 @@ import {
 import vivekananda from '../assets/abgp-2/about/vivekananda.png';
 import emblem from '../assets/abgp-2/about/emblem.jpg';
 import aayams from '../assets/abgp-2/about/aayams.jpg';
-import history2 from '../assets/abgp-2/about/history_2.jpg';
-import history3 from '../assets/abgp-2/about/history_3.jpg';
 
 import { HistoricalMomentsSection } from '../components/sections/HistoricalMomentsSection';
 
