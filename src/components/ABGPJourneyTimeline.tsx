@@ -9,14 +9,14 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  History,
-  People,
-  Celebration,
-  ShoppingCart,
-  ThumbUp,
-  Gavel,
+  Timeline as TimelineIcon,
+  Groups,
+  Event,
+  Store,
+  Handshake,
+  AccountBalance,
   Public,
-  TrendingUp,
+  Assessment,
 } from '@mui/icons-material';
 
 // Impression Click Tracker HOC
@@ -110,7 +110,7 @@ const milestones: Milestone[] = [
     year: '1970s',
     title: 'Restless India, Awakened Pune',
     description: 'Social and political restlessness inspires Pune youth under late Shri Bindu Madhav Joshi.',
-    icon: <History />,
+    icon: <TimelineIcon />,
     trackerId: 'milestone-1',
     displayName: 'Restless India, Awakened Pune',
     listingId: '1970s',
@@ -119,7 +119,7 @@ const milestones: Milestone[] = [
     year: '1974',
     title: 'Youth to Consumer Power',
     description: 'Yuvak Mahamandal Janata Grahak Sangh formed with personalities like Sudhir Phadke, PL Deshpande, Prof. Dandekar, and GV Behere.',
-    icon: <People />,
+    icon: <Groups />,
     trackerId: 'milestone-2',
     displayName: 'Youth to Consumer Power',
     listingId: '1974-1',
@@ -128,7 +128,7 @@ const milestones: Milestone[] = [
     year: 'Diwali 1974',
     title: 'First Grahak Experiment',
     description: 'Successful attempt to supply festive commodities through created Grahak Sanghs in Pune.',
-    icon: <Celebration />,
+    icon: <Event />,
     trackerId: 'milestone-3',
     displayName: 'First Grahak Experiment',
     listingId: 'diwali-1974',
@@ -137,7 +137,7 @@ const milestones: Milestone[] = [
     year: '1974',
     title: 'Historic Textile Boycott',
     description: 'Laxmi Road boycott; movement volunteers procured textiles directly from producers to sell at cheaper rates.',
-    icon: <ShoppingCart />,
+    icon: <Store />,
     trackerId: 'milestone-4',
     displayName: 'Historic Textile Boycott',
     listingId: '1974-2',
@@ -146,7 +146,7 @@ const milestones: Milestone[] = [
     year: '1974',
     title: 'National Blessing',
     description: 'Jaiprakash Narayan blesses the movement during his visit to Pune.',
-    icon: <ThumbUp />,
+    icon: <Handshake />,
     trackerId: 'milestone-5',
     displayName: 'Nationwide Blessing',
     listingId: '1974-3',
@@ -155,7 +155,7 @@ const milestones: Milestone[] = [
     year: '23 Dec 1975',
     title: 'ABGP Formal Inauguration',
     description: 'Justice MC Chagla inaugurates ABGP: "What Pune thinks today, India will think subsequently."',
-    icon: <Gavel />,
+    icon: <AccountBalance />,
     trackerId: 'milestone-6',
     displayName: 'ABGP is Born',
     listingId: '1975-12-23',
@@ -172,72 +172,89 @@ const milestones: Milestone[] = [
   {
     year: '2017',
     title: 'National Expansion',
-    description: 'ABGP reaches more than 25 states and nearly 200 districts across the country.',
-    icon: <TrendingUp />,
+    description: 'ABGP reaches more than 25 states and nearly 510 districts across the country.',
+    icon: <Assessment />,
     trackerId: 'milestone-8',
     displayName: '25+ States, 200+ Districts',
     listingId: '2017',
   },
 ];
 
+const iconCircleSx = (theme: ReturnType<typeof useTheme>) => ({
+  background: `linear-gradient(145deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+  border: `3px solid ${theme.palette.background.paper}`,
+  boxShadow: theme.shadows[6],
+});
+
 export const ABGPJourneyTimeline: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
 
   return (
     <Box
       sx={{
-        py: { xs: 4, md: 8 },
-        background: theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-          : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        py: { xs: 5, md: 10 },
+        background: isDark
+          ? 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%)',
         minHeight: '100vh',
       }}
     >
       <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 8 } }}>
           <Typography
             variant="h2"
             component="h1"
             sx={{
-              fontWeight: 700,
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              mb: 2,
+              mb: 1.5,
+              fontSize: { xs: '1.75rem', md: '2.5rem' },
             }}
           >
             ABGP Journey Timeline
           </Typography>
-          <Typography variant="h6" color="text.secondary">
+          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 500, maxWidth: 480, mx: 'auto' }}>
             Five Decades of Consumer Empowerment
           </Typography>
+          <Box
+            sx={{
+              width: 64,
+              height: 4,
+              borderRadius: 2,
+              mx: 'auto',
+              mt: 2,
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            }}
+          />
         </Box>
 
         {isMobile ? (
           // Vertical Timeline for Mobile
-          <Box sx={{ position: 'relative', pl: 3 }}>
+          <Box sx={{ position: 'relative', pl: 4 }}>
             {milestones.map((milestone, index) => (
-              <Box key={index} sx={{ position: 'relative', mb: 4 }}>
+              <Box key={index} sx={{ position: 'relative', mb: 5 }}>
                 {/* Timeline Dot */}
                 <Box
                   sx={{
                     position: 'absolute',
-                    left: -15,
+                    left: -28,
                     top: 0,
-                    width: 24,
-                    height: 24,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                    border: `3px solid ${theme.palette.background.paper}`,
+                    ...iconCircleSx(theme),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 2,
-                    boxShadow: `0 4px 12px rgba(${theme.palette.primary.main === '#FF6B35' ? '255, 107, 53' : '0, 0, 0'}, 0.3)`,
                   }}
                 >
-                  <Box sx={{ color: 'white', fontSize: 12 }}>
+                  <Box sx={{ color: 'white', display: 'flex', '& .MuiSvgIcon-root': { fontSize: 22 } }}>
                     {milestone.icon}
                   </Box>
                 </Box>
@@ -247,11 +264,13 @@ export const ABGPJourneyTimeline: React.FC = () => {
                   <Box
                     sx={{
                       position: 'absolute',
-                      left: -3,
-                      top: 24,
-                      width: 2,
-                      height: 'calc(100% + 16px)',
+                      left: -7,
+                      top: 44,
+                      width: 3,
+                      height: 'calc(100% + 20px)',
+                      borderRadius: 2,
                       background: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                      opacity: 0.4,
                       zIndex: 1,
                     }}
                   />
@@ -265,41 +284,47 @@ export const ABGPJourneyTimeline: React.FC = () => {
                   listingId={milestone.listingId}
                 >
                   <Card
+                    elevation={0}
                     sx={{
-                      background: theme.palette.mode === 'dark'
-                        ? 'rgba(255, 255, 255, 0.05)'
-                        : 'rgba(255, 255, 255, 0.7)',
-                      backdropFilter: 'blur(10px)',
-                      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(12px)',
+                      border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
                       borderRadius: 3,
-                      transition: 'all 0.3s ease',
+                      overflow: 'hidden',
+                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                       cursor: 'pointer',
                       '&:hover': {
                         transform: 'translateY(-4px)',
-                        boxShadow: `0 8px 24px rgba(${theme.palette.primary.main === '#FF6B35' ? '255, 107, 53' : '0, 0, 0'}, 0.2)`,
+                        boxShadow: theme.shadows[8],
                       },
                     }}
                   >
-                    <CardContent>
+                    <Box
+                      sx={{
+                        height: 4,
+                        background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      }}
+                    />
+                    <CardContent sx={{ pt: 2, pb: 3, px: 2.5 }}>
                       <Box
                         sx={{
                           display: 'inline-block',
-                          px: 2,
+                          px: 1.5,
                           py: 0.5,
-                          mb: 2,
-                          borderRadius: 2,
+                          mb: 1.5,
+                          borderRadius: 1.5,
                           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                           color: 'white',
                           fontWeight: 700,
-                          fontSize: '0.875rem',
+                          fontSize: '0.8rem',
                         }}
                       >
                         {milestone.year}
                       </Box>
-                      <Typography variant="h6" fontWeight={700} gutterBottom>
+                      <Typography variant="h6" fontWeight={700} gutterBottom sx={{ lineHeight: 1.3 }}>
                         {milestone.title}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>
                         {milestone.description}
                       </Typography>
                     </CardContent>
@@ -310,17 +335,18 @@ export const ABGPJourneyTimeline: React.FC = () => {
           </Box>
         ) : (
           // Horizontal Timeline for Desktop
-          <Box sx={{ position: 'relative', py: 4 }}>
+          <Box sx={{ position: 'relative', py: 6 }}>
             {/* Timeline Connector Line */}
             <Box
               sx={{
                 position: 'absolute',
-                top: '50%',
-                left: 0,
-                right: 0,
-                height: 4,
+                top: 88,
+                left: '5%',
+                right: '5%',
+                height: 5,
+                borderRadius: 3,
                 background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                borderRadius: 2,
+                opacity: 0.25,
                 zIndex: 0,
               }}
             />
@@ -331,7 +357,7 @@ export const ABGPJourneyTimeline: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
-                gap: 2,
+                gap: 1.5,
                 position: 'relative',
                 zIndex: 1,
               }}
@@ -341,29 +367,28 @@ export const ABGPJourneyTimeline: React.FC = () => {
                   key={index}
                   sx={{
                     flex: '1 1 0',
+                    minWidth: 0,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                   }}
                 >
-                  {/* Year Badge */}
+                  {/* Icon Circle + Year */}
                   <Box
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: 88,
+                      height: 88,
                       borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                      ...iconCircleSx(theme),
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       mb: 2,
-                      boxShadow: `0 4px 16px rgba(${theme.palette.primary.main === '#FF6B35' ? '255, 107, 53' : '0, 0, 0'}, 0.3)`,
-                      border: `4px solid ${theme.palette.background.paper}`,
                       zIndex: 2,
                     }}
                   >
-                    <Box sx={{ color: 'white', mb: 0.5 }}>
+                    <Box sx={{ color: 'white', display: 'flex', '& .MuiSvgIcon-root': { fontSize: 28 } }}>
                       {milestone.icon}
                     </Box>
                     <Typography
@@ -371,8 +396,10 @@ export const ABGPJourneyTimeline: React.FC = () => {
                       sx={{
                         color: 'white',
                         fontWeight: 700,
-                        fontSize: '0.7rem',
+                        fontSize: '0.65rem',
                         textAlign: 'center',
+                        lineHeight: 1.2,
+                        mt: 0.25,
                       }}
                     >
                       {milestone.year}
@@ -387,28 +414,35 @@ export const ABGPJourneyTimeline: React.FC = () => {
                     listingId={milestone.listingId}
                   >
                     <Card
+                      elevation={0}
                       sx={{
                         width: '100%',
-                        maxWidth: 280,
-                        background: theme.palette.mode === 'dark'
-                          ? 'rgba(255, 255, 255, 0.05)'
-                          : 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(10px)',
-                        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                        maxWidth: 260,
+                        minHeight: 160,
+                        background: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(12px)',
+                        border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
                         borderRadius: 3,
-                        transition: 'all 0.3s ease',
+                        overflow: 'hidden',
+                        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                         cursor: 'pointer',
                         '&:hover': {
-                          transform: 'translateY(-8px) scale(1.02)',
-                          boxShadow: `0 12px 32px rgba(${theme.palette.primary.main === '#FF6B35' ? '255, 107, 53' : '0, 0, 0'}, 0.25)`,
+                          transform: 'translateY(-6px)',
+                          boxShadow: theme.shadows[8],
                         },
                       }}
                     >
-                      <CardContent>
-                        <Typography variant="h6" fontWeight={700} gutterBottom>
+                      <Box
+                        sx={{
+                          height: 3,
+                          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        }}
+                      />
+                      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ lineHeight: 1.3, fontSize: '0.95rem' }}>
                           {milestone.title}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: '0.8125rem' }}>
                           {milestone.description}
                         </Typography>
                       </CardContent>

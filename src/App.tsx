@@ -18,6 +18,9 @@ import { GrahakGyanDeepPage } from './pages/GrahakGyanDeepPage';
 import { GrahakSpandanaPage } from './pages/GrahakSpandanaPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { NationalExecutivePage } from './pages/NationalExecutivePage';
+import { LoginPage } from './pages/LoginPage';
+import { PanelPage } from './pages/PanelPage';
+import { AuthProvider } from './contexts/AuthContext';
 import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
 
@@ -151,8 +154,9 @@ function App() {
         `}
       </style>
       <BrowserRouter>
-        <ScrollToTop />
-        <MainLayout
+        <AuthProvider>
+          <ScrollToTop />
+          <MainLayout
           currentTheme={currentTheme}
           onThemeChange={handleThemeChange}
           fontSize={fontSize}
@@ -177,8 +181,11 @@ function App() {
                     <Route path="/spandana" element={<GrahakSpandanaPage />} />
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/national-executive" element={<NationalExecutivePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/panel" element={<PanelPage />} />
           </Routes>
         </MainLayout>
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   );

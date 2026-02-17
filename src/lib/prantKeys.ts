@@ -1,0 +1,47 @@
+/**
+ * 38 ABGP prant i18n keys for dropdowns (e.g. Login as Prant).
+ * Labels come from t('prant.' + key).
+ */
+export const PRANT_KEYS = [
+  'andhra',
+  'arunachal',
+  'assam',
+  'biharDakshin',
+  'biharUttar',
+  'chattisgarh',
+  'delhi',
+  'gujarat',
+  'haryana',
+  'himachal',
+  'jammuKashmir',
+  'jharkhand',
+  'karnataka',
+  'kerala',
+  'mpMadhyabharat',
+  'mpMahakaushal',
+  'mpMalwa',
+  'maharashtraDevgiri',
+  'maharashtraKonkan',
+  'madhyaMaharashtra',
+  'maharashtraVidharbh',
+  'meghalaya',
+  'odishaPashchim',
+  'odishaPurba',
+  'punjab',
+  'rajasthanChittor',
+  'rajasthanJaipur',
+  'rajasthanJodhpur',
+  'sikkim',
+  'tamilnaduDakshin',
+  'tamilnaduUttar',
+  'telangana',
+  'upAvadh',
+  'upBraj',
+  'upGoraksha',
+  'upKanpur',
+  'upKashi',
+  'upMeerut',
+  'uttarakhand',
+] as const;
+
+export type PrantKey = (typeof PRANT_KEYS)[number];

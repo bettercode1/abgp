@@ -24,7 +24,16 @@ import {
   Event,
   CalendarToday,
   Label,
+  MenuBook,
 } from '@mui/icons-material';
+import { DirectorContentBlock } from '../components/DirectorContentBlock';
+
+// Magazine PDFs (not on home – listed on Media > Magazines tab)
+import pdfOctober2021 from '../assets/images/October-2021.pdf';
+import pdfNovember2021 from '../assets/images/November-2021.pdf';
+import pdfMagazin from '../assets/images/Magazin.pdf';
+import pdfGrahakBharatiMarch2024 from '../assets/images/Grahak Bharati - Final - March 2024.pdf';
+import pdfApril2022 from '../assets/images/April-2022.pdf';
 
 // News Images
 import mp_whatsapp_1 from '../assets/news/mp_whatsapp_1.jpeg';
@@ -73,6 +82,14 @@ export const MediaPage: React.FC = () => {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
+
+  const magazinesData = [
+    { title: 'October 2021', url: pdfOctober2021 },
+    { title: 'November 2021', url: pdfNovember2021 },
+    { title: 'Magazine', url: pdfMagazin },
+    { title: 'Grahak Bharati – March 2024', url: pdfGrahakBharatiMarch2024 },
+    { title: 'April 2022', url: pdfApril2022 },
+  ];
 
   const newsData = [
     {
@@ -246,7 +263,9 @@ export const MediaPage: React.FC = () => {
           {t('media.title')}
         </Typography>
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <DirectorContentBlock section="videos" showTitle />
+
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 4 }}>
           <Tabs 
             value={tabValue} 
             onChange={handleTabChange} 
@@ -256,10 +275,12 @@ export const MediaPage: React.FC = () => {
           >
             <Tab label={t('media.news')} icon={<Article />} iconPosition="start" />
             <Tab label={t('media.events')} icon={<Event />} iconPosition="start" />
+            <Tab label={t('media.magazines')} icon={<MenuBook />} iconPosition="start" />
           </Tabs>
         </Box>
 
         <TabPanel value={tabValue} index={0}>
+          <DirectorContentBlock section="news" showTitle />
           <Grid container spacing={3}>
             {newsData.map((item, index) => (
               <Grid item xs={12} md={6} key={index}>
@@ -336,6 +357,38 @@ export const MediaPage: React.FC = () => {
                       {t('media.readMore')} →
                     </Button>
                   </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
+            {t('media.magazinesSubtitle')}
+          </Typography>
+          <Grid container spacing={2}>
+            {magazinesData.map((mag) => (
+              <Grid item xs={12} sm={6} md={4} key={mag.title}>
+                <Card variant="outlined" sx={{ borderRadius: 2, p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                    <MenuBook color="primary" />
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {mag.title}
+                    </Typography>
+                  </Box>
+                  <Button
+                    component="a"
+                    href={mag.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    fullWidth
+                  >
+                    {t('media.viewPdf')}
+                  </Button>
                 </Card>
               </Grid>
             ))}

@@ -25,6 +25,101 @@ const resources = {
       'nav.search': 'Search ABGP site',
       'header.donate': 'Donate',
       'header.membership': 'Online Membership',
+      'header.director': 'Director',
+      'header.login': 'Login',
+      'announcement.unite': 'Unite consumers across the nation',
+      'announcement.educate': 'Educate consumers about their rights',
+      'announcement.legal': 'Provide legal assistance when needed',
+      'announcement.research': 'Establish research centers for consumer welfare',
+      'login.title': 'Payment Details',
+      'login.memberType': 'New or Existing Member',
+      'login.newMember': 'New Member',
+      'login.existingMember': 'Existing Member',
+      'login.fullName': 'Full Name',
+      'login.state': 'State',
+      'login.district': 'District Name',
+      'login.city': 'City or Taluk or Village Name',
+      'login.phone': 'Phone',
+      'login.email': 'Email',
+      'login.password': 'Password',
+      'login.select': '--Select--',
+      'login.button': 'Login',
+      'login.role': 'Login as',
+      'login.directorLogin': 'Director Login',
+      'login.memberPrantLogin': 'Member / Prant Login',
+      'login.back': 'Back',
+      'login.roleCustomer': 'Member',
+      'login.roleDirector': 'Director',
+      'login.rolePresident': 'Prant',
+      'login.selectPrant': 'Select Prant',
+      'panel.title': 'Panel',
+      'panel.welcome': 'You are logged in. Welcome to your panel.',
+      'panel.logout': 'Logout',
+      'panel.paymentTitle': 'Payment Details',
+      'panel.paymentMessage': 'Complete your membership payment to proceed.',
+      'panel.proceedToPay': 'Proceed to Pay',
+      'panel.helpOrComplain': 'Help or Complain',
+      'panel.typeLabel': 'Type',
+      'panel.typeHelp': 'Help',
+      'panel.typeComplaint': 'Complaint',
+      'panel.subject': 'Subject',
+      'panel.message': 'Message',
+      'panel.contact': 'Contact (Email or Phone)',
+      'panel.submit': 'Submit',
+      'panel.directorTitle': 'Director Dashboard',
+      'panel.directorSubtitle': 'Add or edit images, text, and content. Changes are saved locally.',
+      'panel.prantTitle': 'Prant Dashboard',
+      'panel.prantSubtitle': 'Update the News section only. Add or remove images, text, and videos for News.',
+      'panel.addImage': 'Add Image',
+      'panel.imageUrl': 'Image URL',
+      'panel.uploadImage': 'Upload image',
+      'panel.chooseImage': 'Choose image(s)',
+      'panel.addAllImages': 'Add all',
+      'panel.clearAllImages': 'Clear all',
+      'panel.imageTooBig': 'Image must be under 2MB.',
+      'panel.notAnImage': 'Please choose an image file (e.g. JPG, PNG).',
+      'panel.caption': 'Caption (optional)',
+      'panel.addText': 'Add Text',
+      'panel.textTitle': 'Title',
+      'panel.textBody': 'Content',
+      'panel.add': 'Add',
+      'panel.remove': 'Remove',
+      'panel.clearImage': 'Clear image',
+      'panel.deleteImage': 'Delete',
+      'panel.myImages': 'My Images',
+      'panel.myTexts': 'My Text Blocks',
+      'panel.noImages': 'No images added yet.',
+      'panel.noTexts': 'No text blocks added yet.',
+      'panel.selectSection': 'Add content to section',
+      'panel.sectionHistory': 'History',
+      'panel.sectionBlog': 'Blog',
+      'panel.sectionNews': 'News',
+      'panel.sectionVideos': 'Videos',
+      'panel.sectionGallery': 'Gallery',
+      'panel.sectionHome': 'Home',
+      'panel.addVideo': 'Add Video',
+      'panel.videoUrl': 'Video URL',
+      'panel.videoTitle': 'Title (optional)',
+      'panel.myVideos': 'My Videos',
+      'panel.noVideos': 'No videos added yet.',
+      'panel.directorAdded': 'Director added',
+      'panel.analytics': 'Analytics',
+      'panel.membersCount': 'Total Members',
+      'panel.memberEmail': 'Email',
+      'panel.memberName': 'Name',
+      'panel.memberRole': 'Role',
+      'panel.dateAdded': 'Date',
+      'panel.memberType': 'Type',
+      'panel.newMemberLabel': 'New member',
+      'panel.existingMemberLabel': 'Existing member',
+      'panel.deleteMember': 'Delete',
+      'panel.noMembers': 'No members yet.',
+      'panel.memberDeleted': 'Member removed.',
+      'panel.searchMembers': 'Search by name or email',
+      'panel.filterByRole': 'Filter by role',
+      'panel.allRoles': 'All roles',
+      'panel.showingXtoY': 'Showing {{from}}–{{to}} of {{total}}',
+      'panel.rowsPerPage': 'Per page',
       'nav.quickLinks': 'Quick Links',
       'nav.gallery': 'Gallery',
       'lang.en': 'English',
@@ -36,7 +131,7 @@ const resources = {
       'lang.ta': 'தமிழ்',
       'lang.bn': 'বাংলা',
       'lang.or': 'ଓଡ଼ିଆ',
-      
+
       // Gallery Section
       'gallery.title': 'Photo Gallery',
       'gallery.subtitle': 'A collection of historical moments and events from ABGP\'s journey',
@@ -46,7 +141,7 @@ const resources = {
       'gallery.image': 'Image',
       'gallery.loading': 'Loading images...',
       'gallery.viewAll': 'View All Images',
-      
+
       // QuickMemo Section
       'quickmemo.title': 'QuickMemos',
       'quickmemo.subtitle': 'Recent updates, reports, and administrative memos from ABGP',
@@ -59,11 +154,11 @@ const resources = {
       'quickmemo.item5.title': 'Annual Plan III',
       'quickmemo.item6.title': 'Annual Plan II',
       'quickmemo.item7.title': 'Annual Plan I',
-      
+
       // Hero Section
       'hero.title': 'Akhil Bhartiya Grahak Panchayat (ABGP)',
       'hero.mission': 'A national-level consumer organization committed to empowering Grahaks through awareness, organization, and action across India.',
-      'hero.stats.active': 'Active in 25+ states and nearly 200 districts',
+      'hero.stats.active': 'Active in 25+ states and nearly 510 districts',
       'hero.stats.movement': 'Movement for Sanghatan, Jaagaran, Aandolan & Grahak Margadarshan Seva',
       'hero.stats.inclusive': 'Working beyond caste, creed, religion, and gender for all consumers',
       'hero.cta.join': 'Join as Member',
@@ -74,7 +169,7 @@ const resources = {
       'hero.timeline.1974': '1974 – Early Grahak Sangh initiative and Diwali campaign',
       'hero.timeline.1975': '1975 – Formal inauguration of ABGP movement',
       'hero.timeline.2017': '2017+ – Expansion across India',
-      
+
       // Jago Section
       'jago.title': 'Jago Grahak Jago',
       'jago.subtitle': 'Awareness initiatives, campaigns, and educational content for consumers.',
@@ -84,7 +179,7 @@ const resources = {
       'jago.card.stories': 'Success Stories',
       'jago.card.explore': 'Explore',
       'jago.ad': 'Advertisement – Advertisement will go here',
-      
+
       // Activities Section
       'activities.title': 'ABGP Activities & Focus Areas',
       'activities.subtitle': 'Organizing consumers through Sanghatan, awareness through Jaagaran, movement-based actions, and Grahak guidance.',
@@ -99,7 +194,7 @@ const resources = {
       'activities.shikshana': 'Shikshana (Education)',
       'activities.vyavahaar': 'Vyavahaar (Financial transactions)',
       'activities.description': 'ABGP believes that a Grahak cannot thrive without these essentials and structures activities around them.',
-      
+
       // About & History Section
       'about.title': 'About ABGP',
       'about.description': 'ABGP is a national-level organization serving society through Grahak welfare, based on 2024 membership data and presence across states and districts. ABGP is independent in management; RSS volunteers helped expansion but do not control administration.',
@@ -108,7 +203,7 @@ const resources = {
       'history.title': 'History & Legacy',
       'history.1974': '1974: Yuvak Mahamandal Janata Grahak Sangh initiative involving personalities like Sudhir Phadke, P. L. Deshpande, etc.',
       'history.1975': '1975: Formal inauguration in Pune by Justice M. C. Chagla, "what Pune thought today, India will think tomorrow".',
-      'history.2017': '2017+: Spread to 25+ states and nearly 200 districts.',
+      'history.2017': '2017+: Spread to 25+ states and nearly 510 districts.',
       'history.readMore': 'Read full history',
       'history.formation.title': 'The Historic Formation',
       'history.formation.date': 'February 23, 1975',
@@ -118,7 +213,7 @@ const resources = {
       'history.formation.legacy': 'This gathering brought together visionary leaders who laid the foundation for consumer rights advocacy in India, creating a legacy that continues to serve consumers nationwide.',
       'history.formation.image2Alt': 'ABGP Formation - Stage View 1975',
       'history.formation.image2Description': '1975 is the year of establishment of Grahak Panchayat. On this occasion, on the stage, in the back row with a turban, Shri Baburao Doundkar and in the first row, sitting next to Shri Bindumadhav Joshi, Dr. Ashok Kale',
-      
+
       // Historical Gallery Section
       'history.gallery.title': 'Historical Moments',
       'history.gallery.subtitle': 'A collection of memorable moments from ABGP\'s journey',
@@ -168,7 +263,7 @@ const resources = {
       'history.gallery.image22.description': 'Grahak Jagaran Parikrama, West Bengal 1990',
       'history.gallery.image23.alt': 'Grahak Jagaran Parikrama Bhubaneswar 1990',
       'history.gallery.image23.description': 'Grahak Jagaran Parikrama, Bhubaneswar 1990',
-      
+
       // Membership Section
       'membership.title': 'Membership & Constitution',
       'membership.registration': 'Registered under Societies Registration Act, 1860 (Regn. No. S/9194)',
@@ -183,16 +278,19 @@ const resources = {
       'membership.cta.apply': 'Apply for Membership',
       'membership.cta.view': 'View Full Constitution',
       'membership.cta.viewExecutive': 'View Executive Committee',
-      
+
       // Media Section
       'media.title': 'Latest from ABGP',
       'media.news': 'News',
       'media.events': 'Events',
+      'media.magazines': 'Magazines',
+      'media.magazinesSubtitle': 'ABGP magazines and publications',
+      'media.viewPdf': 'View PDF',
       'media.blogs': 'Blogs',
       'media.videos': 'Videos',
       'media.readMore': 'Read more',
       'media.watch': 'Watch',
-      
+
       // Contact Section
       'contact.title': 'Contact & Offices',
       'contact.key.name': 'Vijay Sagar',
@@ -209,7 +307,7 @@ const resources = {
       'contact.form.send': 'Send Message',
       'contact.form.success': 'Thank you for your message! We will get back to you soon.',
       'contact.keyContact': 'Key Contact',
-      
+
       // Footer
       'footer.copyright': '© 2025 Akhil Bhartiya Grahak Panchayat',
       'footer.privacy': 'Privacy Policy',
@@ -220,7 +318,7 @@ const resources = {
       'footer.social.facebook': 'Facebook',
       'footer.social.twitter': 'Twitter',
       'footer.social.youtube': 'YouTube',
-      
+
       // About Page Expanded
       'about.hero.title': 'About ABGP',
       'about.hero.subtitle': 'ABGP is a national-level organization committed to serving society through the welfare of Grahaks (consumers).',
@@ -267,6 +365,10 @@ const resources = {
       'constitution.memorandumDescription': 'View or download the complete Memorandum of Association document (Amended - 21 September 2014)',
       'constitution.viewMoA': 'View Memorandum',
       'constitution.downloadMoA': 'Download PDF',
+      'constitution.vicharBinduTitle': 'विचारबिंदू',
+      'constitution.vicharBinduDescription': 'View or download the विचारबिंदू document.',
+      'constitution.viewVicharBindu': 'View',
+      'constitution.downloadVicharBindu': 'Download PDF',
       'constitution.nameTitle': '1. NAME :',
       'constitution.nameContent': 'The name of the association is ‘Akhil Bhartiya Grahak Panchayat’ and will be hereinafter referred to as ‘Panchayat’ in the Memorandum of Association and Rules Regulations made there under.',
       'constitution.addressTitle': '2. ADDRESS :',
@@ -546,7 +648,7 @@ const resources = {
       'membership.constPoint2': 'Educate consumers about their rights',
       'membership.constPoint3': 'Provide legal assistance when needed',
       'membership.constPoint4': 'Establish research centers for consumer welfare',
-      
+
       // Prant Membership List
       'prant.title': 'Prant Membership Contacts',
       'prant.subtitle': 'Contact information for ABGP Prant leadership across India',
@@ -557,7 +659,7 @@ const resources = {
       'prant.sachiv': 'Sachiv',
       'prant.email': 'Email',
       'prant.noResults': 'No Prants found matching your search',
-      
+
       // Kshetra Sanghatan Mantri List
       'kshetra.title': 'Kshetra Sanghatan Mantri',
       'kshetra.subtitle': 'Contact information for Kshetra level organization secretaries',
@@ -573,7 +675,7 @@ const resources = {
       'kshetra.noResults': 'No Kshetra found matching your search',
       'kshetra.noData': 'Kshetra data will be available soon',
       'kshetra.noDataMessage': 'Kshetra Sanghatan Mantri contact information is being updated. Please check back later.',
-      
+
       // National Executive Committee
       'executive.title': 'National Executive Committee 2025-28',
       'executive.subtitle': 'Central Executive Committee members of Akhil Bhartiya Grahak Panchayat',
@@ -897,7 +999,7 @@ const resources = {
       'gallery.image': 'छवि',
       'gallery.loading': 'छवियां लोड हो रही हैं...',
       'gallery.viewAll': 'सभी छवियां देखें',
-      
+
       // QuickMemo Section
       'quickmemo.title': 'क्विक मेमो (QuickMemos)',
       'quickmemo.subtitle': 'ABGP के हालिया अपडेट, रिपोर्ट और प्रशासनिक मेमो',
@@ -910,7 +1012,7 @@ const resources = {
       'quickmemo.item5.title': 'वार्षिक योजना III',
       'quickmemo.item6.title': 'वार्षिक योजना II',
       'quickmemo.item7.title': 'वार्षिक योजना I',
-      
+
       'lang.en': 'English',
       'lang.hi': 'हिंदी',
       'lang.mr': 'मराठी',
@@ -920,7 +1022,7 @@ const resources = {
       'lang.ta': 'தமிழ்',
       'lang.bn': 'বাংলা',
       'lang.or': 'ଓଡ଼ିଆ',
-      
+
       // Hero Section
       'hero.title': 'अखिल भारतीय ग्राहक पंचायत (ABGP)',
       'hero.mission': 'एक राष्ट्रीय स्तर का उपभोक्ता संगठन जो जागरूकता, संगठन और कार्रवाई के माध्यम से पूरे भारत में ग्राहकों को सशक्त बनाने के लिए प्रतिबद्ध है।',
@@ -935,7 +1037,7 @@ const resources = {
       'hero.timeline.1974': '1974 – प्रारंभिक ग्राहक संघ पहल और दीवाली अभियान',
       'hero.timeline.1975': '1975 – ABGP आंदोलन की औपचारिक शुरुआत',
       'hero.timeline.2017': '2017+ – भारत भर में विस्तार',
-      
+
       // Jago Section
       'jago.title': 'जागो ग्राहक जागो',
       'jago.subtitle': 'उपभोक्ताओं के लिए जागरूकता पहल, अभियान और शैक्षिक सामग्री।',
@@ -945,7 +1047,7 @@ const resources = {
       'jago.card.stories': 'सफलता की कहानियाँ',
       'jago.card.explore': 'अन्वेषण करें',
       'jago.ad': 'विज्ञापन – विज्ञापन यहाँ जाएगा',
-      
+
       // Activities Section
       'activities.title': 'ABGP गतिविधियाँ और फोकस क्षेत्र',
       'activities.subtitle': 'संगठन के माध्यम से उपभोक्ताओं को संगठित करना, जागरण के माध्यम से जागरूकता, आंदोलन-आधारित कार्रवाई, और ग्राहक मार्गदर्शन।',
@@ -960,7 +1062,7 @@ const resources = {
       'activities.shikshana': 'शिक्षण (शिक्षा)',
       'activities.vyavahaar': 'व्यवहार (वित्तीय लेनदेन)',
       'activities.description': 'ABGP का मानना है कि इन आवश्यकताओं के बिना एक ग्राहक फल-फूल नहीं सकता है और इनके आसपास गतिविधियों को संरचित करता है।',
-      
+
       // About & History Section
       'about.title': 'ABGP के बारे में',
       'about.description': 'ABGP एक राष्ट्रीय स्तर का संगठन है जो 2024 की सदस्यता डेटा और राज्यों और जिलों में उपस्थिति के आधार पर ग्राहक कल्याण के माध्यम से समाज की सेवा करता है। ABGP प्रबंधन में स्वतंत्र है; RSS स्वयंसेवकों ने विस्तार में मदद की लेकिन प्रशासन को नियंत्रित नहीं किया।',
@@ -971,7 +1073,7 @@ const resources = {
       'history.1975': '1975: न्यायमूर्ति एम. सी. छागला द्वारा पुणे में औपचारिक उद्घाटन, "आज पुणे ने जो सोचा, कल भारत सोचेगा"।',
       'history.2017': '2017+: 25+ राज्यों और लगभग 200 जिलों में फैलाव।',
       'history.readMore': 'पूरा इतिहास पढ़ें',
-      
+
       // Membership Section
       'membership.title': 'सदस्यता और संविधान',
       'membership.registration': 'सोसाइटी रजिस्ट्रेशन एक्ट, 1860 (रजिस्ट्रेशन नंबर S/9194) के तहत पंजीकृत',
@@ -986,7 +1088,7 @@ const resources = {
       'membership.cta.apply': 'सदस्यता के लिए आवेदन करें',
       'membership.cta.view': 'पूरा संविधान देखें',
       'membership.cta.viewExecutive': 'कार्यकारिणी देखें',
-      
+
       // Media Section
       'media.title': 'ABGP से नवीनतम',
       'media.news': 'समाचार',
@@ -995,7 +1097,7 @@ const resources = {
       'media.videos': 'वीडियो',
       'media.readMore': 'अधिक पढ़ें',
       'media.watch': 'देखें',
-      
+
       // Contact Section
       'contact.title': 'संपर्क और कार्यालय',
       'contact.key.name': 'विजय सागर',
@@ -1012,7 +1114,7 @@ const resources = {
       'contact.form.send': 'संदेश भेजें',
       'contact.form.success': 'आपके संदेश के लिए धन्यवाद! हम जल्द ही आपसे संपर्क करेंगे।',
       'contact.keyContact': 'मुख्य संपर्क',
-      
+
       // Footer
       'footer.copyright': '© 2025 अखिल भारतीय ग्राहक पंचायत',
       'footer.privacy': 'गोपनीयता नीति',
@@ -1023,7 +1125,7 @@ const resources = {
       'footer.social.facebook': 'फेसबुक',
       'footer.social.twitter': 'ट्विटर',
       'footer.social.youtube': 'यूट्यूब',
-      
+
       // About Page Expanded
       'about.hero.title': 'ABGP के बारे में',
       'about.hero.subtitle': 'ABGP एक राष्ट्रीय स्तर का संगठन है जो ग्राहकों (उपभोक्ताओं) के कल्याण के माध्यम से समाज की सेवा करने के लिए प्रतिबद्ध है।',
@@ -1085,7 +1187,7 @@ const resources = {
       'membership.constPoint2': 'उपभोक्ताओं को उनके अधिकारों के बारे में शिक्षित करें',
       'membership.constPoint3': 'आवश्यकता पड़ने पर कानूनी सहायता प्रदान करें',
       'membership.constPoint4': 'उपभोक्ता कल्याण के लिए अनुसंधान केंद्र स्थापित करें',
-      
+
       // Prant Membership List
       'prant.title': 'प्रांत सदस्यता संपर्क',
       'prant.subtitle': 'भारत भर में ABGP प्रांत नेतृत्व के लिए संपर्क जानकारी',
@@ -1096,7 +1198,7 @@ const resources = {
       'prant.sachiv': 'सचिव',
       'prant.email': 'ईमेल',
       'prant.noResults': 'आपकी खोज से मेल खाने वाला कोई प्रांत नहीं मिला',
-      
+
       // Kshetra Sanghatan Mantri List
       'kshetra.title': 'क्षेत्र संघटन मंत्री',
       'kshetra.subtitle': 'क्षेत्र स्तर के संगठन सचिवों के लिए संपर्क जानकारी',
@@ -1112,7 +1214,7 @@ const resources = {
       'kshetra.noResults': 'आपकी खोज से मेल खाने वाला कोई क्षेत्र नहीं मिला',
       'kshetra.noData': 'क्षेत्र डेटा जल्द ही उपलब्ध होगा',
       'kshetra.noDataMessage': 'क्षेत्र संघटन मंत्री संपर्क जानकारी अपडेट की जा रही है। कृपया बाद में जांचें।',
-      
+
       // National Executive Committee
       'executive.title': 'राष्ट्रीय कार्यकारिणी 2025-28',
       'executive.subtitle': 'अखिल भारतीय ग्राहक पंचायत के केन्द्रीय कार्यकारिणी सदस्य',
@@ -1320,6 +1422,10 @@ const resources = {
       'constitution.memorandumDescription': 'संस्था के ज्ञापन दस्तावेज़ को देखें या डाउनलोड करें (संशोधित - 21 सितंबर 2014)',
       'constitution.viewMoA': 'ज्ञापन देखें',
       'constitution.downloadMoA': 'PDF डाउनलोड करें',
+      'constitution.vicharBinduTitle': 'विचारबिंदू',
+      'constitution.vicharBinduDescription': 'विचारबिंदू दस्तावेज़ देखें या डाउनलोड करें।',
+      'constitution.viewVicharBindu': 'देखें',
+      'constitution.downloadVicharBindu': 'PDF डाउनलोड करें',
       'constitution.nameTitle': '१. नाम :',
       'constitution.nameContent': 'संघ का नाम ‘अखिल भारतीय ग्राहक पंचायत’ है और इसे इसके बाद संस्था के ज्ञापन और नियमों और विनियमों में ‘पंचायत’ के रूप में संदर्भित किया जाएगा।',
       'constitution.addressTitle': '२. पता :',
@@ -1589,7 +1695,7 @@ const resources = {
       'gallery.image': 'छवी',
       'gallery.loading': 'छवी लोड होत आहेत...',
       'gallery.viewAll': 'सर्व छवी पहा',
-      
+
       // QuickMemo Section
       'quickmemo.title': 'क्विक मेमो (QuickMemos)',
       'quickmemo.subtitle': 'ABGP कडून अलीकडील अपडेट्स, अहवाल आणि प्रशासकीय मेमो',
@@ -1602,7 +1708,7 @@ const resources = {
       'quickmemo.item5.title': 'वार्षिक योजना III',
       'quickmemo.item6.title': 'वार्षिक योजना II',
       'quickmemo.item7.title': 'वार्षिक योजना I',
-      
+
       'lang.en': 'English',
       'lang.hi': 'हिंदी',
       'lang.mr': 'मराठी',
@@ -1612,7 +1718,7 @@ const resources = {
       'lang.ta': 'தமிழ்',
       'lang.bn': 'বাংলা',
       'lang.or': 'ଓଡ଼ିଆ',
-      
+
       // Hero Section
       'hero.title': 'अखिल भारतीय ग्राहक पंचायत (ABGP)',
       'hero.mission': 'संपूर्ण भारतात जागरूकता, संघटना आणि कृती द्वारे ग्राहकांना सक्षम करण्यासाठी वचनबद्ध असलेली राष्ट्रीय स्तरावरील ग्राहक संस्था.',
@@ -1627,7 +1733,7 @@ const resources = {
       'hero.timeline.1974': '1974 – प्रारंभिक ग्राहक संघ उपक्रम आणि दिवाळी मोहीम',
       'hero.timeline.1975': '1975 – ABGP चळवळीचे औपचारिक उद्घाटन',
       'hero.timeline.2017': '2017+ – संपूर्ण भारतात विस्तार',
-      
+
       // Jago Section
       'jago.title': 'जागो ग्राहक जागो',
       'jago.subtitle': 'ग्राहकांसाठी जागरूकता उपक्रम, मोहिमा आणि शैक्षणिक सामग्री.',
@@ -1637,7 +1743,7 @@ const resources = {
       'jago.card.stories': 'यशोगाथा',
       'jago.card.explore': 'अन्वेषण करा',
       'jago.ad': 'जाहिरात – जाहिरात येथे येईल',
-      
+
       // Activities Section
       'activities.title': 'ABGP उपक्रम आणि फोकस क्षेत्रे',
       'activities.subtitle': 'संघटनेद्वारे ग्राहकांना संघटित करणे, जागरणाद्वारे जागरूकता, आंदोलन-आधारित कृती, आणि ग्राहक मार्गदर्शन.',
@@ -1652,7 +1758,7 @@ const resources = {
       'activities.shikshana': 'शिक्षण (शिक्षण)',
       'activities.vyavahaar': 'व्यवहार (आर्थिक व्यवहार)',
       'activities.description': 'ABGP चा विश्वास आहे की या आवश्यकतांशिवाय ग्राहक भरभराट करू शकत नाही आणि त्यांच्या आसपास उपक्रम रचते.',
-      
+
       // About & History Section
       'about.title': 'ABGP बद्दल',
       'about.description': 'ABGP ही 2024 सदस्यत्व डेटा आणि राज्ये आणि जिल्ह्यांमधील उपस्थितीवर आधारित ग्राहक कल्याणाद्वारे समाजाची सेवा करणारी राष्ट्रीय स्तरावरील संस्था आहे. ABGP व्यवस्थापनात स्वतंत्र आहे; RSS स्वयंसेवकांनी विस्तारात मदत केली परंतु प्रशासन नियंत्रित केले नाही.',
@@ -1671,7 +1777,7 @@ const resources = {
       'history.formation.legacy': 'या सभेने भारतातील ग्राहक अधिकार वकिलीचा पाया घातलेल्या दूरदर्शी नेत्यांना एकत्र आणले, जी राष्ट्रव्यापी ग्राहकांना सेवा देणारी वारसा निर्माण करते.',
       'history.formation.image2Alt': 'ABGP स्थापना - व्यासपीठ दृश्य १९७५',
       'history.formation.image2Description': '1975 म्हणजे ग्राहक पंचायत स्थापना वर्ष. या प्रसंगी व्यासपीठावर मागच्या रांगेत फेटा घातलेले स्व बाबुराव दौण्डकर व पहिल्या रांगेत स्व बिंदूमाधव जोशी यांच्या शेजारी बसलेले डॉ अशोक काळे',
-      
+
       // Historical Gallery Section
       'history.gallery.title': 'ऐतिहासिक क्षण',
       'history.gallery.subtitle': 'ABGP च्या प्रवासातील स्मरणीय क्षणांचा संग्रह',
@@ -1721,7 +1827,7 @@ const resources = {
       'history.gallery.image22.description': 'ग्राहक जागरण परिक्रमा, पश्चिम बंगाल 1990',
       'history.gallery.image23.alt': 'ग्राहक जागरण परिक्रमा भुवनेश्वर 1990',
       'history.gallery.image23.description': 'ग्राहक जागरण परिक्रमा, भुवनेश्वर 1990',
-      
+
       // Membership Section
       'membership.title': 'सदस्यत्व आणि संविधान',
       'membership.registration': 'सोसायटी नोंदणी कायदा, 1860 अंतर्गत नोंदणीकृत (नोंदणी क्र. S/9194)',
@@ -1736,7 +1842,7 @@ const resources = {
       'membership.cta.apply': 'सदस्यत्वासाठी अर्ज करा',
       'membership.cta.view': 'संपूर्ण संविधान पहा',
       'membership.cta.viewExecutive': 'कार्यकारिणी पहा',
-      
+
       // Media Section
       'media.title': 'ABGP कडून ताजे',
       'media.news': 'बातम्या',
@@ -1745,7 +1851,7 @@ const resources = {
       'media.videos': 'व्हिडिओ',
       'media.readMore': 'अधिक वाचा',
       'media.watch': 'पहा',
-      
+
       // Contact Section
       'contact.title': 'संपर्क आणि कार्यालये',
       'contact.key.name': 'विजय सागर',
@@ -1762,7 +1868,7 @@ const resources = {
       'contact.form.send': 'संदेश पाठवा',
       'contact.form.success': 'तुमच्या संदेशाबद्दल धन्यवाद! आम्ही लवकरच तुमच्याशी संपर्क साधू.',
       'contact.keyContact': 'मुख्य संपर्क',
-      
+
       // Footer
       'footer.copyright': '© 2025 अखिल भारतीय ग्राहक पंचायत',
       'footer.privacy': 'गोपनीयता धोरण',
@@ -1773,7 +1879,7 @@ const resources = {
       'footer.social.facebook': 'फेसबुक',
       'footer.social.twitter': 'ट्विटर',
       'footer.social.youtube': 'यूट्यूब',
-      
+
       // About Page Expanded
       'about.hero.title': 'ABGP बद्दल',
       'about.hero.subtitle': 'ABGP ही ग्राहक कल्याणाद्वारे समाजाची सेवा करण्यासाठी वचनबद्ध असलेली राष्ट्रीय स्तरावरील संस्था आहे.',
@@ -1835,7 +1941,7 @@ const resources = {
       'membership.constPoint2': 'ग्राहकांना त्यांच्या अधिकारांबद्दल शिक्षित करा',
       'membership.constPoint3': 'गरज पडल्यास कायदेशीर मदत प्रदान करा',
       'membership.constPoint4': 'ग्राहक कल्याणासाठी संशोधन केंद्रे स्थापन करा',
-      
+
       // Prant Membership List
       'prant.title': 'प्रांत सदस्यत्व संपर्क',
       'prant.subtitle': 'भारतभरातील ABGP प्रांत नेतृत्वासाठी संपर्क माहिती',
@@ -1846,7 +1952,7 @@ const resources = {
       'prant.sachiv': 'सचिव',
       'prant.email': 'ईमेल',
       'prant.noResults': 'आपल्या शोधाशी जुळणारा कोणताही प्रांत सापडला नाही',
-      
+
       // Kshetra Sanghatan Mantri List
       'kshetra.title': 'क्षेत्र संघटन मंत्री',
       'kshetra.subtitle': 'क्षेत्र स्तराच्या संघटन सचिवांसाठी संपर्क माहिती',
@@ -1862,7 +1968,7 @@ const resources = {
       'kshetra.noResults': 'आपल्या शोधाशी जुळणारा कोणताही क्षेत्र सापडला नाही',
       'kshetra.noData': 'क्षेत्र डेटा लवकरच उपलब्ध होईल',
       'kshetra.noDataMessage': 'क्षेत्र संघटन मंत्री संपर्क माहिती अपडेट केली जात आहे. कृपया नंतर तपासा.',
-      
+
       // National Executive Committee
       'executive.title': 'राष्ट्रीय कार्यकारिणी 2025-28',
       'executive.subtitle': 'अखिल भारतीय ग्राहक पंचायतचे केन्द्रीय कार्यकारिणी सदस्य',
@@ -2093,6 +2199,10 @@ const resources = {
       'constitution.memorandumDescription': 'संस्थेचे स्मृतीपत्र दस्तऐवज पहा किंवा डाउनलोड करा (सुधारित - 21 सप्टेंबर 2014)',
       'constitution.viewMoA': 'स्मृतीपत्र पहा',
       'constitution.downloadMoA': 'PDF डाउनलोड करा',
+      'constitution.vicharBinduTitle': 'विचारबिंदू',
+      'constitution.vicharBinduDescription': 'विचारबिंदू दस्तऐवज पहा किंवा डाउनलोड करा।',
+      'constitution.viewVicharBindu': 'पहा',
+      'constitution.downloadVicharBindu': 'PDF डाउनलोड करा',
       'constitution.nameTitle': '१. नाव :',
       'constitution.nameContent': 'संस्थेचे नाव ‘अखिल भारतीय ग्राहक पंचायत’ आहे आणि यापुढे स्मृतीपत्र आणि नियमावलीमध्ये याचा उल्लेख ‘पंचायत’ असा केला जाईल.',
       'constitution.addressTitle': '२. पत्ता :',

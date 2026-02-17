@@ -17,6 +17,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarToday, Person } from '@mui/icons-material';
+import { DirectorContentBlock } from '../components/DirectorContentBlock';
 
 export const BlogsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -67,9 +68,11 @@ export const BlogsPage: React.FC = () => {
           <Typography color="text.primary">{t('nav.blogs')}</Typography>
         </Breadcrumbs>
 
-        <Typography variant="h3" component="h1" fontWeight={800} color="primary" gutterBottom sx={{ mb: 6 }}>
+        <Typography variant="h3" component="h1" fontWeight={800} color="primary" gutterBottom sx={{ mb: 4 }}>
           {t('media.blog.pageTitle')}
         </Typography>
+
+        <DirectorContentBlock section="blog" showTitle />
 
         <Grid container spacing={4}>
           {blogs.map((blog) => (

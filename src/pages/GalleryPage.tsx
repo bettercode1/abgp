@@ -19,6 +19,7 @@ import {
 import { Close, ZoomIn, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
+import { DirectorContentBlock } from '../components/DirectorContentBlock';
 
 // Dynamic import of all images using Vite's import.meta.glob
 const imageModules = import.meta.glob('../assets/images/*.jpeg', { eager: true });
@@ -121,6 +122,8 @@ export const GalleryPage: React.FC = () => {
           </Link>
           <Typography color="text.primary">{t('gallery.title')}</Typography>
         </Breadcrumbs>
+
+        <DirectorContentBlock section="gallery" showTitle />
 
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>

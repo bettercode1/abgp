@@ -120,6 +120,75 @@ export const ConstitutionPage: React.FC = () => {
             </CardContent>
           </Card>
 
+          {/* विचारबिंदू PDF Section */}
+          <Card
+            elevation={4}
+            sx={{
+              mb: 6,
+              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.primary.main} 100%)`,
+              color: 'white',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+              <Stack spacing={3} alignItems="center">
+                <Description sx={{ fontSize: 64, opacity: 0.9 }} />
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" fontWeight={700} gutterBottom>
+                    {t('constitution.vicharBinduTitle')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.95, mb: 3 }}>
+                    {t('constitution.vicharBinduDescription')}
+                  </Typography>
+                </Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<Visibility />}
+                    href="/vichar-bindu.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      backgroundColor: 'white',
+                      color: theme.palette.primary.main,
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.shadows[8],
+                      },
+                    }}
+                  >
+                    {t('constitution.viewVicharBindu')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    startIcon={<Download />}
+                    href="/vichar-bindu.pdf"
+                    download="विचारबिंदू.pdf"
+                    sx={{
+                      borderColor: 'white',
+                      color: 'white',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      '&:hover': {
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
+                    {t('constitution.downloadVicharBindu')}
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
           <Divider sx={{ mb: 4 }} />
 
           <Box sx={{ mb: 6 }}>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { LoginDialog } from '../components/LoginDialog';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   AppBar,
@@ -77,8 +79,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  const quickLinks = [
+    ...navigationItems,
+    { key: 'nav.constitution', path: '/constitution' },
+    { key: 'nav.courtDecisions', path: '/court-decisions' },
+  ];
 
   useEffect(() => {
     document.documentElement.lang = i18n.language;
@@ -96,19 +106,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center', width: 280 }}>
-        <Box
-          component="img"
-          src={logoImage}
-          alt={t('header.fullName')}
-          sx={{
-            height: 60,
-            width: 'auto',
-            maxWidth: '200px',
-            objectFit: 'contain',
-            my: 2,
-            mx: 'auto',
-          }}
-        />
+      <Box
+        component="img"
+        src={logoImage}
+        alt={t('header.fullName')}
+        sx={{
+          height: 60,
+          width: 'auto',
+          maxWidth: '200px',
+          objectFit: 'contain',
+          my: 2,
+          mx: 'auto',
+        }}
+      />
       <Divider />
       <List>
         {navigationItems.map((item) => (
@@ -130,7 +140,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <GlobalLoader loading={loading} fullScreen />
       <ScrollProgressIndicator />
-      
+
       {/* Skip to content link */}
       <Link
         href="#main-content"
@@ -225,17 +235,26 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </Box>
 
             {/* CTA Buttons */}
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
               <Button
                 variant="contained"
                 color="secondary"
                 size="small"
+                disabled
                 onClick={() => {
                   // TODO: Replace with new Razorpay integration
-                  // window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
                   console.log('Donate button clicked - waiting for new Razorpay integration');
                 }}
-                disabled
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  // Disabled: readable contrast (dark text on light bg)
+                  '&.Mui-disabled': {
+                    backgroundColor: (theme) => theme.palette.grey[300],
+                    color: (theme) => theme.palette.grey[700],
+                  },
+                }}
               >
                 {t('header.donate')}
               </Button>
@@ -249,9 +268,78 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderWidth: 2,
+                  },
+                }}
               >
                 {t('header.membership')}
               </Button>
+              {!isAuthenticated && (
+                <Button
+                  component={RouterLink}
+                  to="/login?mode=director"
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderWidth: 2,
+                    '&:hover': {
+                      borderWidth: 2,
+                    },
+                  }}
+                >
+                  {t('header.director')}
+                </Button>
+              )}
+              <Button
+                component={RouterLink}
+                to={isAuthenticated ? '/panel' : '/login'}
+                variant="contained"
+                color="primary"
+                size="small"
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  boxShadow: (theme) => theme.shadows[2],
+                  '&:hover': {
+                    bgcolor: 'primary.dark',
+                    boxShadow: (theme) => theme.shadows[4],
+                  },
+                }}
+              >
+                {isAuthenticated ? t('panel.title') : t('header.login')}
+              </Button>
+              {isAuthenticated && (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={() => logout()}
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderWidth: 2,
+                    '&:hover': {
+                      borderWidth: 2,
+                    },
+                  }}
+                >
+                  {t('panel.logout')}
+                </Button>
+              )}
             </Box>
           </Toolbar>
         </Container>
@@ -403,180 +491,174 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </Stack>
             </Grid>
 
-            {/* Navigation Links Section */}
-            <Grid item xs={12} sm={6} md={2}>
+            {/* Navigation Links Section - two columns */}
+            <Grid item xs={12} sm={6} md={3}>
               <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                 {t('nav.quickLinks')}
               </Typography>
+              <Grid container spacing={0} sx={{ flexWrap: 'wrap' }}>
+                <Grid item xs={6}>
+                  <Stack spacing={0.8}>
+                    {quickLinks.slice(0, 7).map((item) => (
+                      <Link
+                        key={item.key}
+                        component={RouterLink}
+                        to={item.path}
+                        color="inherit"
+                        sx={{
+                          textDecoration: 'none',
+                          fontSize: '0.8rem',
+                          opacity: 0.8,
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            opacity: 1,
+                            color: theme.palette.secondary.main,
+                            transform: 'translateX(3px)',
+                          },
+                        }}
+                      >
+                        {t(item.key)}
+                      </Link>
+                    ))}
+                  </Stack>
+                </Grid>
+                <Grid item xs={6}>
+                  <Stack spacing={0.8}>
+                    {quickLinks.slice(7, 14).map((item) => (
+                      <Link
+                        key={item.key}
+                        component={RouterLink}
+                        to={item.path}
+                        color="inherit"
+                        sx={{
+                          textDecoration: 'none',
+                          fontSize: '0.8rem',
+                          opacity: 0.8,
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            opacity: 1,
+                            color: theme.palette.secondary.main,
+                            transform: 'translateX(3px)',
+                          },
+                        }}
+                      >
+                        {t(item.key)}
+                      </Link>
+                    ))}
+                  </Stack>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            {/* Social Connect Section */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
+                {t('footer.connect')}
+              </Typography>
+              <Stack spacing={0.5}>
+                <Button
+                  component="a"
+                  href="#"
+                  color="inherit"
+                  startIcon={<Facebook sx={{ fontSize: '1rem' }} />}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    fontSize: '0.8rem',
+                    minHeight: '32px',
+                    padding: '4px 8px',
+                    opacity: 0.8,
+                    '&:hover': { opacity: 1, color: '#1877F2' },
+                  }}
+                >
+                  {t('footer.social.facebook')}
+                </Button>
+                <Button
+                  component="a"
+                  href="#"
+                  color="inherit"
+                  startIcon={<Twitter sx={{ fontSize: '1rem' }} />}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    fontSize: '0.8rem',
+                    minHeight: '32px',
+                    padding: '4px 8px',
+                    opacity: 0.8,
+                    '&:hover': { opacity: 1, color: '#1DA1F2' },
+                  }}
+                >
+                  {t('footer.social.twitter')}
+                </Button>
+                <Button
+                  component="a"
+                  href="#"
+                  color="inherit"
+                  startIcon={<YouTube sx={{ fontSize: '1rem' }} />}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    fontSize: '0.8rem',
+                    minHeight: '32px',
+                    padding: '4px 8px',
+                    opacity: 0.8,
+                    '&:hover': { opacity: 1, color: '#FF0000' },
+                  }}
+                >
+                  {t('footer.social.youtube')}
+                </Button>
+              </Stack>
+            </Grid>
+
+            {/* Legal Section */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
+                {t('footer.legal')}
+              </Typography>
               <Stack spacing={0.8}>
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    component={RouterLink}
-                    to={item.path}
-                    color="inherit"
-                    sx={{
-                      textDecoration: 'none',
-                      fontSize: '0.8rem',
-                      opacity: 0.8,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        opacity: 1,
-                        color: theme.palette.secondary.main,
-                        transform: 'translateX(3px)',
-                      },
-                    }}
-                  >
-                    {t(item.key)}
-                  </Link>
-                ))}
                 <Link
                   component={RouterLink}
-                  to="/constitution"
+                  to="/terms"
                   color="inherit"
                   sx={{
                     textDecoration: 'none',
-                    fontSize: '0.9rem',
+                    fontSize: '0.8rem',
                     opacity: 0.8,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      opacity: 1,
-                      color: theme.palette.secondary.main,
-                      transform: 'translateX(5px)',
-                    },
+                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
                   }}
-                  >
-                    {t('nav.constitution')}
-                  </Link>
-                  <Link
-                    component={RouterLink}
-                    to="/court-decisions"
-                    color="inherit"
-                    sx={{
-                      textDecoration: 'none',
-                      fontSize: '0.8rem',
-                      opacity: 0.8,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        opacity: 1,
-                        color: theme.palette.secondary.main,
-                        transform: 'translateX(3px)',
-                      },
-                    }}
-                  >
-                    {t('nav.courtDecisions')}
-                  </Link>
-                </Stack>
-              </Grid>
-
-              {/* Social Connect Section */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
-                  {t('footer.connect')}
-                </Typography>
-                <Stack spacing={0.5}>
-                  <Button
-                    component="a"
-                    href="#"
-                    color="inherit"
-                    startIcon={<Facebook sx={{ fontSize: '1rem' }} />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      fontSize: '0.8rem',
-                      minHeight: '32px',
-                      padding: '4px 8px',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: '#1877F2' },
-                    }}
-                  >
-                    {t('footer.social.facebook')}
-                  </Button>
-                  <Button
-                    component="a"
-                    href="#"
-                    color="inherit"
-                    startIcon={<Twitter sx={{ fontSize: '1rem' }} />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      fontSize: '0.8rem',
-                      minHeight: '32px',
-                      padding: '4px 8px',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: '#1DA1F2' },
-                    }}
-                  >
-                    {t('footer.social.twitter')}
-                  </Button>
-                  <Button
-                    component="a"
-                    href="#"
-                    color="inherit"
-                    startIcon={<YouTube sx={{ fontSize: '1rem' }} />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      fontSize: '0.8rem',
-                      minHeight: '32px',
-                      padding: '4px 8px',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: '#FF0000' },
-                    }}
-                  >
-                    {t('footer.social.youtube')}
-                  </Button>
-                </Stack>
-              </Grid>
-
-              {/* Legal Section */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
-                  {t('footer.legal')}
-                </Typography>
-                <Stack spacing={0.8}>
-                  <Link
-                    component={RouterLink}
-                    to="/terms"
-                    color="inherit"
-                    sx={{
-                      textDecoration: 'none',
-                      fontSize: '0.8rem',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                    }}
-                  >
-                    {t('footer.terms')}
-                  </Link>
-                  <Link
-                    href="#"
-                    color="inherit"
-                    sx={{
-                      textDecoration: 'none',
-                      fontSize: '0.8rem',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                    }}
-                  >
-                    {t('footer.privacy')}
-                  </Link>
-                  <Link
-                    href="#"
-                    color="inherit"
-                    sx={{
-                      textDecoration: 'none',
-                      fontSize: '0.8rem',
-                      opacity: 0.8,
-                      '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                    }}
-                  >
-                    {t('footer.help')}
-                  </Link>
-                </Stack>
-              </Grid>
+                >
+                  {t('footer.terms')}
+                </Link>
+                <Link
+                  href="#"
+                  color="inherit"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.8rem',
+                    opacity: 0.8,
+                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
+                  }}
+                >
+                  {t('footer.privacy')}
+                </Link>
+                <Link
+                  href="#"
+                  color="inherit"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.8rem',
+                    opacity: 0.8,
+                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
+                  }}
+                >
+                  {t('footer.help')}
+                </Link>
+              </Stack>
+            </Grid>
           </Grid>
         </Container>
       </Box>
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
     </Box>
   );
 };
