@@ -12,6 +12,8 @@ import {
 import { Payment as PaymentIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
+const RAZORPAY_PAYMENT_LINK = 'https://rzp.io/rzp/BPN9lBQ';
+
 interface PaymentDialogProps {
   open: boolean;
   onClose: () => void;
@@ -62,6 +64,10 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onClose }) =
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3, pt: 0, justifyContent: 'center' }}>
         <Button
+          component="a"
+          href={RAZORPAY_PAYMENT_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={onClose}
           variant="contained"
           color="primary"
@@ -73,6 +79,7 @@ export const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onClose }) =
             fontWeight: 600,
             textTransform: 'none',
             boxShadow: theme.shadows[4],
+            textDecoration: 'none',
             '&:hover': {
               boxShadow: theme.shadows[8],
               transform: 'translateY(-1px)',

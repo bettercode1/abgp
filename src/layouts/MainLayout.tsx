@@ -468,16 +468,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         sx={{
           backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : theme.palette.grey[900],
           color: 'white',
-          pt: 4,
-          pb: 3,
+          pt: 3,
+          pb: 2,
           mt: 'auto',
           borderTop: `2px solid ${theme.palette.secondary.main}`,
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={3}>
+          <Grid container spacing={2} sx={{ alignItems: 'flex-start' }}>
             {/* Brand Section */}
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={4} sx={{ order: { xs: 1, md: 1 } }}>
               <Stack spacing={1}>
                 <Typography variant="subtitle2" fontWeight={600} sx={{ fontSize: '0.95rem' }}>
                   {t('header.fullName')}
@@ -492,7 +492,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </Grid>
 
             {/* Navigation Links Section - two columns */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 3, md: 2 } }}>
               <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                 {t('nav.quickLinks')}
               </Typography>
@@ -551,7 +551,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </Grid>
 
             {/* Social Connect Section */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 4, md: 3 } }}>
               <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
                 {t('footer.connect')}
               </Typography>
@@ -610,12 +610,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </Stack>
             </Grid>
 
-            {/* Legal Section */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
+            {/* Legal Section - right after Brand on mobile to remove gap */}
+            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 2, md: 4 } }}>
+              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                 {t('footer.legal')}
               </Typography>
-              <Stack spacing={0.8}>
+              <Stack spacing={0.35}>
                 <Link
                   component={RouterLink}
                   to="/terms"

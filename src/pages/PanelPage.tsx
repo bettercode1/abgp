@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Schedule, Message as MessageIcon, ContactMail } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -39,7 +39,10 @@ import {
   type DirectorText,
   type DirectorVideo,
 } from '../lib/directorContent';
-import { getMembers, deleteMember, type Member } from '../lib/memberRegistry';
+import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
+import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
+
+const COMPLAINT_CATEGORIES: ComplaintCategory[] = ['realEstate', 'food', 'hospital', 'transport', 'ecommerce', 'society', 'utility', 'education', 'other'];
 
 const roleLabels: Record<string, string> = {
   customer: 'Member',
@@ -59,6 +62,8 @@ export const PanelPage: React.FC = () => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [contact, setContact] = useState('');
+  const [complaintFormData, setComplaintFormData] = useState<Record<string, string | string[] | boolean>>({});
+  const [complaintSubmitted, setComplaintSubmitted] = useState(false);
 
   // Director content by section (history, blog, videos, gallery, home)
   const [directorContentBySection, setDirectorContentBySection] = useState(() => loadDirectorContentBySection());
@@ -76,6 +81,66 @@ export const PanelPage: React.FC = () => {
   const [analyticsPage, setAnalyticsPage] = useState(0);
   const [analyticsRowsPerPage, setAnalyticsRowsPerPage] = useState(25);
   const [analyticsSearch, setAnalyticsSearch] = useState('');
+  const [complaintsDialogMember, setComplaintsDialogMember] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      const list = JSON.parse(raw || '[]') as Array<{ memberEmail?: string }>;
+      if (!Array.isArray(list)) return;
+      const hasRamPatil = list.some((c) => (c.memberEmail || '').toLowerCase() === RAM_PATIL_EMAIL);
+      if (hasRamPatil) return;
+      (list as Array<Record<string, unknown>>).push({
+        category: 'ecommerce',
+        formData: { productName: 'Mobile phone', orderId: 'ORD-2026-001', issue: 'Defective product received' },
+        message: 'I received a defective mobile phone. The screen has dead pixels and the device overheats. I have already contacted the seller but no response.',
+        contact: RAM_PATIL_EMAIL,
+        at: new Date().toISOString(),
+        memberEmail: RAM_PATIL_EMAIL,
+      });
+      localStorage.setItem('abgp-complaints', JSON.stringify(list));
+      setMembers(getMembers());
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Refresh members list when Director views panel or when tab becomes visible (so new sign-ups show up)
+  useEffect(() => {
+    if (user?.role === 'director') {
+      setMembers(getMembers());
+    }
+  }, [user?.role]);
+
+  // Ensure every complainant from stored complaints has a member row (so e.g. Pranit Hallale shows in list)
+  useEffect(() => {
+    if (user?.role !== 'director') return;
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      const list = JSON.parse(raw || '[]') as Array<{ memberEmail?: string; contact?: string }>;
+      if (!Array.isArray(list)) return;
+      const members = getMembers();
+      const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
+      const added = new Set<string>();
+      for (const c of list) {
+        const email = (c.memberEmail || c.contact || '').trim().toLowerCase();
+        if (!email || !email.includes('@') || existingEmails.has(email) || added.has(email)) continue;
+        addMember({ email, name: email.split('@')[0], role: 'customer', isNewMember: true });
+        added.add(email);
+        existingEmails.add(email);
+      }
+      if (added.size > 0) setMembers(getMembers());
+    } catch {
+      // ignore
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    if (user?.role !== 'director') return;
+    const onVisible = () => setMembers(getMembers());
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [user?.role]);
 
   const isPrant = user?.role === 'president';
   const effectiveSection: DirectorSectionKey = isPrant ? 'news' : selectedSection;
@@ -228,6 +293,61 @@ export const PanelPage: React.FC = () => {
     setAnalyticsPage(0);
   };
 
+  const openComplaintsDialog = useCallback((member: Member) => {
+    const name = member.name || member.email;
+    const email = member.email;
+    setComplaintsDialogMember({ name, email });
+  }, []);
+
+  useEffect(() => {
+    if (complaintsDialogMember) {
+      const el = document.getElementById('member-complaints-view');
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }, [complaintsDialogMember]);
+
+  type StoredComplaint = { category: string; formData?: Record<string, unknown>; message?: string; contact?: string; at?: string; memberEmail?: string };
+
+  const normalizeEmail = (s: string) => (s || '').trim().toLowerCase();
+
+  const getComplaintCountForEmail = (email: string): number => {
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      if (!raw) return 0;
+      const list = JSON.parse(raw) as Array<{ memberEmail?: string; contact?: string }>;
+      if (!Array.isArray(list)) return 0;
+      const lower = normalizeEmail(email);
+      return list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower).length;
+    } catch {
+      return 0;
+    }
+  };
+
+  const getComplaintsForEmail = (email: string): StoredComplaint[] => {
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      if (!raw) return [];
+      const list = JSON.parse(raw) as StoredComplaint[];
+      if (!Array.isArray(list)) return [];
+      const lower = normalizeEmail(email);
+      return list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower);
+    } catch {
+      return [];
+    }
+  };
+
+  const getAllComplaintsRecentFirst = (): StoredComplaint[] => {
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      if (!raw) return [];
+      const list = JSON.parse(raw) as StoredComplaint[];
+      if (!Array.isArray(list)) return [];
+      return [...list].reverse();
+    } catch {
+      return [];
+    }
+  };
+
   const analyticsMembersOnly = members.filter((m) => m.role === 'customer');
   const analyticsFiltered = analyticsMembersOnly.filter((m) => {
     const q = analyticsSearch.trim().toLowerCase();
@@ -247,10 +367,50 @@ export const PanelPage: React.FC = () => {
     setAnalyticsPage(0);
   };
 
+  const isComplaintCategory = (s: string): s is ComplaintCategory =>
+    COMPLAINT_CATEGORIES.includes(s as ComplaintCategory);
+
+  const handleComplaintFormUpdate = (key: string, value: string | string[] | boolean) => {
+    setComplaintFormData((prev) => ({ ...prev, [key]: value }));
+  };
+  const handleComplaintFormToggle = (key: string, option: string) => {
+    setComplaintFormData((prev) => {
+      const arr = (prev[key] as string[]) || [];
+      const next = arr.includes(option) ? arr.filter((x) => x !== option) : [...arr, option];
+      return { ...prev, [key]: next };
+    });
+  };
+
   const handleHelpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder for backend - log or send to API
-    console.log('Help/Complain:', { helpType, subject, message, contact });
+    if (isComplaintCategory(subject)) {
+      try {
+        const memberEmailVal = (user?.email || contact || '').trim().toLowerCase() || undefined;
+        const payload = { category: subject, formData: complaintFormData, message, contact, at: new Date().toISOString(), memberEmail: memberEmailVal };
+        const stored = JSON.parse(localStorage.getItem('abgp-complaints') || '[]');
+        stored.push(payload);
+        localStorage.setItem('abgp-complaints', JSON.stringify(stored));
+        if (memberEmailVal && memberEmailVal.includes('@')) {
+          const existing = getMembers().some((m) => m.email.toLowerCase() === memberEmailVal);
+          if (!existing) {
+            addMember({
+              email: memberEmailVal,
+              name: user?.name || contact || memberEmailVal.split('@')[0],
+              role: 'customer',
+              isNewMember: true,
+            });
+          }
+        }
+        setComplaintSubmitted(true);
+        setSubject('');
+        setComplaintFormData({});
+        setMessage('');
+        setContact('');
+      } catch {
+        // ignore
+      }
+      return;
+    }
     setSubject('');
     setMessage('');
     setContact('');
@@ -306,9 +466,53 @@ export const PanelPage: React.FC = () => {
                     {t('panel.analytics')}
                   </Typography>
                 </Box>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  {t('panel.membersCount')}: <Chip label={analyticsMembersOnly.length.toLocaleString()} color="primary" size="small" />
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 0 }}>
+                    {t('panel.membersCount')}: <Chip label={analyticsMembersOnly.length.toLocaleString()} color="primary" size="small" />
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Refresh />}
+                    onClick={() => setMembers(getMembers())}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {t('panel.refreshList')}
+                  </Button>
+                </Box>
+                {(() => {
+                  const recent = getAllComplaintsRecentFirst().slice(0, 50);
+                  return recent.length > 0 ? (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" fontWeight={600} color="text.secondary" gutterBottom>
+                        {t('panel.recentComplaints')}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                        {t('panel.recentComplaintsDesc')}
+                      </Typography>
+                      <Stack spacing={1} sx={{ maxHeight: 220, overflow: 'auto', pr: 0.5 }}>
+                        {recent.map((c, i) => (
+                          <Paper key={i} variant="outlined" sx={{ p: 1.5 }}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
+                              <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="secondary" variant="outlined" />
+                              <Typography variant="caption" color="text.secondary">
+                                {c.at ? new Date(c.at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                              </Typography>
+                              {(c.memberEmail || c.contact) && (
+                                <Typography variant="caption" noWrap title={c.memberEmail || c.contact}>
+                                  {c.memberEmail || c.contact}
+                                </Typography>
+                              )}
+                            </Box>
+                            {c.message && <Typography variant="body2" sx={{ mt: 0.5 }} noWrap>{c.message}</Typography>}
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{t('panel.noComplaintsYet')}</Typography>
+                  );
+                })()}
                 {analyticsMembersOnly.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     {t('panel.noMembers')}
@@ -345,11 +549,14 @@ export const PanelPage: React.FC = () => {
                             <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberEmail')}</TableCell>
                             <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.dateAdded')}</TableCell>
                             <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberType')}</TableCell>
+                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover', width: 160 }} align="center">{t('panel.complaints')}</TableCell>
                             <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover', width: 120 }} align="right">{t('panel.deleteMember')}</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {analyticsPageMembers.map((m) => (
+                          {analyticsPageMembers.map((m) => {
+                              const complaintCount = getComplaintCountForEmail(m.email);
+                              return (
                             <TableRow key={m.id} hover>
                               <TableCell sx={{ maxWidth: 180 }} title={m.name || m.email}>
                                 <Typography variant="body2" noWrap>{m.name || m.email}</Typography>
@@ -370,6 +577,33 @@ export const PanelPage: React.FC = () => {
                                   variant="outlined"
                                 />
                               </TableCell>
+                              <TableCell align="center">
+                                <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                                  <Typography variant="body2" fontWeight={600} color={complaintCount > 0 ? 'secondary.main' : 'text.secondary'}>
+                                    {complaintCount} {t('panel.complaints').toLowerCase()}
+                                  </Typography>
+                                  <Box
+                                    component="button"
+                                    type="button"
+                                    onClick={() => openComplaintsDialog(m)}
+                                    sx={{
+                                      padding: '6px 16px',
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      color: 'primary.contrastText',
+                                      bgcolor: 'primary.main',
+                                      border: 'none',
+                                      borderRadius: 1,
+                                      cursor: 'pointer',
+                                      textTransform: 'none',
+                                      fontFamily: 'inherit',
+                                      '&:hover': { bgcolor: 'primary.dark' },
+                                    }}
+                                  >
+                                    {t('panel.open')}
+                                  </Box>
+                                </Stack>
+                              </TableCell>
                               <TableCell align="right">
                                 <Button
                                   size="small"
@@ -383,7 +617,7 @@ export const PanelPage: React.FC = () => {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          ); })}
                         </TableBody>
                       </Table>
                     </TableContainer>
@@ -398,6 +632,87 @@ export const PanelPage: React.FC = () => {
                       labelRowsPerPage={t('panel.rowsPerPage')}
                       sx={{ borderTop: 1, borderColor: 'divider' }}
                     />
+                    {complaintsDialogMember && (() => {
+                      const list = getComplaintsForEmail(complaintsDialogMember.email);
+                      const formatFormValue = (v: unknown): string => {
+                        if (v === null || v === undefined) return '—';
+                        if (typeof v === 'boolean') return v ? t('common.yes') : t('common.no');
+                        if (Array.isArray(v)) return v.map(String).join(', ');
+                        return String(v);
+                      };
+                      const getFormDataLabel = (category: string, key: string): string => {
+                        if (isComplaintCategory(category)) {
+                          const keyPath = `complaint.${category}.${key}`;
+                          const translated = t(keyPath);
+                          if (translated !== keyPath) return translated;
+                        }
+                        return key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+                      };
+                      const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s || '').trim());
+                      const formRow = (label: string, value: string, options?: { link?: 'email' }) => (
+                        <Box key={label} sx={{ display: 'flex', gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: 140, fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
+                          <Typography variant="body2" component={options?.link === 'email' && isEmail(value) ? 'a' : 'span'} href={options?.link === 'email' && isEmail(value) ? `mailto:${value.trim()}` : undefined} sx={{ flex: 1, wordBreak: 'break-word', ...(options?.link === 'email' && isEmail(value) ? { color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } } : {}) }}>{value || '—'}</Typography>
+                        </Box>
+                      );
+                      return (
+                        <Paper elevation={3} sx={{ mt: 3, overflow: 'hidden', borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: theme.shadows[4] }} id="member-complaints-view">
+                          <Box sx={{ background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`, color: 'primary.contrastText', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Support sx={{ fontSize: 28, opacity: 0.95 }} />
+                              <Box>
+                                <Typography variant="h6" fontWeight={700} sx={{ color: 'inherit', lineHeight: 1.3 }}>
+                                  {t('panel.complaintsFromMember', { name: complaintsDialogMember.name })}
+                                </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
+                                  {list.length} {list.length === 1 ? t('panel.complaintOne') : t('panel.complaintsCount')}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <IconButton size="medium" onClick={() => setComplaintsDialogMember(null)} sx={{ color: 'inherit', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} aria-label={t('panel.close')}>
+                              <Close />
+                            </IconButton>
+                          </Box>
+                          <Box sx={{ p: 3 }}>
+                            {list.length === 0 ? (
+                              <Typography color="text.secondary">{t('panel.noComplaints')}</Typography>
+                            ) : (
+                              <Stack spacing={3}>
+                                {list.map((c, i) => (
+                                  <Paper key={i} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
+                                    <Box sx={{ px: 2.5, py: 1.5, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                                      <Typography variant="subtitle2" color="primary" fontWeight={600}>
+                                        {t('panel.complaintForm')} #{i + 1}
+                                      </Typography>
+                                      <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="primary" variant="outlined" sx={{ fontWeight: 500 }} />
+                                    </Box>
+                                    <Box sx={{ p: 2.5 }}>
+                                      {c.message && (
+                                        <Box sx={{ mb: 2, p: 2, borderRadius: 1.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
+                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
+                                            <MessageIcon fontSize="small" color="action" />
+                                            <Typography variant="caption" fontWeight={600} color="text.secondary">{t('panel.message')}</Typography>
+                                          </Box>
+                                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{c.message}</Typography>
+                                        </Box>
+                                      )}
+                                      <Stack spacing={0} sx={{ '& > div': { minHeight: 40 } }}>
+                                        {formRow(t('panel.subject'), isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category)}
+                                        {formRow(t('panel.dateTime'), c.at ? new Date(c.at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—')}
+                                        {formRow(t('panel.contact'), c.contact || '—', { link: 'email' })}
+                                        {c.formData && Object.keys(c.formData).length > 0 && Object.entries(c.formData).map(([k, v]) =>
+                                          formRow(getFormDataLabel(c.category || '', k), formatFormValue(v))
+                                        )}
+                                      </Stack>
+                                    </Box>
+                                  </Paper>
+                                ))}
+                              </Stack>
+                            )}
+                          </Box>
+                        </Paper>
+                      );
+                    })()}
                   </>
                 )}
               </Paper>
@@ -759,20 +1074,66 @@ export const PanelPage: React.FC = () => {
                   value={helpType}
                   onChange={(e) => setHelpType(e.target.value as HelpType)}
                   variant="outlined"
+                  SelectProps={{
+                    MenuProps: {
+                      disableScrollLock: true,
+                      sx: { zIndex: 9999 },
+                      PaperProps: { sx: { maxHeight: 320 } },
+                    },
+                  }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 >
                   <MenuItem value="help">{t('panel.typeHelp')}</MenuItem>
                   <MenuItem value="complaint">{t('panel.typeComplaint')}</MenuItem>
                 </TextField>
                 <TextField
+                  select
                   fullWidth
                   label={t('panel.subject')}
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={(e) => {
+                    setSubject(e.target.value);
+                    setComplaintFormData({});
+                    setComplaintSubmitted(false);
+                  }}
                   variant="outlined"
                   required
+                  InputLabelProps={{ shrink: true }}
+                  SelectProps={{
+                    displayEmpty: true,
+                    renderValue: (v) => (v ? t(`complaint.category.${v}`) : t('login.select')),
+                    MenuProps: {
+                      disableScrollLock: true,
+                      sx: { zIndex: 9999 },
+                      PaperProps: { sx: { maxHeight: 320 } },
+                    },
+                  }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
+                >
+                  <MenuItem value="">{t('login.select')}</MenuItem>
+                  <MenuItem value="realEstate">{t('complaint.category.realEstate')}</MenuItem>
+                  <MenuItem value="food">{t('complaint.category.food')}</MenuItem>
+                  <MenuItem value="hospital">{t('complaint.category.hospital')}</MenuItem>
+                  <MenuItem value="transport">{t('complaint.category.transport')}</MenuItem>
+                  <MenuItem value="ecommerce">{t('complaint.category.ecommerce')}</MenuItem>
+                  <MenuItem value="society">{t('complaint.category.society')}</MenuItem>
+                  <MenuItem value="utility">{t('complaint.category.utility')}</MenuItem>
+                  <MenuItem value="education">{t('complaint.category.education')}</MenuItem>
+                  <MenuItem value="other">{t('complaint.category.other')}</MenuItem>
+                </TextField>
+                {subject && isComplaintCategory(subject) && (
+                  <ComplaintCategoryFields
+                    category={subject}
+                    formData={complaintFormData}
+                    onUpdate={handleComplaintFormUpdate}
+                    onToggleCheck={handleComplaintFormToggle}
+                  />
+                )}
+                {complaintSubmitted && (
+                  <Typography variant="body2" color="success.main" fontWeight={600}>
+                    {t('complaint.submitted')}
+                  </Typography>
+                )}
                 <TextField
                   fullWidth
                   label={t('panel.message')}
