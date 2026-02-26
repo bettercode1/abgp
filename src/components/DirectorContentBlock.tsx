@@ -7,7 +7,6 @@ import {
   CardMedia,
   Grid,
   Stack,
-  useTheme,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useDirectorContent } from '../hooks/useDirectorContent';
@@ -24,10 +23,8 @@ interface DirectorContentBlockProps {
 export const DirectorContentBlock: React.FC<DirectorContentBlockProps> = ({
   section,
   showTitle = true,
-  imageLayout = 'grid',
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const content = useDirectorContent(section);
 
   const hasContent =

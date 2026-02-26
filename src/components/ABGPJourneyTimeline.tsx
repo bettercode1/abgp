@@ -8,6 +8,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import type { Theme } from '@mui/material/styles';
 import {
   Timeline as TimelineIcon,
   Groups,
@@ -180,7 +181,7 @@ const milestones: Milestone[] = [
   },
 ];
 
-const iconCircleSx = (theme: ReturnType<typeof useTheme>) => ({
+const iconCircleSx = (theme: Theme) => ({
   background: `linear-gradient(145deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   border: `3px solid ${theme.palette.background.paper}`,
   boxShadow: theme.shadows[6],
