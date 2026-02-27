@@ -1,23 +1,26 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
-export type LoginRole = 'customer' | 'director' | 'president';
+export type LoginRole = 'member' | 'director' | 'prant';
 
 export interface AuthUser {
   role: LoginRole;
   email: string;
   name?: string;
   isNewMember?: boolean;
+  prant?: string;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
+  token: string | null;
   isAuthenticated: boolean;
-  login: (user: AuthUser) => void;
+  login: (user: AuthUser, token?: string) => void;
   logout: () => void;
   updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const AUTH_STORAGE_KEY = 'abgp-auth-user';
+const TOKEN_STORAGE_KEY = 'abgp-auth-token';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -25,14 +28,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored) as AuthUser;
-      }
+      if (stored) return JSON.parse(stored) as AuthUser;
     } catch {
       // ignore
     }
     return null;
   });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
 
   useEffect(() => {
     if (user) {
@@ -42,12 +44,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  const login = useCallback((userData: AuthUser) => {
+  useEffect(() => {
+    if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    else localStorage.removeItem(TOKEN_STORAGE_KEY);
+  }, [token]);
+
+  const login = useCallback((userData: AuthUser, authToken?: string) => {
     setUser(userData);
+    setToken(authToken ?? null);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
+    setToken(null);
   }, []);
 
   const updateUser = useCallback((updates: Partial<AuthUser>) => {
@@ -56,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextValue = {
     user,
+    token,
     isAuthenticated: !!user,
     login,
     logout,

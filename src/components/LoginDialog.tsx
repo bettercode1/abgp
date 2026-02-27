@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 
-type LoginRole = 'customer' | 'director' | 'president';
+type LoginRole = 'member' | 'director' | 'prant';
 type MemberType = 'new' | 'existing';
 
 interface LoginDialogProps {
@@ -23,12 +23,12 @@ interface LoginDialogProps {
 
 export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose }) => {
     const { t } = useTranslation();
-    const [role, setRole] = useState<LoginRole>('customer');
+    const [role, setRole] = useState<LoginRole>('member');
     const [memberType, setMemberType] = useState<MemberType>('new');
     const [state, setState] = useState('');
     const [district, setDistrict] = useState('');
     const [prant, setPrant] = useState('');
-    const isDirectorOrPresident = role === 'director' || role === 'president';
+    const isDirectorOrPresident = role === 'director' || role === 'prant';
     const isExistingMember = !isDirectorOrPresident && memberType === 'existing';
     const districtOptions = state ? getDistrictsForState(state) : [];
 
@@ -54,9 +54,9 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose }) => {
                                     label={t('login.select')}
                                     InputLabelProps={{ shrink: true }}
                                 >
-                                    <MenuItem value="customer">{t('login.roleCustomer')}</MenuItem>
+                                    <MenuItem value="member">{t('login.roleCustomer')}</MenuItem>
                                     <MenuItem value="director">{t('login.roleDirector')}</MenuItem>
-                                    <MenuItem value="president">{t('login.rolePresident')}</MenuItem>
+                                    <MenuItem value="prant">{t('login.rolePresident')}</MenuItem>
                                 </TextField>
                             </Grid>
                         </Grid>
@@ -103,7 +103,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose }) => {
                     )}
 
                     {/* Prant: Select Prant + Email + Password */}
-                    {role === 'president' && (
+                    {role === 'prant' && (
                         <>
                             <Grid item xs={12}>
                                 <Grid container alignItems="center">

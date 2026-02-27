@@ -16,6 +16,7 @@ import { useAuth, type LoginRole } from '../contexts/AuthContext';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { addMember } from '../lib/memberRegistry';
+import { loginWithApi, isApiConfigured } from '../lib/api';
 
 type MemberType = 'new' | 'existing';
 
@@ -36,7 +37,7 @@ export const LoginPage: React.FC = () => {
     const next = (searchParams.get('mode') === 'director' ? 'director' : 'member') as LoginMode;
     setLoginMode(next);
   }, [searchParams]);
-  const [role, setRole] = useState<LoginRole>('customer');
+  const [role, setRole] = useState<LoginRole>('member');
   const [memberType, setMemberType] = useState<MemberType>('new');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,24 +47,45 @@ export const LoginPage: React.FC = () => {
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
   const [prant, setPrant] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   const districtOptions = state ? getDistrictsForState(state) : [];
 
-  const isDirectorOrPresident = loginMode === 'director' || role === 'president';
+  const isDirectorOrPresident = loginMode === 'director' || role === 'prant';
   const isExistingMember = !isDirectorOrPresident && memberType === 'existing';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError('');
     const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
-    const isNewMember = effectiveRole === 'customer' && memberType === 'new';
-    const emailVal = email || 'user@example.com';
-    if (effectiveRole === 'customer' || effectiveRole === 'president') {
+    const isNewMember = effectiveRole === 'member' && memberType === 'new';
+    const emailVal = (email || 'user@example.com').trim();
+    if (loginMode === 'director' && emailVal && password && isApiConfigured()) {
+      try {
+        const res = await loginWithApi(emailVal, password);
+        login(
+          {
+            role: res.user.role as LoginRole,
+            email: res.user.email,
+            name: res.user.name,
+            prant: res.user.prant,
+          },
+          res.token
+        );
+        navigate('/panel');
+        return;
+      } catch (err) {
+        setLoginError(err instanceof Error ? err.message : 'Login failed');
+        return;
+      }
+    }
+    if (effectiveRole === 'member' || effectiveRole === 'prant') {
       addMember({
         email: emailVal,
         name: fullName || undefined,
         role: effectiveRole,
-        prant: effectiveRole === 'president' ? prant || undefined : undefined,
-        isNewMember: effectiveRole === 'customer' ? isNewMember : undefined,
+        prant: effectiveRole === 'prant' ? prant || undefined : undefined,
+        isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
       });
     }
     login({
@@ -146,8 +168,8 @@ export const LoginPage: React.FC = () => {
                         label={t('login.select')}
                         InputLabelProps={{ shrink: true }}
                       >
-                        <MenuItem value="customer">{t('login.roleCustomer')}</MenuItem>
-                        <MenuItem value="president">{t('login.rolePresident')}</MenuItem>
+                        <MenuItem value="member">{t('login.roleCustomer')}</MenuItem>
+                        <MenuItem value="prant">{t('login.rolePresident')}</MenuItem>
                       </TextField>
                     </Grid>
                   </Grid>
@@ -191,15 +213,22 @@ export const LoginPage: React.FC = () => {
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          error={Boolean(loginError)}
+                          helperText={loginError}
                         />
                       </Grid>
                     </Grid>
                   </Grid>
+                  {loginError && (
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="error">{loginError}</Typography>
+                    </Grid>
+                  )}
                 </>
               )}
 
               {/* Prant: Select Prant + Email + Password */}
-              {role === 'president' && (
+              {role === 'prant' && (
                 <>
                   <Grid item xs={12}>
                     <Grid container alignItems="center">

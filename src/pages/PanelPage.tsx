@@ -25,12 +25,16 @@ import {
   TableRow,
   TablePagination,
   InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -40,14 +44,66 @@ import {
   type DirectorVideo,
 } from '../lib/directorContent';
 import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
+import { fetchMembersFromApi, addMemberViaApi, deleteMemberViaApi, type ApiMember } from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
+import { PRANT_KEYS } from '../lib/prantKeys';
+import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
+
+const PRANT_PASSWORDS_KEY = 'abgp-prant-passwords';
+const PRANT_PROFILES_KEY = 'abgp-prant-profiles';
+
+export interface PrantProfile {
+  name: string;
+  number: string;
+}
+
+function getPrantLoginEmail(prantKey: string): string {
+  const slug = prantKey.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+  return `prant-${slug}@abgpindia.com`;
+}
+
+function loadPrantPasswords(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(PRANT_PASSWORDS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, string>;
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    }
+  } catch {
+    // ignore
+  }
+  return {};
+}
+
+function savePrantPassword(prantKey: string, password: string): void {
+  const prev = loadPrantPasswords();
+  localStorage.setItem(PRANT_PASSWORDS_KEY, JSON.stringify({ ...prev, [prantKey]: password }));
+}
+
+function loadPrantProfiles(): Record<string, PrantProfile> {
+  try {
+    const raw = localStorage.getItem(PRANT_PROFILES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, PrantProfile>;
+      if (typeof parsed === 'object' && parsed !== null) return parsed;
+    }
+  } catch {
+    // ignore
+  }
+  return {};
+}
+
+function savePrantProfile(prantKey: string, profile: PrantProfile): void {
+  const prev = loadPrantProfiles();
+  localStorage.setItem(PRANT_PROFILES_KEY, JSON.stringify({ ...prev, [prantKey]: profile }));
+}
 
 const COMPLAINT_CATEGORIES: ComplaintCategory[] = ['realEstate', 'food', 'hospital', 'transport', 'ecommerce', 'society', 'utility', 'education', 'other'];
 
 const roleLabels: Record<string, string> = {
-  customer: 'Member',
+  member: 'Member',
   director: 'Director',
-  president: 'Prant',
+  prant: 'Prant',
 };
 
 type HelpType = 'help' | 'complaint';
@@ -56,7 +112,7 @@ export const PanelPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout, updateUser } = useAuth();
+  const { user, token, isAuthenticated, logout, updateUser } = useAuth();
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [helpType, setHelpType] = useState<HelpType>('help');
   const [subject, setSubject] = useState('');
@@ -82,6 +138,15 @@ export const PanelPage: React.FC = () => {
   const [analyticsRowsPerPage, setAnalyticsRowsPerPage] = useState(25);
   const [analyticsSearch, setAnalyticsSearch] = useState('');
   const [complaintsDialogMember, setComplaintsDialogMember] = useState<{ name: string; email: string } | null>(null);
+  const [prantPasswords, setPrantPasswords] = useState<Record<string, string>>(loadPrantPasswords);
+  const [prantProfiles, setPrantProfiles] = useState<Record<string, PrantProfile>>(loadPrantProfiles);
+  const [changePasswordPrant, setChangePasswordPrant] = useState<string | null>(null);
+  const [changePasswordNew, setChangePasswordNew] = useState('');
+  const [changePasswordConfirm, setChangePasswordConfirm] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [prantPasswordVisible, setPrantPasswordVisible] = useState<Record<string, boolean>>({});
+  const [panelView, setPanelView] = useState<PanelView>('profile');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     try {
@@ -105,44 +170,96 @@ export const PanelPage: React.FC = () => {
     }
   }, []);
 
-  // Refresh members list when Director views panel or when tab becomes visible (so new sign-ups show up)
-  useEffect(() => {
-    if (user?.role === 'director') {
+  const apiMemberToMember = useCallback((a: ApiMember): Member => ({
+    id: a.id,
+    email: a.email,
+    name: a.name,
+    role: a.role as Member['role'],
+    prant: a.prant,
+    addedAt: typeof a.addedAt === 'string' ? a.addedAt : new Date(a.addedAt).toISOString(),
+    isNewMember: a.isNewMember,
+  }), []);
+
+  const refetchMembersFromApi = useCallback(async () => {
+    if (!token || user?.role !== 'director') return;
+    try {
+      const list = await fetchMembersFromApi(token);
+      setMembers(list.map(apiMemberToMember));
+    } catch {
       setMembers(getMembers());
     }
-  }, [user?.role]);
+  }, [token, user?.role, apiMemberToMember]);
 
-  // Ensure every complainant from stored complaints has a member row (so e.g. Pranit Hallale shows in list)
+  // When Director has API token, fetch members from backend; otherwise use localStorage
   useEffect(() => {
     if (user?.role !== 'director') return;
-    try {
-      const raw = localStorage.getItem('abgp-complaints');
-      const list = JSON.parse(raw || '[]') as Array<{ memberEmail?: string; contact?: string }>;
-      if (!Array.isArray(list)) return;
-      const members = getMembers();
-      const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
-      const added = new Set<string>();
-      for (const c of list) {
-        const email = (c.memberEmail || c.contact || '').trim().toLowerCase();
-        if (!email || !email.includes('@') || existingEmails.has(email) || added.has(email)) continue;
-        addMember({ email, name: email.split('@')[0], role: 'customer', isNewMember: true });
-        added.add(email);
-        existingEmails.add(email);
-      }
-      if (added.size > 0) setMembers(getMembers());
-    } catch {
-      // ignore
+    if (token) {
+      refetchMembersFromApi();
+    } else {
+      setMembers(getMembers());
     }
-  }, [user?.role]);
+  }, [user?.role, token, refetchMembersFromApi]);
+
+  // Ensure every complainant from stored complaints has a member row (localStorage or API)
+  useEffect(() => {
+    if (user?.role !== 'director') return;
+    if (token) {
+      (async () => {
+        try {
+          const raw = localStorage.getItem('abgp-complaints');
+          const list = JSON.parse(raw || '[]') as Array<{ memberEmail?: string; contact?: string }>;
+          if (!Array.isArray(list)) return;
+          const current = await fetchMembersFromApi(token);
+          const existingEmails = new Set(current.map((m) => m.email.toLowerCase()));
+          for (const c of list) {
+            const email = (c.memberEmail || c.contact || '').trim().toLowerCase();
+            if (!email || !email.includes('@') || existingEmails.has(email)) continue;
+            try {
+              await addMemberViaApi(token, { email, name: email.split('@')[0], role: 'member' });
+              existingEmails.add(email);
+            } catch {
+              // ignore
+            }
+          }
+          const updated = await fetchMembersFromApi(token);
+          setMembers(updated.map(apiMemberToMember));
+        } catch {
+          // ignore
+        }
+      })();
+    } else {
+      try {
+        const raw = localStorage.getItem('abgp-complaints');
+        const list = JSON.parse(raw || '[]') as Array<{ memberEmail?: string; contact?: string }>;
+        if (!Array.isArray(list)) return;
+        const members = getMembers();
+        const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
+        const added = new Set<string>();
+        for (const c of list) {
+          const email = (c.memberEmail || c.contact || '').trim().toLowerCase();
+          if (!email || !email.includes('@') || existingEmails.has(email) || added.has(email)) continue;
+          addMember({ email, name: email.split('@')[0], role: 'member', isNewMember: true });
+          added.add(email);
+          existingEmails.add(email);
+        }
+        if (added.size > 0) setMembers(getMembers());
+      } catch {
+        // ignore
+      }
+    }
+  }, [user?.role, token, apiMemberToMember]);
 
   useEffect(() => {
     if (user?.role !== 'director') return;
-    const onVisible = () => setMembers(getMembers());
+    const onVisible = () => {
+      if (token) refetchMembersFromApi();
+      else setMembers(getMembers());
+    };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [user?.role]);
+  }, [user?.role, token, refetchMembersFromApi]);
 
-  const isPrant = user?.role === 'president';
+  const isPrant = user?.role === 'prant';
   const effectiveSection: DirectorSectionKey = isPrant ? 'news' : selectedSection;
   const sectionContent = directorContentBySection[effectiveSection] ?? { images: [], texts: [], videos: [] };
 
@@ -287,9 +404,18 @@ export const PanelPage: React.FC = () => {
     navigate('/login');
   };
 
-  const handleDeleteMember = (id: string) => {
-    deleteMember(id);
-    setMembers(getMembers());
+  const handleDeleteMember = async (id: string) => {
+    if (token && user?.role === 'director') {
+      try {
+        await deleteMemberViaApi(token, id);
+        await refetchMembersFromApi();
+      } catch {
+        setMembers(getMembers());
+      }
+    } else {
+      deleteMember(id);
+      setMembers(getMembers());
+    }
     setAnalyticsPage(0);
   };
 
@@ -348,7 +474,7 @@ export const PanelPage: React.FC = () => {
     }
   };
 
-  const analyticsMembersOnly = members.filter((m) => m.role === 'customer');
+  const analyticsMembersOnly = members.filter((m) => m.role === 'member');
   const analyticsFiltered = analyticsMembersOnly.filter((m) => {
     const q = analyticsSearch.trim().toLowerCase();
     if (!q) return true;
@@ -396,7 +522,7 @@ export const PanelPage: React.FC = () => {
             addMember({
               email: memberEmailVal,
               name: user?.name || contact || memberEmailVal.split('@')[0],
-              role: 'customer',
+              role: 'member',
               isNewMember: true,
             });
           }
@@ -423,22 +549,61 @@ export const PanelPage: React.FC = () => {
   const roleLabel = roleLabels[user.role] ?? user.role;
   const isDirector = user.role === 'director';
 
-  // Director or Prant Dashboard: add images, text, videos. Prant can only edit News section.
+  const handlePanelNavigate = useCallback((view: PanelView, contentSection?: DirectorSectionKey) => {
+    setPanelView(view);
+    if (view === 'content' && contentSection) setSelectedSection(contentSection);
+  }, []);
+
+  // Director or Prant Dashboard: sidebar + main content
   if (isDirector || isPrant) {
     return (
-      <Box
-        sx={{
-          minHeight: '85vh',
-          py: 6,
-          px: 2,
-          background: theme.palette.mode === 'dark'
-            ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)`
-            : `linear-gradient(180deg, ${theme.palette.grey[50]} 0%, ${theme.palette.background.paper} 100%)`,
-        }}
-      >
-        <Container maxWidth="md">
-          <Stack spacing={4}>
-            {/* Director Header + Logout */}
+      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100' }}>
+        <DashboardSidebar
+          activeView={panelView}
+          contentSection={isPrant ? 'news' : selectedSection}
+          onNavigate={handlePanelNavigate}
+          isDirector={isDirector}
+          isPrant={isPrant}
+          sidebarOpen={sidebarOpen}
+          onSidebarToggle={() => setSidebarOpen((o) => !o)}
+        />
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: 0,
+            overflow: 'auto',
+          }}
+        >
+          {/* Top bar: menu toggle (when sidebar closed) + optional title */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              minHeight: 56,
+              px: 2,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              bgcolor: theme.palette.background.paper,
+            }}
+          >
+            <IconButton onClick={() => setSidebarOpen((o) => !o)} aria-label="Toggle sidebar" size="medium">
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" fontWeight={600} color="text.primary">
+              {panelView === 'profile' && (isPrant ? t('panel.prantTitle') : t('panel.directorTitle'))}
+              {panelView === 'analytics' && t('panel.analytics')}
+              {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
+              {panelView === 'prant-logins' && t('panel.prantListTitle')}
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1, py: 3, px: 2, overflow: 'auto' }}>
+            <Container maxWidth="md" sx={{ maxWidth: '100%' }}>
+              <Stack spacing={4}>
+                {/* Profile: Director Header + Logout */}
+                {panelView === 'profile' && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10] }}>
               <Box sx={{ height: 4, background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`, mb: 3 }} />
               <Typography variant="h5" component="h1" fontWeight={700} color="primary" gutterBottom>
@@ -456,10 +621,11 @@ export const PanelPage: React.FC = () => {
                 {t('panel.logout')}
               </Button>
             </Paper>
+                )}
 
-            {/* Analytics (Director only): member count + search + filter + paginated table + delete */}
-            {isDirector && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.dark}` }}>
+            {/* Analytics (Director only) */}
+            {panelView === 'analytics' && isDirector && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'visible', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.dark}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                   <BarChart color="primary" sx={{ fontSize: 32 }} />
                   <Typography variant="h6" fontWeight={700} color="primary">
@@ -474,7 +640,7 @@ export const PanelPage: React.FC = () => {
                     variant="outlined"
                     size="small"
                     startIcon={<Refresh />}
-                    onClick={() => setMembers(getMembers())}
+                    onClick={() => { if (token) refetchMembersFromApi(); else setMembers(getMembers()); }}
                     sx={{ textTransform: 'none' }}
                   >
                     {t('panel.refreshList')}
@@ -541,8 +707,22 @@ export const PanelPage: React.FC = () => {
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
                       {t('panel.showingXtoY', { from: analyticsTotal === 0 ? 0 : analyticsPageStart + 1, to: analyticsPageEnd, total: analyticsTotal.toLocaleString() })}
                     </Typography>
-                    <TableContainer sx={{ maxHeight: 420, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                      <Table size="small" stickyHeader>
+                    <TableContainer
+                      sx={{
+                        maxHeight: 420,
+                        overflow: 'auto',
+                        overflowX: 'scroll',
+                        width: '100%',
+                        minWidth: 0,
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '&::-webkit-scrollbar': { height: 10 },
+                        '&::-webkit-scrollbar-track': { bgcolor: 'grey.200', borderRadius: 1 },
+                        '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 1, '&:hover': { bgcolor: 'grey.500' } },
+                      }}
+                    >
+                      <Table size="small" stickyHeader sx={{ minWidth: 700 }}>
                         <TableHead>
                           <TableRow>
                             <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberName')}</TableCell>
@@ -718,7 +898,159 @@ export const PanelPage: React.FC = () => {
               </Paper>
             )}
 
-            {/* Section selector: only for Director; Prant is locked to News */}
+            {/* Prant logins (Director only) */}
+            {panelView === 'prant-logins' && isDirector && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'visible', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                  <Lock color="primary" sx={{ fontSize: 32 }} />
+                  <Box>
+                    <Typography variant="h6" fontWeight={700} color="primary">
+                      {t('panel.prantListTitle')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('panel.prantListSubtitle')}
+                    </Typography>
+                  </Box>
+                </Box>
+                <TableContainer
+                  sx={{
+                    maxHeight: 440,
+                    overflow: 'auto',
+                    overflowX: 'scroll',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    width: '100%',
+                    minWidth: 0,
+                    '&::-webkit-scrollbar': { height: 10 },
+                    '&::-webkit-scrollbar-track': { bgcolor: 'grey.200', borderRadius: 1 },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 1, '&:hover': { bgcolor: 'grey.500' } },
+                  }}
+                >
+                  <Table stickyHeader size="small" sx={{ minWidth: 900 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', minWidth: 165 }}>{t('panel.prantListPrant')}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', minWidth: 280 }}>{t('panel.prantListLoginId')}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', minWidth: 180 }}>{t('panel.prantListName')}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', minWidth: 150 }}>{t('panel.prantListNumber')}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', minWidth: 120 }}>{t('panel.prantListPassword')}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'action.hover', width: 140 }} align="right">{t('panel.prantListAction')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {PRANT_KEYS.map((prantKey) => {
+                        const email = getPrantLoginEmail(prantKey);
+                        const password = prantPasswords[prantKey];
+                        const showPw = prantPasswordVisible[prantKey];
+                        const profile = prantProfiles[prantKey] ?? { name: '', number: '' };
+                        return (
+                          <TableRow key={prantKey} hover>
+                            <TableCell sx={{ fontWeight: 600, minWidth: 165 }}>{t(`prant.${prantKey}`)}</TableCell>
+                            <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem', minWidth: 280 }}>{email}</TableCell>
+                            <TableCell sx={{ minWidth: 180, overflow: 'hidden' }}>
+                              <TextField
+                                size="small"
+                                placeholder={t('panel.prantListNamePlaceholder')}
+                                value={profile.name}
+                                onChange={(e) => {
+                                  const next = { ...profile, name: e.target.value };
+                                  setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
+                                  savePrantProfile(prantKey, next);
+                                }}
+                                variant="outlined"
+                                fullWidth
+                                sx={{
+                                  '& .MuiInputBase-input': { py: 0.75, minWidth: 0 },
+                                  '& .MuiOutlinedInput-root': { borderRadius: 1 },
+                                  minWidth: 0,
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ minWidth: 150, width: 150, overflow: 'hidden' }}>
+                              <TextField
+                                size="small"
+                                placeholder={t('panel.prantListNumberPlaceholder')}
+                                value={profile.number}
+                                onChange={(e) => {
+                                  const next = { ...profile, number: e.target.value };
+                                  setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
+                                  savePrantProfile(prantKey, next);
+                                }}
+                                variant="outlined"
+                                fullWidth
+                                inputProps={{ inputMode: 'tel' }}
+                                sx={{
+                                  '& .MuiInputBase-input': { py: 0.75, minWidth: 0 },
+                                  '& .MuiOutlinedInput-root': { borderRadius: 1 },
+                                  minWidth: 0,
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="body2" component="span" sx={{ fontFamily: 'monospace' }}>
+                                  {password ? (showPw ? password : '••••••••') : '—'}
+                                </Typography>
+                                {password && (
+                                  <IconButton size="small" onClick={() => setPrantPasswordVisible((p) => ({ ...p, [prantKey]: !showPw }))} aria-label={showPw ? t('panel.prantListHide') : t('panel.prantListShow')}>
+                                    {showPw ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                  </IconButton>
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Button size="small" variant="outlined" startIcon={<Lock />} onClick={() => { setChangePasswordPrant(prantKey); setChangePasswordNew(''); setChangePasswordConfirm(''); setChangePasswordError(''); }} sx={{ textTransform: 'none' }}>
+                                {t('panel.prantListChangePassword')}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                <Dialog open={changePasswordPrant !== null} onClose={() => { setChangePasswordPrant(null); setChangePasswordError(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+                  <DialogTitle sx={{ fontWeight: 700, color: 'primary' }}>
+                    {changePasswordPrant ? t('panel.prantListChangePasswordTitle', { prant: t(`prant.${changePasswordPrant}`) }) : ''}
+                  </DialogTitle>
+                  <DialogContent>
+                    <Stack spacing={2} sx={{ pt: 1 }}>
+                      <TextField fullWidth label={t('panel.prantListNewPassword')} type="password" value={changePasswordNew} onChange={(e) => { setChangePasswordNew(e.target.value); setChangePasswordError(''); }} variant="outlined" size="small" autoComplete="new-password" />
+                      <TextField fullWidth label={t('panel.prantListConfirmPassword')} type="password" value={changePasswordConfirm} onChange={(e) => { setChangePasswordConfirm(e.target.value); setChangePasswordError(''); }} variant="outlined" size="small" autoComplete="new-password" />
+                      {changePasswordError && <Alert severity="error">{changePasswordError}</Alert>}
+                    </Stack>
+                  </DialogContent>
+                  <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => { setChangePasswordPrant(null); setChangePasswordError(''); }} sx={{ textTransform: 'none' }}>{t('panel.close')}</Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        if (!changePasswordPrant) return;
+                        const p1 = changePasswordNew.trim();
+                        const p2 = changePasswordConfirm.trim();
+                        if (p1.length < 6) { setChangePasswordError(t('panel.prantListPasswordTooShort')); return; }
+                        if (p1 !== p2) { setChangePasswordError(t('panel.prantListPasswordMismatch')); return; }
+                        savePrantPassword(changePasswordPrant, p1);
+                        setPrantPasswords(loadPrantPasswords());
+                        setChangePasswordPrant(null);
+                        setChangePasswordNew('');
+                        setChangePasswordConfirm('');
+                        setChangePasswordError('');
+                      }}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      {t('panel.prantListSavePassword')}
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </Paper>
+            )}
+
+            {/* Content: section selector + Add Image / Text / Video */}
+            {panelView === 'content' && (
+              <>
             {!isPrant && (
               <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
                 <Typography variant="subtitle1" fontWeight={600} gutterBottom>
@@ -945,8 +1277,12 @@ export const PanelPage: React.FC = () => {
                 </Stack>
               )}
             </Paper>
+              </>
+            )}
           </Stack>
         </Container>
+          </Box>
+        </Box>
       </Box>
     );
   }

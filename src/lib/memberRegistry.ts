@@ -1,4 +1,4 @@
-export type MemberRole = 'customer' | 'president';
+export type MemberRole = 'member' | 'prant';
 
 export interface Member {
   id: string;
@@ -65,7 +65,7 @@ function seedSampleMembers(): Member[] {
     id: `seed-${i + 1}-${generateId()}`,
     email: s.email,
     name: s.name,
-    role: 'customer' as const,
+    role: 'member' as const,
     addedAt: new Date(now - s.daysAgo * 24 * 60 * 60 * 1000).toISOString(),
     isNewMember: s.isNewMember,
   }));
@@ -81,7 +81,7 @@ function ensureRamPatilInList(members: Member[]): Member[] {
     id: generateId(),
     email: RAM_PATIL_EMAIL,
     name: 'Ram Patil',
-    role: 'customer',
+    role: 'member',
     addedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     isNewMember: false,
   };
