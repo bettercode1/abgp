@@ -1,9 +1,11 @@
 /**
- * JWT auth middleware. Attach after login; expects Authorization: Bearer <token>.
+ * Auth middleware: verify Supabase JWT (Bearer token), then load role/prant from Supabase user_roles.
+ * Frontend sends the Supabase session access_token in Authorization: Bearer <token>.
  */
 const jwt = require('jsonwebtoken');
+const { getUserRoleAndPrant } = require('../lib/supabaseAdmin');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'abgp-dev-secret-change-in-production';
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
 function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
@@ -11,13 +13,33 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const token = auth.slice(7);
+  if (!SUPABASE_JWT_SECRET) {
+    return res.status(503).json({ error: 'Server auth not configured' });
+  }
+  let payload;
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // { id, email, role, prant }
-    next();
+    payload = jwt.verify(token, SUPABASE_JWT_SECRET);
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
+  const userId = payload.sub;
+  if (!userId) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+  getUserRoleAndPrant(userId)
+    .then(({ role, prant, email }) => {
+      req.user = {
+        id: userId,
+        email: email || payload.email || null,
+        role: role || 'member',
+        prant: prant ?? undefined,
+      };
+      next();
+    })
+    .catch((err) => {
+      console.error('user_roles lookup error:', err);
+      res.status(500).json({ error: 'Server error' });
+    });
 }
 
 function requireDirector(req, res, next) {
@@ -34,4 +56,4 @@ function requireDirectorOrPrant(req, res, next) {
   next();
 }
 
-module.exports = { JWT_SECRET, requireAuth, requireDirector, requireDirectorOrPrant };
+module.exports = { requireAuth, requireDirector, requireDirectorOrPrant };

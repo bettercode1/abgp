@@ -112,7 +112,7 @@ export const PanelPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const { user, token, isAuthenticated, logout, updateUser } = useAuth();
+  const { user, token, isAuthenticated, authLoading, logout, updateUser } = useAuth();
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [helpType, setHelpType] = useState<HelpType>('help');
   const [subject, setSubject] = useState('');
@@ -381,10 +381,10 @@ export const PanelPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    if (!authLoading && (!isAuthenticated || !user)) {
       navigate('/login', { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [authLoading, isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (user?.isNewMember) {
@@ -542,7 +542,7 @@ export const PanelPage: React.FC = () => {
     setContact('');
   };
 
-  if (!user) {
+  if (authLoading || !user) {
     return null;
   }
 

@@ -1,80 +1,68 @@
--- ABGP Backend - PostgreSQL Schema
--- Run this file against your database to create all tables.
--- Example: psql -U postgres -d abgp_db -f schema.sql
+-- =============================================================================
+-- ABGP Backend - PostgreSQL Schema (Schema: abgp)
+-- =============================================================================
+
+-- Ensure schema exists
+CREATE SCHEMA IF NOT EXISTS abgp;
+
+-- Enable UUID generation
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- =============================================================================
--- USERS (auth: login, role, prant)
+-- PRANT PROFILES
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS users (
-  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email             VARCHAR(255) NOT NULL UNIQUE,
-  password_hash     VARCHAR(255) NOT NULL,
-  role              VARCHAR(20) NOT NULL CHECK (role IN ('member', 'director', 'prant')),
-  prant             VARCHAR(80) NULL,  -- only for role = 'prant'; e.g. 'gujarat', 'maharashtraKonkan'
-  name              VARCHAR(255) NULL,
-  contact_number    VARCHAR(50) NULL,   -- prant contact phone (Director-editable in dashboard)
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+CREATE TABLE IF NOT EXISTS abgp.prant_profiles (
+  prant_key         VARCHAR(80) PRIMARY KEY,
+  name              VARCHAR(255),
+  contact_number    VARCHAR(50),
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_users_prant ON users(prant) WHERE prant IS NOT NULL;
-
 -- =============================================================================
--- CONTENT (Director / Prant: images, texts, videos per section)
+-- CONTENT
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS content (
+CREATE TABLE IF NOT EXISTS abgp.content (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  section           VARCHAR(30) NOT NULL CHECK (section IN ('history', 'blog', 'news', 'videos', 'gallery', 'home')),
-  owner_type        VARCHAR(20) NOT NULL CHECK (owner_type IN ('director', 'prant')),
-  prant_key         VARCHAR(80) NULL,  -- null for director; set for prant (e.g. 'gujarat')
+  section           VARCHAR(30) NOT NULL 
+                    CHECK (section IN ('history', 'blog', 'news', 'videos', 'gallery', 'home')),
+  owner_type        VARCHAR(20) NOT NULL 
+                    CHECK (owner_type IN ('director', 'prant')),
+  prant_key         VARCHAR(80),
   content           JSONB NOT NULL DEFAULT '{"images":[],"texts":[],"videos":[]}',
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (section, owner_type, prant_key)
 );
 
-CREATE INDEX IF NOT EXISTS idx_content_section ON content(section);
-CREATE INDEX IF NOT EXISTS idx_content_prant ON content(prant_key) WHERE prant_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_abgp_content_section 
+  ON abgp.content(section);
+
+CREATE INDEX IF NOT EXISTS idx_abgp_content_prant 
+  ON abgp.content(prant_key) 
+  WHERE prant_key IS NOT NULL;
 
 -- =============================================================================
--- COMPLAINTS (complaint form submissions)
+-- COMPLAINTS
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS complaints (
+CREATE TABLE IF NOT EXISTS abgp.complaints (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  member_email      VARCHAR(255) NULL,
-  contact           VARCHAR(255) NULL,
-  category          VARCHAR(50) NULL,
-  form_data         JSONB NULL,
-  message           TEXT NULL,
+  member_email      VARCHAR(255),
+  contact           VARCHAR(255),
+  category          VARCHAR(50),
+  form_data         JSONB,
+  message           TEXT,
   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_complaints_member_email ON complaints(member_email);
-CREATE INDEX IF NOT EXISTS idx_complaints_created_at ON complaints(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_abgp_complaints_member_email 
+  ON abgp.complaints(member_email);
+
+CREATE INDEX IF NOT EXISTS idx_abgp_complaints_created_at 
+  ON abgp.complaints(created_at DESC);
 
 -- =============================================================================
--- JOIN REGISTRATIONS (Petition page "Register / Join Us" form)
+-- UPDATED_AT TRIGGER FUNCTION
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS join_registrations (
-  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  full_name         VARCHAR(255) NOT NULL,
-  email             VARCHAR(255) NOT NULL,
-  phone             VARCHAR(50) NULL,
-  address           TEXT NULL,
-  state             VARCHAR(100) NULL,
-  district          VARCHAR(100) NULL,
-  city              VARCHAR(100) NULL,
-  pincode           VARCHAR(20) NULL,
-  message           TEXT NULL,
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_join_registrations_email ON join_registrations(email);
-CREATE INDEX IF NOT EXISTS idx_join_registrations_created_at ON join_registrations(created_at DESC);
-
--- Optional: trigger to keep updated_at in sync
-CREATE OR REPLACE FUNCTION set_updated_at()
+CREATE OR REPLACE FUNCTION abgp.set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -82,12 +70,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS users_updated_at ON users;
-CREATE TRIGGER users_updated_at
-  BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+-- =============================================================================
+-- TRIGGERS
+-- =============================================================================
 
-DROP TRIGGER IF EXISTS content_updated_at ON content;
+DROP TRIGGER IF EXISTS content_updated_at ON abgp.content;
 CREATE TRIGGER content_updated_at
-  BEFORE UPDATE ON content
-  FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+  BEFORE UPDATE ON abgp.content
+  FOR EACH ROW 
+  EXECUTE PROCEDURE abgp.set_updated_at();
+
+DROP TRIGGER IF EXISTS prant_profiles_updated_at ON abgp.prant_profiles;
+CREATE TRIGGER prant_profiles_updated_at
+  BEFORE UPDATE ON abgp.prant_profiles
+  FOR EACH ROW 
+  EXECUTE PROCEDURE abgp.set_updated_at();

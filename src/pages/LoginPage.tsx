@@ -17,6 +17,7 @@ import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { addMember } from '../lib/memberRegistry';
 import { loginWithApi, isApiConfigured } from '../lib/api';
+import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 
 type MemberType = 'new' | 'existing';
 
@@ -60,6 +61,42 @@ export const LoginPage: React.FC = () => {
     const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
     const isNewMember = effectiveRole === 'member' && memberType === 'new';
     const emailVal = (email || 'user@example.com').trim();
+
+    const useSupabaseAuth =
+      isSupabaseConfigured() &&
+      emailVal &&
+      password &&
+      (loginMode === 'director' || (loginMode === 'member' && role === 'prant'));
+    if (useSupabaseAuth) {
+      const supabase = getSupabase();
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
+          if (error) {
+            setLoginError(error.message ?? 'Login failed');
+            return;
+          }
+          if (data?.session?.user) {
+            const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+            const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
+            login(
+              {
+                role: authRole,
+                email: data.session.user.email ?? emailVal,
+                prant: p ?? undefined,
+              },
+              data.session.access_token
+            );
+            navigate('/panel');
+            return;
+          }
+        } catch (err) {
+          setLoginError(err instanceof Error ? err.message : 'Login failed');
+          return;
+        }
+      }
+    }
+
     if (loginMode === 'director' && emailVal && password && isApiConfigured()) {
       try {
         const res = await loginWithApi(emailVal, password);
