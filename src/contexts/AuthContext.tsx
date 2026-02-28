@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 
 export type LoginRole = 'member' | 'director' | 'prant';
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     let cancelled = false;
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       if (cancelled) return;
       if (session?.user) {
         setToken(session.access_token ?? null);
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
       if (cancelled) return;
       if (session?.user) {
         setToken(session.access_token ?? null);
