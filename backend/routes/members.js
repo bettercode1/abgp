@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
     );
     res.json({ members: result.rows.map(toMember) });
   } catch (err) {
+    if (err.code === '42P01' || /relation .* does not exist/i.test(err.message)) {
+      return res.json({ members: [] });
+    }
     console.error('Members list error:', err);
     res.status(500).json({ error: 'Server error' });
   }

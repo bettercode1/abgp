@@ -8,6 +8,7 @@ const { requireAuth, requireDirector, requireDirectorOrPrant } = require('./midd
 const authRouter = require('./routes/auth');
 const complaintsRouter = require('./routes/complaints');
 const contentRouter = require('./routes/content');
+const membersRouter = require('./routes/members');
 const prantsRouter = require('./routes/prants');
 
 const app = express();
@@ -20,9 +21,10 @@ app.use('/api/auth', authRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
 app.use('/api/content', requireAuth, requireDirectorOrPrant, contentRouter);
+app.use('/api/members', requireAuth, requireDirector, membersRouter);
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 
-app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/prants' }));
+app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants' }));
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.use((err, req, res, next) => {

@@ -82,7 +82,9 @@ The API powers the dashboard: login, members, complaints, content, and prant lis
 1. Copy env and set variables:
    ```bash
    cp .env.example .env
-   # Edit .env: DATABASE_URL, JWT_SECRET (use a strong secret in production)
+   # Edit .env: DATABASE_URL, and for Supabase auth (required for /api/prants):
+   #   SUPABASE_URL, SUPABASE_JWT_SECRET, SUPABASE_SERVICE_ROLE_KEY
+   # Get JWT Secret: Supabase Dashboard → Project Settings → API → JWT Secret
    ```
 
 2. Install and run:

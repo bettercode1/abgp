@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -52,6 +52,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [contentExpanded, setContentExpanded] = useState(activeView === 'content');
+  const drawerPaperRef = useRef<HTMLDivElement>(null);
+
+  // Move focus into the drawer when it opens so #root is not aria-hidden while a descendant has focus
+  useEffect(() => {
+    if (!isMobile || !sidebarOpen) return;
+    const paper = drawerPaperRef.current;
+    if (paper) {
+      const focusable = paper.querySelector<HTMLElement>('a[href], button, [tabindex]:not([tabindex="-1"])');
+      if (focusable) focusable.focus();
+      else paper.focus();
+    }
+  }, [isMobile, sidebarOpen]);
 
   const handleContentToggle = () => {
     setContentExpanded((prev) => !prev);
@@ -270,7 +282,15 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           variant="temporary"
           open={sidebarOpen}
           onClose={onSidebarToggle}
-          ModalProps={{ keepMounted: true }}
+          ModalProps={{
+            keepMounted: true,
+            disableEnforceFocus: true,
+            disableAutoFocus: true,
+          }}
+          PaperProps={{
+            ref: drawerPaperRef,
+            tabIndex: -1,
+          }}
           sx={{
             '& .MuiDrawer-paper': {
               width: DRAWER_WIDTH,

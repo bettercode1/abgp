@@ -31,7 +31,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
 import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon } from '@mui/icons-material';
@@ -44,7 +44,7 @@ import {
   type DirectorVideo,
 } from '../lib/directorContent';
 import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
-import { fetchMembersFromApi, addMemberViaApi, deleteMemberViaApi, type ApiMember } from '../lib/api';
+import { fetchMembersFromApi, addMemberViaApi, deleteMemberViaApi, fetchPrantsFromApi, changePrantPassword, isApiConfigured, type ApiMember, type ApiPrant } from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
@@ -144,7 +144,12 @@ export const PanelPage: React.FC = () => {
   const [changePasswordNew, setChangePasswordNew] = useState('');
   const [changePasswordConfirm, setChangePasswordConfirm] = useState('');
   const [changePasswordError, setChangePasswordError] = useState('');
-  const [prantPasswordVisible, setPrantPasswordVisible] = useState<Record<string, boolean>>({});
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
+  const [prantPasswordVisible, setPrantPasswordVisible] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(PRANT_KEYS.map((k) => [k, true]))
+  );
+  const [apiPrants, setApiPrants] = useState<ApiPrant[] | null>(null);
+  const [prantsFetchError, setPrantsFetchError] = useState<string | null>(null);
   const [panelView, setPanelView] = useState<PanelView>('profile');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -199,6 +204,28 @@ export const PanelPage: React.FC = () => {
       setMembers(getMembers());
     }
   }, [user?.role, token, refetchMembersFromApi]);
+
+  // Fetch prants from API (Supabase) when director opens Prant logins
+  useEffect(() => {
+    if (panelView !== 'prant-logins' || user?.role !== 'director' || !token || !isApiConfigured()) return;
+    let cancelled = false;
+    setPrantsFetchError(null);
+    (async () => {
+      try {
+        const list = await fetchPrantsFromApi(token);
+        if (!cancelled) {
+          setApiPrants(list);
+          setPrantsFetchError(null);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setApiPrants([]);
+          setPrantsFetchError(e instanceof Error ? e.message : 'Failed to load prants');
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [panelView, user?.role, token]);
 
   // Ensure every complainant from stored complaints has a member row (localStorage or API)
   useEffect(() => {
@@ -543,7 +570,7 @@ export const PanelPage: React.FC = () => {
   };
 
   if (authLoading || !user) {
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const roleLabel = roleLabels[user.role] ?? user.role;
@@ -589,7 +616,17 @@ export const PanelPage: React.FC = () => {
               bgcolor: theme.palette.background.paper,
             }}
           >
-            <IconButton onClick={() => setSidebarOpen((o) => !o)} aria-label="Toggle sidebar" size="medium">
+            <IconButton
+              onClick={() => {
+                const opening = !sidebarOpen;
+                if (opening && document.activeElement instanceof HTMLElement && document.getElementById('root')?.contains(document.activeElement)) {
+                  document.activeElement.blur();
+                }
+                setSidebarOpen((o) => !o);
+              }}
+              aria-label="Toggle sidebar"
+              size="medium"
+            >
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -912,6 +949,27 @@ export const PanelPage: React.FC = () => {
                     </Typography>
                   </Box>
                 </Box>
+                {!isApiConfigured() && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    Placeholder emails shown. To see Supabase login IDs: add <code>VITE_API_URL=http://localhost:3001</code> to your frontend <code>.env</code> (or <code>.env.local</code>), then restart the dev server (<code>npm run dev</code>).
+                  </Alert>
+                )}
+                {prantsFetchError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    Could not load prants: {prantsFetchError}
+                    {prantsFetchError.includes('Server auth not configured') && (
+                      <> — Add <strong>SUPABASE_JWT_SECRET</strong> to <code>backend/.env</code>. In Supabase: Project Settings → API → JWT Secret (not the anon key). Then restart the backend.</>
+                    )}
+                    {!prantsFetchError.includes('Server auth not configured') && (
+                      <> Check backend, VITE_API_URL, and that you are logged in as director.</>
+                    )}
+                  </Alert>
+                )}
+                {isApiConfigured() && !prantsFetchError && apiPrants && apiPrants.length === 0 && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    No prants from Supabase. In backend .env set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. In Supabase ensure <code>user_roles</code> has rows with <code>role = &apos;prant&apos;</code>. Showing placeholder login IDs.
+                  </Alert>
+                )}
                 <TableContainer
                   sx={{
                     maxHeight: 440,
@@ -940,10 +998,14 @@ export const PanelPage: React.FC = () => {
                     </TableHead>
                     <TableBody>
                       {PRANT_KEYS.map((prantKey) => {
-                        const email = getPrantLoginEmail(prantKey);
+                        const apiPrant = apiPrants?.find((p) => (p.prantKey ?? '').toString().toLowerCase() === (prantKey ?? '').toString().toLowerCase());
+                        const email = apiPrant?.email ?? (isApiConfigured() ? '—' : getPrantLoginEmail(prantKey));
                         const password = prantPasswords[prantKey];
                         const showPw = prantPasswordVisible[prantKey];
                         const profile = prantProfiles[prantKey] ?? { name: '', number: '' };
+                        const displayName = apiPrant?.name ?? profile.name;
+                        const displayNumber = apiPrant?.contactNumber ?? profile.number;
+                        const passwordSetInSupabase = Boolean(apiPrant);
                         return (
                           <TableRow key={prantKey} hover>
                             <TableCell sx={{ fontWeight: 600, minWidth: 165 }}>{t(`prant.${prantKey}`)}</TableCell>
@@ -952,7 +1014,7 @@ export const PanelPage: React.FC = () => {
                               <TextField
                                 size="small"
                                 placeholder={t('panel.prantListNamePlaceholder')}
-                                value={profile.name}
+                                value={displayName}
                                 onChange={(e) => {
                                   const next = { ...profile, name: e.target.value };
                                   setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
@@ -971,7 +1033,7 @@ export const PanelPage: React.FC = () => {
                               <TextField
                                 size="small"
                                 placeholder={t('panel.prantListNumberPlaceholder')}
-                                value={profile.number}
+                                value={displayNumber}
                                 onChange={(e) => {
                                   const next = { ...profile, number: e.target.value };
                                   setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
@@ -990,9 +1052,9 @@ export const PanelPage: React.FC = () => {
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Typography variant="body2" component="span" sx={{ fontFamily: 'monospace' }}>
-                                  {password ? (showPw ? password : '••••••••') : '—'}
+                                  {passwordSetInSupabase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
                                 </Typography>
-                                {password && (
+                                {!passwordSetInSupabase && password && (
                                   <IconButton size="small" onClick={() => setPrantPasswordVisible((p) => ({ ...p, [prantKey]: !showPw }))} aria-label={showPw ? t('panel.prantListHide') : t('panel.prantListShow')}>
                                     {showPw ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                                   </IconButton>
@@ -1026,22 +1088,46 @@ export const PanelPage: React.FC = () => {
                     <Button onClick={() => { setChangePasswordPrant(null); setChangePasswordError(''); }} sx={{ textTransform: 'none' }}>{t('panel.close')}</Button>
                     <Button
                       variant="contained"
-                      onClick={() => {
+                      disabled={changePasswordLoading}
+                      onClick={async () => {
                         if (!changePasswordPrant) return;
                         const p1 = changePasswordNew.trim();
                         const p2 = changePasswordConfirm.trim();
-                        if (p1.length < 6) { setChangePasswordError(t('panel.prantListPasswordTooShort')); return; }
-                        if (p1 !== p2) { setChangePasswordError(t('panel.prantListPasswordMismatch')); return; }
-                        savePrantPassword(changePasswordPrant, p1);
-                        setPrantPasswords(loadPrantPasswords());
-                        setChangePasswordPrant(null);
-                        setChangePasswordNew('');
-                        setChangePasswordConfirm('');
+                        if (p1.length < 6) {
+                          setChangePasswordError(t('panel.prantListPasswordTooShort'));
+                          return;
+                        }
+                        if (p1 !== p2) {
+                          setChangePasswordError(t('panel.prantListPasswordMismatch'));
+                          return;
+                        }
+                        const useApi = isApiConfigured() && Boolean(token);
+                        const supabaseMode = Boolean(apiPrants && apiPrants.length > 0);
+                        if (supabaseMode && !useApi) {
+                          setChangePasswordError('Backend not connected. Set VITE_API_URL and refresh, then try again.');
+                          return;
+                        }
                         setChangePasswordError('');
+                        setChangePasswordLoading(true);
+                        try {
+                          if (useApi) {
+                            await changePrantPassword(token!, changePasswordPrant, p1);
+                          } else {
+                            savePrantPassword(changePasswordPrant, p1);
+                            setPrantPasswords(loadPrantPasswords());
+                          }
+                          setChangePasswordPrant(null);
+                          setChangePasswordNew('');
+                          setChangePasswordConfirm('');
+                        } catch (err) {
+                          setChangePasswordError(err instanceof Error ? err.message : 'Failed to change password');
+                        } finally {
+                          setChangePasswordLoading(false);
+                        }
                       }}
                       sx={{ textTransform: 'none' }}
                     >
-                      {t('panel.prantListSavePassword')}
+                      {changePasswordLoading ? (t('panel.prantListSaving') || 'Saving...') : t('panel.prantListSavePassword')}
                     </Button>
                   </DialogActions>
                 </Dialog>
@@ -1242,7 +1328,7 @@ export const PanelPage: React.FC = () => {
                 </Typography>
               </Box>
               <Stack spacing={2} sx={{ mb: 3 }}>
-                <TextField fullWidth label={t('panel.videoUrl')} value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/... or video URL" variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                <TextField fullWidth label={t('panel.videoUrl')} value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder={t('panel.videoUrlPlaceholder')} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <TextField fullWidth label={t('panel.videoTitle')} value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <Button variant="contained" color="primary" startIcon={<VideoLibrary />} onClick={handleAddVideo} disabled={!videoUrl.trim()} sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}>
                   {t('panel.add')}

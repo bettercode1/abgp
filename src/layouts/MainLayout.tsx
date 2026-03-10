@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LoginDialog } from '../components/LoginDialog';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -14,6 +14,8 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Menu,
+  MenuItem,
   useTheme,
   useMediaQuery,
   TextField,
@@ -29,9 +31,12 @@ import {
   Facebook,
   Twitter,
   YouTube,
+  KeyboardArrowDown,
+  Email,
+  LocationOn,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { GlobalLoader } from '../components/GlobalLoader';
@@ -50,20 +55,55 @@ interface MainLayoutProps {
   loading?: boolean;
 }
 
-const navigationItems = [
+type NavChild = { key: string; path: string };
+type NavItem = { key: string; path: string; children?: NavChild[] };
+
+const navigationItems: NavItem[] = [
   { key: 'nav.home', path: '/' },
-  { key: 'nav.about', path: '/about' },
+  {
+    key: 'nav.about',
+    path: '/about',
+    children: [
+      { key: 'nav.about', path: '/about' },
+      { key: 'nav.history', path: '/history' },
+      { key: 'nav.constitution', path: '/constitution' },
+      { key: 'nav.courtDecisions', path: '/court-decisions' },
+      { key: 'nav.terms', path: '/terms' },
+    ],
+  },
   { key: 'nav.activities', path: '/activities' },
-  { key: 'nav.gyandeep', path: '/gyandeep' },
-  { key: 'nav.spandana', path: '/spandana' },
+  {
+    key: 'nav.gyandeep',
+    path: '/gyandeep',
+    children: [
+      { key: 'nav.gyandeep', path: '/gyandeep' },
+      { key: 'nav.spandana', path: '/spandana' },
+    ],
+  },
   { key: 'nav.membership', path: '/membership' },
-  { key: 'nav.media', path: '/media' },
+  { key: 'nav.prantContacts', path: '/prant-contacts' },
+  {
+    key: 'nav.media',
+    path: '/media',
+    children: [
+      { key: 'nav.blogs', path: '/blogs' },
+      { key: 'nav.news', path: '/news' },
+      { key: 'nav.events', path: '/events' },
+      { key: 'nav.videos', path: '/videos' },
+    ],
+  },
   { key: 'nav.gallery', path: '/gallery' },
-  { key: 'nav.blogs', path: '/blogs' },
+  { key: 'nav.kshetraMantri', path: '/kshetra-mantri' },
+  { key: 'nav.quickMemos', path: '/quickmemos' },
   { key: 'nav.faq', path: '/faq' },
   { key: 'nav.petition', path: '/petition' },
   { key: 'nav.contact', path: '/contact' },
 ];
+
+const flattenNavItems = (items: NavItem[]): { key: string; path: string }[] =>
+  items.flatMap((item) =>
+    item.children ? item.children : [{ key: item.key, path: item.path }]
+  );
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
   children,
@@ -78,60 +118,110 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const drawerPaperRef = useRef<HTMLDivElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [dropdownAnchor, setDropdownAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
 
-  const quickLinks = [
-    ...navigationItems,
-    { key: 'nav.constitution', path: '/constitution' },
-    { key: 'nav.courtDecisions', path: '/court-decisions' },
-  ];
+  const quickLinks = flattenNavItems(navigationItems);
+
+  const isAboutActive = location.pathname === '/about' || location.pathname === '/history' || location.pathname === '/constitution' || location.pathname === '/court-decisions' || location.pathname === '/terms';
+  const isGyandeepActive = location.pathname === '/gyandeep' || location.pathname === '/spandana';
+  const isMediaActive = location.pathname === '/media' || location.pathname === '/blogs' || location.pathname === '/news' || location.pathname === '/events' || location.pathname === '/videos';
 
   useEffect(() => {
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
   const handleDrawerToggle = () => {
+    const opening = !mobileOpen;
+    if (opening && document.activeElement instanceof HTMLElement && document.getElementById('root')?.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     setMobileOpen(!mobileOpen);
   };
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const paper = drawerPaperRef.current;
+    if (paper) {
+      const focusable = paper.querySelector<HTMLElement>('a[href], button, [tabindex]:not([tabindex="-1"])');
+      if (focusable) focusable.focus();
+      else paper.focus();
+    }
+  }, [mobileOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder for search functionality
-    console.log('Search:', searchQuery);
+    const trimmed = searchQuery.trim();
+    if (trimmed) {
+      navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+    } else {
+      navigate('/search');
+    }
   };
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center', width: 280 }}>
+    <Box sx={{ width: 280, pt: 2 }}>
       <Box
-        component="img"
-        src={logoImage}
-        alt={t('header.fullName')}
-        sx={{
-          height: 60,
-          width: 'auto',
-          maxWidth: '200px',
-          objectFit: 'contain',
-          my: 2,
-          mx: 'auto',
-        }}
-      />
-      <Divider />
-      <List>
-        {navigationItems.map((item) => (
-          <ListItem key={item.key} disablePadding>
-            <ListItemButton
-              component={RouterLink}
-              to={item.path}
-              selected={location.pathname === item.path}
-            >
-              <ListItemText primary={t(item.key)} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        component={RouterLink}
+        to="/"
+        onClick={handleDrawerToggle}
+        sx={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+      >
+        <Box
+          component="img"
+          src={logoImage}
+          alt={t('header.fullName')}
+          sx={{
+            height: 56,
+            width: 'auto',
+            maxWidth: '200px',
+            objectFit: 'contain',
+            mx: 'auto',
+          }}
+        />
+      </Box>
+      <Divider sx={{ my: 2 }} />
+      <List onClick={handleDrawerToggle}>
+        {navigationItems.map((item) =>
+          item.children ? (
+            <React.Fragment key={item.key}>
+              <ListItem disablePadding sx={{ pt: 1.5, pb: 0 }}>
+                <ListItemText
+                  primary={t(item.key)}
+                  primaryTypographyProps={{ variant: 'subtitle2', fontWeight: 600, color: 'text.secondary' }}
+                />
+              </ListItem>
+              {item.children.map((child) => (
+                <ListItem key={child.key} disablePadding>
+                  <ListItemButton
+                    component={RouterLink}
+                    to={child.path}
+                    selected={location.pathname === child.path}
+                    sx={{ pl: 3 }}
+                  >
+                    <ListItemText primary={t(child.key)} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </React.Fragment>
+          ) : (
+            <ListItem key={item.key} disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to={item.path}
+                selected={location.pathname === item.path}
+              >
+                <ListItemText primary={t(item.key)} />
+              </ListItemButton>
+            </ListItem>
+          )
+        )}
       </List>
     </Box>
   );
@@ -161,53 +251,47 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {t('skip.content')}
       </Link>
 
-      {/* Top Utility Bar */}
+      {/* Top Utility Bar - orange/saffron on home, clean elsewhere */}
       <Box
         sx={{
-          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : theme.palette.grey[100],
-          py: 1,
-          borderBottom: `1px solid ${theme.palette.divider}`,
+          background: location.pathname === '/'
+            ? theme.palette.secondary.main
+            : theme.palette.mode === 'dark'
+              ? theme.palette.background.default
+              : theme.palette.grey[100],
+          color: location.pathname === '/' ? theme.palette.secondary.contrastText : theme.palette.text.primary,
+          py: { xs: 1, sm: 1.5 },
+          borderBottom: location.pathname === '/' ? `3px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.divider}`,
+          transition: 'background 0.3s ease, color 0.3s ease',
         }}
       >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 2,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="caption" fontWeight={600}>
-                {t('header.fullName')}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+              <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.9, fontSize: { xs: '0.6875rem', sm: '0.75rem' }, display: { xs: 'none', sm: 'block' } }}>
                 {t('header.shortDescription')}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <LanguageSwitcher />
-              <ThemeSwitcher
-                currentTheme={currentTheme}
-                onThemeChange={onThemeChange}
-              />
+              <ThemeSwitcher currentTheme={currentTheme} onThemeChange={onThemeChange} />
             </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* Primary Header */}
-      <AppBar position="static" elevation={0} sx={{ backgroundColor: theme.palette.background.paper }}>
-        <Container maxWidth="lg">
-          <Toolbar
-            sx={{
-              flexDirection: { xs: 'column', md: 'row' },
-              gap: 2,
-            }}
-          >
-            {/* Logo */}
+      {/* Primary Header - logo + org name + CTAs */}
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.shadows[1],
+        }}
+      >
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+          <Toolbar sx={{ flexDirection: { xs: 'column', md: 'row' }, gap: 2, py: { xs: 2, md: 1.5 }, minHeight: { xs: 'auto', md: 72 } }}>
             <Box
               component={RouterLink}
               to="/"
@@ -215,10 +299,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 flexGrow: 1,
+                gap: 2,
                 textDecoration: 'none',
-                '&:hover': {
-                  opacity: 0.9,
-                },
+                color: 'inherit',
+                transition: 'opacity 0.2s ease',
+                '&:hover': { opacity: 0.9 },
               }}
             >
               <Box
@@ -226,75 +311,29 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 src={logoImage}
                 alt={t('header.fullName')}
                 sx={{
-                  height: { xs: 60, sm: 70, md: 80 },
+                  height: { xs: 56, sm: 64, md: 68 },
                   width: 'auto',
                   objectFit: 'contain',
-                  maxWidth: { xs: '200px', sm: '250px', md: '300px' },
+                  maxWidth: { xs: '160px', sm: '200px', md: '220px' },
                 }}
               />
             </Box>
 
-            {/* CTA Buttons */}
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                disabled
-                onClick={() => {
-                  // TODO: Replace with new Razorpay integration
-                  console.log('Donate button clicked - waiting for new Razorpay integration');
-                }}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  // Disabled: readable contrast (dark text on light bg)
-                  '&.Mui-disabled': {
-                    backgroundColor: (theme) => theme.palette.grey[300],
-                    color: (theme) => theme.palette.grey[700],
-                  },
-                }}
-              >
-                {t('header.donate')}
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                size="small"
-                onClick={() => {
-                  const element = document.getElementById('membership');
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                  },
-                }}
-              >
-                {t('header.membership')}
-              </Button>
+            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-end' } }}>
               {!isAuthenticated && (
                 <Button
                   component={RouterLink}
                   to="/login?mode=director"
                   variant="outlined"
                   color="primary"
-                  size="small"
+                  size="medium"
                   sx={{
                     borderRadius: 2,
                     fontWeight: 600,
                     textTransform: 'none',
                     borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                    },
+                    px: 2.5,
+                    '&:hover': { borderWidth: 2 },
                   }}
                 >
                   {t('header.director')}
@@ -305,18 +344,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 to={isAuthenticated ? '/panel' : '/login'}
                 variant="contained"
                 color="primary"
-                size="small"
+                size="medium"
                 sx={{
                   borderRadius: 2,
                   fontWeight: 600,
                   textTransform: 'none',
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  boxShadow: (theme) => theme.shadows[2],
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                    boxShadow: (theme) => theme.shadows[4],
-                  },
+                  px: 3,
                 }}
               >
                 {isAuthenticated ? t('panel.title') : t('header.login')}
@@ -325,16 +358,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <Button
                   variant="outlined"
                   color="primary"
-                  size="small"
+                  size="medium"
                   onClick={() => logout()}
                   sx={{
                     borderRadius: 2,
                     fontWeight: 600,
                     textTransform: 'none',
                     borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                    },
+                    px: 2.5,
+                    '&:hover': { borderWidth: 2 },
                   }}
                 >
                   {t('panel.logout')}
@@ -345,63 +377,111 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </Container>
       </AppBar>
 
-      {/* Navigation Bar */}
+      {/* Navigation Bar - dark blue, uppercase labels, search */}
       <AppBar
         position="static"
-        elevation={1}
+        elevation={0}
         sx={{
-          backgroundColor: theme.palette.primary.main,
-          color: 'white',
+          backgroundColor: theme.palette.primary.dark,
+          color: theme.palette.primary.contrastText,
         }}
       >
-        <Container maxWidth="lg">
-          <Toolbar
-            sx={{
-              justifyContent: 'space-between',
-              px: { xs: 1, md: 2 },
-            }}
-          >
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+          <Toolbar sx={{ justifyContent: 'space-between', px: 0, minHeight: { xs: 48, md: 52 } }}>
             {isMobile ? (
-              <>
-                <IconButton
-                  color="inherit"
-                  aria-label="open drawer"
-                  edge="start"
-                  onClick={handleDrawerToggle}
-                >
-                  <MenuIcon />
-                </IconButton>
-              </>
+              <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerToggle} sx={{ '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' } }}>
+                <MenuIcon />
+              </IconButton>
             ) : (
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {navigationItems.map((item) => (
-                  <Button
-                    key={item.key}
-                    component={RouterLink}
-                    to={item.path}
-                    color="inherit"
-                    sx={{
-                      fontWeight: location.pathname === item.path ? 700 : 400,
-                      textDecoration: location.pathname === item.path ? 'underline' : 'none',
-                    }}
-                  >
-                    {t(item.key)}
-                  </Button>
-                ))}
+              <Box sx={{ display: 'flex', gap: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+                {navigationItems.map((item) =>
+                  item.children ? (
+                    <React.Fragment key={item.key}>
+                      <Button
+                        color="inherit"
+                        onClick={(e) => setDropdownAnchor({ el: e.currentTarget, id: item.key })}
+                        endIcon={<KeyboardArrowDown sx={{ fontSize: 16 }} />}
+                        sx={{
+                          fontWeight: (item.key === 'nav.about' ? isAboutActive : item.key === 'nav.gyandeep' ? isGyandeepActive : item.key === 'nav.media' ? isMediaActive : false) ? 700 : 500,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          fontSize: '0.8rem',
+                          borderRadius: 0,
+                          px: 1.5,
+                          py: 1.25,
+                          minHeight: 52,
+                          '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                        }}
+                      >
+                        {t(item.key)}
+                      </Button>
+                      <Menu
+                        anchorEl={dropdownAnchor?.id === item.key ? dropdownAnchor.el : null}
+                        open={dropdownAnchor?.id === item.key}
+                        onClose={() => setDropdownAnchor(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        slotProps={{
+                          paper: {
+                            sx: {
+                              mt: 0,
+                              minWidth: 220,
+                              borderRadius: 0,
+                              boxShadow: theme.shadows[4],
+                              borderTop: `3px solid ${theme.palette.secondary.main}`,
+                            },
+                          },
+                        }}
+                      >
+                        {item.children.map((child) => (
+                          <MenuItem
+                            key={child.key}
+                            component={RouterLink}
+                            to={child.path}
+                            onClick={() => setDropdownAnchor(null)}
+                            selected={location.pathname === child.path}
+                            sx={{ py: 1.25, fontSize: '0.9rem' }}
+                          >
+                            {t(child.key)}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </React.Fragment>
+                  ) : (
+                    <Button
+                      key={item.key}
+                      component={RouterLink}
+                      to={item.path}
+                      color="inherit"
+                      sx={{
+                        fontWeight: location.pathname === item.path ? 700 : 500,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        fontSize: '0.8rem',
+                        borderRadius: 0,
+                        px: 1.5,
+                        py: 1.25,
+                        minHeight: 52,
+                        '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                      }}
+                    >
+                      {t(item.key)}
+                    </Button>
+                  )
+                )}
               </Box>
             )}
 
-            {/* Search Box */}
-            <Box component="form" onSubmit={handleSearch} sx={{ flexGrow: { xs: 1, md: 0 } }}>
+            <Box component="form" onSubmit={handleSearch} sx={{ flexGrow: { xs: 1, md: 0 }, minWidth: { md: 220 } }}>
               <TextField
                 size="small"
-                placeholder={t('nav.search')}
+                placeholder={t('search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Search />
+                      <Search sx={{ fontSize: 20, color: 'rgba(255,255,255,0.8)' }} />
                     </InputAdornment>
                   ),
                 }}
@@ -409,20 +489,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   backgroundColor: 'rgba(255,255,255,0.1)',
                   borderRadius: 1,
                   '& .MuiOutlinedInput-root': {
-                    color: 'white',
-                    '& fieldset': {
-                      borderColor: 'rgba(255,255,255,0.3)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255,255,255,0.5)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: 'white',
-                    },
+                    color: '#fff',
+                    '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+                    '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.4)' },
+                    '&.Mui-focused fieldset': { borderColor: 'rgba(255,255,255,0.6)' },
                   },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: 'rgba(255,255,255,0.7)',
-                  },
+                  '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.7)' },
                 }}
               />
             </Box>
@@ -436,7 +508,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
+          keepMounted: true,
+          disableEnforceFocus: true,
+          disableAutoFocus: true,
+        }}
+        PaperProps={{
+          ref: drawerPaperRef,
+          tabIndex: -1,
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
@@ -462,200 +540,112 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {children}
       </Box>
 
-      {/* Footer */}
+      {/* Footer - simple black */}
       <Box
         component="footer"
         sx={{
-          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : theme.palette.grey[900],
-          color: 'white',
-          pt: 3,
-          pb: 2,
           mt: 'auto',
-          borderTop: `2px solid ${theme.palette.secondary.main}`,
+          backgroundColor: '#1a1a1a',
+          color: '#ffffff',
         }}
       >
-        <Container maxWidth="lg">
-          <Grid container spacing={2} sx={{ alignItems: 'flex-start' }}>
-            {/* Brand Section */}
-            <Grid item xs={12} sm={6} md={4} sx={{ order: { xs: 1, md: 1 } }}>
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" fontWeight={600} sx={{ fontSize: '0.95rem' }}>
-                  {t('header.fullName')}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.6, fontSize: '0.75rem' }}>
-                  {t('header.shortDescription')}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.6, pt: 1, fontSize: '0.7rem' }}>
-                  {t('footer.copyright')}
+        <Container maxWidth="lg" sx={{ pt: 4, pb: 3, px: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={4} sx={{ alignItems: 'flex-start' }}>
+            {/* Left: Logo, description, contact, social */}
+            <Grid item xs={12} md={5}>
+              <Box component={RouterLink} to="/" sx={{ display: 'inline-block', textDecoration: 'none', color: 'inherit', mb: 2 }}>
+                <Box
+                  component="img"
+                  src={logoImage}
+                  alt={t('header.fullName')}
+                  sx={{ height: 48, width: 'auto', maxWidth: 160, objectFit: 'contain' }}
+                />
+              </Box>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, fontSize: '0.8125rem', mb: 2 }}>
+                {t('header.shortDescription')}
+              </Typography>
+              <Stack spacing={1} sx={{ mb: 2 }}>
+                <Link
+                  href={`mailto:${t('contact.key.email')}`}
+                  color="inherit"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontSize: '0.8125rem',
+                    color: 'rgba(255,255,255,0.85)',
+                    textDecoration: 'none',
+                    '&:hover': { color: '#fff' },
+                  }}
+                >
+                  <Email sx={{ fontSize: 18, color: 'rgba(255,255,255,0.7)' }} />
+                  {t('contact.key.email')}
+                </Link>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+                  <LocationOn sx={{ fontSize: 18, color: 'rgba(255,255,255,0.7)', flexShrink: 0, mt: 0.25 }} />
+                  {t('contact.delhi.address')}
                 </Typography>
               </Stack>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton component="a" href="#" aria-label="Facebook" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                  <Facebook fontSize="small" />
+                </IconButton>
+                <IconButton component="a" href="#" aria-label="Twitter" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                  <Twitter fontSize="small" />
+                </IconButton>
+                <IconButton component="a" href="#" aria-label="YouTube" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                  <YouTube fontSize="small" />
+                </IconButton>
+              </Box>
             </Grid>
 
-            {/* Navigation Links Section - two columns */}
-            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 3, md: 2 } }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
+            {/* Middle: Quick links */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#fff', fontSize: '0.875rem', mb: 2 }}>
                 {t('nav.quickLinks')}
               </Typography>
-              <Grid container spacing={0} sx={{ flexWrap: 'wrap' }}>
-                <Grid item xs={6}>
-                  <Stack spacing={0.8}>
-                    {quickLinks.slice(0, 7).map((item) => (
-                      <Link
-                        key={item.key}
-                        component={RouterLink}
-                        to={item.path}
-                        color="inherit"
-                        sx={{
-                          textDecoration: 'none',
-                          fontSize: '0.8rem',
-                          opacity: 0.8,
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            opacity: 1,
-                            color: theme.palette.secondary.main,
-                            transform: 'translateX(3px)',
-                          },
-                        }}
-                      >
-                        {t(item.key)}
-                      </Link>
-                    ))}
-                  </Stack>
-                </Grid>
-                <Grid item xs={6}>
-                  <Stack spacing={0.8}>
-                    {quickLinks.slice(7, 14).map((item) => (
-                      <Link
-                        key={item.key}
-                        component={RouterLink}
-                        to={item.path}
-                        color="inherit"
-                        sx={{
-                          textDecoration: 'none',
-                          fontSize: '0.8rem',
-                          opacity: 0.8,
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            opacity: 1,
-                            color: theme.palette.secondary.main,
-                            transform: 'translateX(3px)',
-                          },
-                        }}
-                      >
-                        {t(item.key)}
-                      </Link>
-                    ))}
-                  </Stack>
-                </Grid>
-              </Grid>
-            </Grid>
-
-            {/* Social Connect Section */}
-            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 4, md: 3 } }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 1.5, fontSize: '0.85rem' }}>
-                {t('footer.connect')}
-              </Typography>
-              <Stack spacing={0.5}>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<Facebook sx={{ fontSize: '1rem' }} />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    fontSize: '0.8rem',
-                    minHeight: '32px',
-                    padding: '4px 8px',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#1877F2' },
-                  }}
-                >
-                  {t('footer.social.facebook')}
-                </Button>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<Twitter sx={{ fontSize: '1rem' }} />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    fontSize: '0.8rem',
-                    minHeight: '32px',
-                    padding: '4px 8px',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#1DA1F2' },
-                  }}
-                >
-                  {t('footer.social.twitter')}
-                </Button>
-                <Button
-                  component="a"
-                  href="#"
-                  color="inherit"
-                  startIcon={<YouTube sx={{ fontSize: '1rem' }} />}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    fontSize: '0.8rem',
-                    minHeight: '32px',
-                    padding: '4px 8px',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: '#FF0000' },
-                  }}
-                >
-                  {t('footer.social.youtube')}
-                </Button>
+              <Stack spacing={1}>
+                {quickLinks.slice(0, 8).map((item) => (
+                  <Link
+                    key={item.key}
+                    component={RouterLink}
+                    to={item.path}
+                    sx={{
+                      color: 'rgba(255,255,255,0.85)',
+                      fontSize: '0.8125rem',
+                      textDecoration: 'none',
+                      '&:hover': { color: '#fff' },
+                    }}
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
               </Stack>
             </Grid>
 
-            {/* Legal Section - right after Brand on mobile to remove gap */}
-            <Grid item xs={12} sm={6} md={3} sx={{ order: { xs: 2, md: 4 } }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom sx={{ mb: 0.5, fontSize: '0.85rem' }}>
+            {/* Right: Legal */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#fff', fontSize: '0.875rem', mb: 2 }}>
                 {t('footer.legal')}
               </Typography>
-              <Stack spacing={0.35}>
-                <Link
-                  component={RouterLink}
-                  to="/terms"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.8rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
+              <Stack spacing={1}>
+                <Link component={RouterLink} to="/terms" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8125rem', textDecoration: 'none', '&:hover': { color: '#fff' } }}>
                   {t('footer.terms')}
                 </Link>
-                <Link
-                  href="#"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.8rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
+                <Link href="#" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8125rem', textDecoration: 'none', '&:hover': { color: '#fff' } }}>
                   {t('footer.privacy')}
                 </Link>
-                <Link
-                  href="#"
-                  color="inherit"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.8rem',
-                    opacity: 0.8,
-                    '&:hover': { opacity: 1, color: theme.palette.secondary.main },
-                  }}
-                >
+                <Link component={RouterLink} to="/contact" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8125rem', textDecoration: 'none', '&:hover': { color: '#fff' } }}>
                   {t('footer.help')}
                 </Link>
               </Stack>
             </Grid>
           </Grid>
+
+          <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', my: 3 }} />
+          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>
+            {t('footer.copyright')}
+          </Typography>
         </Container>
       </Box>
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />

@@ -9,7 +9,9 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
+    const supabaseConfigured = Boolean(getSupabaseAdmin());
     const prantRoles = await listPrantUserRoles();
+    console.log('[Prants GET] Supabase configured:', supabaseConfigured, '| user_roles prant count:', prantRoles.length, prantRoles.length ? '| keys: ' + prantRoles.map((p) => p.prantKey).join(', ') : '');
     if (prantRoles.length === 0) {
       return res.json({ prants: [] });
     }
@@ -104,6 +106,7 @@ router.post('/:prantKey/change-password', async (req, res) => {
       console.error('Supabase password update error:', error);
       return res.status(400).json({ error: error.message || 'Password update failed' });
     }
+    console.log('[Prants] Password updated in Supabase for prant:', prantKey, 'user:', userId);
     res.json({ success: true, message: 'Password updated' });
   } catch (err) {
     console.error('Change password error:', err);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Container,
@@ -6,8 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  TextField,
-  Button,
   useTheme,
 } from '@mui/material';
 import {
@@ -15,77 +13,55 @@ import {
   Phone,
   Email,
   LocationOn,
-  Send,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
 export const ContactSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission - placeholder for future API integration
-    console.log('Form submitted:', formData);
-    alert(t('contact.form.success'));
-    setFormData({ name: '', email: '', message: '' });
-  };
 
   return (
     <Box
       id="contact"
       sx={{
-        py: { xs: 4, md: 6 },
+        py: { xs: 2, md: 3 },
         backgroundColor: theme.palette.background.paper,
       }}
     >
-      <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center', mb: 5 }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Typography
-            variant="h2"
+            variant="h5"
             component="h2"
-            gutterBottom
-            sx={{ fontWeight: 700, color: theme.palette.primary.main }}
+            sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: { xs: '1.2rem', md: '1.5rem' } }}
           >
             {t('contact.title')}
           </Typography>
         </Box>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, sm: 2 }}>
           {/* Key Contact */}
-          <Grid item xs={12} md={4}>
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5 }}>
                   {t('contact.keyContact')}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Person color="primary" sx={{ mr: 2 }} />
-                  <Typography variant="body1">{t('contact.key.name')}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Person color="primary" sx={{ mr: 1, fontSize: 18 }} />
+                  <Typography variant="body2">{t('contact.key.name')}</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Phone color="primary" sx={{ mr: 2 }} />
-                  <Typography variant="body1">
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Phone color="primary" sx={{ mr: 1, fontSize: 18 }} />
+                  <Typography variant="body2">
                     <a href={`tel:${t('contact.key.phone')}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       {t('contact.key.phone')}
                     </a>
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Email color="primary" sx={{ mr: 2 }} />
-                  <Typography variant="body1">
+                  <Email color="primary" sx={{ mr: 1, fontSize: 18 }} />
+                  <Typography variant="body2">
                     <a href={`mailto:${t('contact.key.email')}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       {t('contact.key.email')}
                     </a>
@@ -93,96 +69,38 @@ export const ContactSection: React.FC = () => {
                 </Box>
               </CardContent>
             </Card>
+          </Grid>
 
-            {/* Delhi Office */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <LocationOn color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="h6" fontWeight={600}>
+          {/* Delhi Office */}
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <LocationOn color="primary" sx={{ mr: 1, fontSize: 18 }} />
+                  <Typography variant="subtitle2" fontWeight={600}>
                     {t('contact.delhi.title')}
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
                   {t('contact.delhi.address')}
-                </Typography>
-              </CardContent>
-            </Card>
-
-            {/* Pune Office */}
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <LocationOn color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="h6" fontWeight={600}>
-                    {t('contact.pune.title')}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  {t('contact.pune.address')}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          {/* Contact Form */}
-          <Grid item xs={12} md={8}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom fontWeight={600} sx={{ mb: 3 }}>
-                  {t('contact.form.title')}
+          {/* Pune Office */}
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <LocationOn color="primary" sx={{ mr: 1, fontSize: 18 }} />
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    {t('contact.pune.title')}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
+                  {t('contact.pune.address')}
                 </Typography>
-                <form onSubmit={handleSubmit}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label={t('contact.form.name')}
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        aria-required="true"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label={t('contact.form.email')}
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        aria-required="true"
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label={t('contact.form.message')}
-                        name="message"
-                        multiline
-                        rows={6}
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        aria-required="true"
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        size="large"
-                        startIcon={<Send />}
-                        sx={{ px: 4 }}
-                      >
-                        {t('contact.form.send')}
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </form>
               </CardContent>
             </Card>
           </Grid>

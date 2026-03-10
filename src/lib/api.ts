@@ -1,9 +1,11 @@
 /**
- * ABGP Backend API client. Uses VITE_API_URL when set.
+ * ABGP Backend API client.
+ * Uses VITE_API_URL from .env when set (e.g. production/VPS); otherwise localhost for local dev.
+ * All requests use API_BASE and automatically include Authorization: Bearer <token> from Supabase session when available.
  */
-const API_BASE = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL
-  ? (import.meta.env.VITE_API_URL as string).replace(/\/$/, '')
-  : '';
+import { getSupabase } from './supabase';
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export interface ApiMember {
   id: string;
@@ -20,20 +22,39 @@ export interface LoginResponse {
   token: string;
 }
 
-async function fetchJson<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error((err as { error?: string }).error || res.statusText);
-  }
-  return res.json() as Promise<T>;
+/** Get Supabase access token from current session (used when caller does not pass token). */
+async function getAccessToken(): Promise<string | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
-function authHeaders(token: string): Record<string, string> {
-  return { Authorization: `Bearer ${token}` };
+async function fetchJson<T = unknown>(
+  url: string,
+  token?: string | null,
+  options: RequestInit = {}
+): Promise<T> {
+  // Prefer current Supabase session token so we always send a valid, up-to-date token
+  const authToken = (await getAccessToken()) ?? token ?? null;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+  return res.json() as Promise<T>;
 }
 
 export function isApiConfigured(): boolean {
@@ -42,17 +63,14 @@ export function isApiConfigured(): boolean {
 
 export async function loginWithApi(email: string, password: string): Promise<LoginResponse> {
   const url = `${API_BASE}/api/auth/login`;
-  return fetchJson<LoginResponse>(url, {
+  return fetchJson<LoginResponse>(url, undefined, {
     method: 'POST',
     body: JSON.stringify({ email: email.trim(), password }),
   });
 }
 
 export async function fetchMembersFromApi(token: string): Promise<ApiMember[]> {
-  const url = `${API_BASE}/api/members`;
-  const data = await fetchJson<{ members: ApiMember[] }>(url, {
-    headers: authHeaders(token),
-  });
+  const data = await fetchJson<{ members: ApiMember[] }>(`${API_BASE}/api/members`, token);
   return data.members;
 }
 
@@ -60,19 +78,45 @@ export async function addMemberViaApi(
   token: string,
   data: { email: string; name?: string; role?: string; prant?: string }
 ): Promise<ApiMember> {
-  const url = `${API_BASE}/api/members`;
-  const res = await fetchJson<{ member: ApiMember }>(url, {
+  const res = await fetchJson<{ member: ApiMember }>(`${API_BASE}/api/members`, token, {
     method: 'POST',
-    headers: authHeaders(token),
     body: JSON.stringify(data),
   });
   return res.member;
 }
 
 export async function deleteMemberViaApi(token: string, id: string): Promise<void> {
-  const url = `${API_BASE}/api/members/${id}`;
-  await fetch(url, {
-    method: 'DELETE',
-    headers: authHeaders(token),
+  await fetchJson<void>(`${API_BASE}/api/members/${id}`, token, { method: 'DELETE' });
+}
+
+export interface ApiPrant {
+  prantKey: string;
+  email: string;
+  name?: string;
+  contactNumber?: string;
+}
+
+/** Raw shape from API may use prant_key (snake_case); we normalize to prantKey */
+type ApiPrantRaw = ApiPrant & { prant_key?: string };
+
+export async function fetchPrantsFromApi(token: string): Promise<ApiPrant[]> {
+  const data = await fetchJson<{ prants: ApiPrantRaw[] }>(`${API_BASE}/api/prants`, token);
+  const raw = data.prants ?? [];
+  return raw.map((p) => ({
+    prantKey: p.prantKey ?? p.prant_key ?? '',
+    email: p.email ?? '',
+    name: p.name,
+    contactNumber: p.contactNumber,
+  })).filter((p) => p.prantKey);
+}
+
+export async function changePrantPassword(
+  token: string,
+  prantKey: string,
+  newPassword: string
+): Promise<void> {
+  await fetchJson<void>(`${API_BASE}/api/prants/${prantKey}/change-password`, token, {
+    method: 'POST',
+    body: JSON.stringify({ newPassword }),
   });
 }

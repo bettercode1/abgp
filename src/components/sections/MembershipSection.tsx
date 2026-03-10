@@ -22,8 +22,6 @@ import {
   Person,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { PrantMembershipList } from './PrantMembershipList';
-import { KshetraSanghatanMantriList } from './KshetraSanghatanMantriList';
 
 const membershipBenefits = [
   'membership.benefit1',
@@ -190,16 +188,6 @@ export const MembershipSection: React.FC = () => {
             </Card>
           </Grid>
         </Grid>
-
-        {/* Prant Membership List */}
-        <Box sx={{ mt: 8 }}>
-          <PrantMembershipList />
-        </Box>
-
-        {/* Kshetra Sanghatan Mantri List */}
-        <Box sx={{ mt: 8 }}>
-          <KshetraSanghatanMantriList />
-        </Box>
       </Container>
     </Box>
   );

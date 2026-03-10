@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
@@ -18,6 +18,13 @@ import { GrahakGyanDeepPage } from './pages/GrahakGyanDeepPage';
 import { GrahakSpandanaPage } from './pages/GrahakSpandanaPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { NationalExecutivePage } from './pages/NationalExecutivePage';
+import { MembershipPage } from './pages/MembershipPage';
+import { VideosPage } from './pages/VideosPage';
+import { ContactPage } from './pages/ContactPage';
+import { PrantContactsPage } from './pages/PrantContactsPage';
+import { KshetraMantriPage } from './pages/KshetraMantriPage';
+import { QuickMemosPage } from './pages/QuickMemosPage';
+import { SearchPage } from './pages/SearchPage';
 import { LoginPage } from './pages/LoginPage';
 import { PanelPage } from './pages/PanelPage';
 import { AuthProvider } from './contexts/AuthContext';
@@ -180,12 +187,21 @@ function App() {
             <Route path="/blogs" element={<BlogsPage />} />
             <Route path="/faq" element={<FAQPage />} />
                     <Route path="/media" element={<MediaPage />} />
+                    <Route path="/news" element={<Navigate to="/media?tab=news" replace />} />
+                    <Route path="/events" element={<Navigate to="/media?tab=events" replace />} />
+                    <Route path="/videos" element={<VideosPage />} />
                     <Route path="/petition" element={<PetitionPage />} />
                     <Route path="/activities" element={<ActivitiesPage />} />
                     <Route path="/gyandeep" element={<GrahakGyanDeepPage />} />
                     <Route path="/spandana" element={<GrahakSpandanaPage />} />
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/national-executive" element={<NationalExecutivePage />} />
+                    <Route path="/membership" element={<MembershipPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/prant-contacts" element={<PrantContactsPage />} />
+                    <Route path="/kshetra-mantri" element={<KshetraMantriPage />} />
+                    <Route path="/quickmemos" element={<QuickMemosPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/panel" element={<PanelPage />} />
           </Routes>

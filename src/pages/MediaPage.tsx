@@ -17,7 +17,7 @@ import {
   Stack,
   Divider,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Article,
@@ -74,10 +74,22 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+const tabFromParam = (param: string | null): number => {
+  if (param === 'news') return 0;
+  if (param === 'events') return 1;
+  return 0;
+};
+
 export const MediaPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [tabValue, setTabValue] = useState(0);
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [tabValue, setTabValue] = useState(() => tabFromParam(tabParam));
+
+  React.useEffect(() => {
+    setTabValue(tabFromParam(tabParam));
+  }, [tabParam]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
