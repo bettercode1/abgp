@@ -202,6 +202,7 @@ function App() {
                     <Route path="/kshetra-mantri" element={<KshetraMantriPage />} />
                     <Route path="/quickmemos" element={<QuickMemosPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/director-login" element={<Navigate to="/login?mode=director" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/panel" element={<PanelPage />} />
           </Routes>
