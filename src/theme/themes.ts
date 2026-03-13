@@ -233,8 +233,53 @@ export const themeMap: Record<ThemeName, ThemeOptions> = {
   maroonGold: maroonGoldTheme,
 };
 
+const smoothTransitions = {
+  duration: {
+    shortest: 150,
+    shorter: 200,
+    short: 250,
+    standard: 300,
+    complex: 375,
+    enteringScreen: 225,
+    leavingScreen: 195,
+  },
+  easing: {
+    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
+    easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+  },
+};
+
 export const getTheme = (themeName: ThemeName) => {
-  return createTheme(themeMap[themeName]);
+  const base = themeMap[themeName];
+  return createTheme({
+    ...base,
+    transitions: smoothTransitions,
+    components: {
+      ...(base.components ?? {}),
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            transition: 'background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            transition: 'background-color 0.2s ease, color 0.2s ease',
+          },
+        },
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            transition: 'background-color 0.2s ease',
+          },
+        },
+      },
+    },
+  });
 };
 
 

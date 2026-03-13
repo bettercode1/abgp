@@ -24,6 +24,7 @@ import {
   Stack,
   Divider,
   Grid,
+  Fade,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -251,18 +252,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {t('skip.content')}
       </Link>
 
-      {/* Top Utility Bar - orange/saffron on home, clean elsewhere */}
+      {/* Top Utility Bar - orange/saffron on all pages */}
       <Box
         sx={{
-          background: location.pathname === '/'
-            ? theme.palette.secondary.main
-            : theme.palette.mode === 'dark'
-              ? theme.palette.background.default
-              : theme.palette.grey[100],
-          color: location.pathname === '/' ? theme.palette.secondary.contrastText : theme.palette.text.primary,
+          background: theme.palette.secondary.main,
+          color: theme.palette.secondary.contrastText,
           py: { xs: 1, sm: 1.5 },
-          borderBottom: location.pathname === '/' ? `3px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.divider}`,
-          transition: 'background 0.3s ease, color 0.3s ease',
+          borderBottom: `3px solid ${theme.palette.primary.main}`,
         }}
       >
         <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
@@ -527,7 +523,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {drawer}
       </Drawer>
 
-      {/* Main Content */}
+      {/* Main Content - fade in on route change */}
       <Box
         id="main-content"
         component="main"
@@ -537,7 +533,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         }}
         role="main"
       >
-        {children}
+        <Fade in key={location.pathname} timeout={{ enter: 280, exit: 0 }} appear>
+          <Box sx={{ minHeight: '100%' }}>{children}</Box>
+        </Fade>
       </Box>
 
       {/* Footer - simple black */}

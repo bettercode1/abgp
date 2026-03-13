@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
@@ -8,14 +8,29 @@ interface GlobalLoaderProps {
   message?: string;
 }
 
+const FADE_OUT_MS = 220;
+
 export const GlobalLoader: React.FC<GlobalLoaderProps> = ({
   loading,
   fullScreen = false,
   message,
 }) => {
   const { t } = useTranslation();
+  const [visible, setVisible] = useState(loading);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  if (!loading) return null;
+  useEffect(() => {
+    if (loading) {
+      setVisible(true);
+      setFadeOut(false);
+    } else if (visible) {
+      setFadeOut(true);
+      const id = setTimeout(() => setVisible(false), FADE_OUT_MS);
+      return () => clearTimeout(id);
+    }
+  }, [loading, visible]);
+
+  if (!visible) return null;
 
   const displayMessage = message || t('loading.text');
 
@@ -35,6 +50,9 @@ export const GlobalLoader: React.FC<GlobalLoaderProps> = ({
           justifyContent: 'center',
           zIndex: 9999,
           gap: 3,
+          opacity: fadeOut ? 0 : 1,
+          transition: `opacity ${FADE_OUT_MS}ms ease-out`,
+          pointerEvents: fadeOut ? 'none' : 'auto',
         }}
         role="status"
         aria-live="polite"

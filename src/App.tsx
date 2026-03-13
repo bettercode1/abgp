@@ -74,10 +74,9 @@ function App() {
       setFontSize(savedFontSize);
     }
 
-    // Simulate initial load
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    // Brief initial load (smooth feel without long wait)
+    const id = setTimeout(() => setLoading(false), 450);
+    return () => clearTimeout(id);
   }, []);
 
   // Theme is derived from currentTheme

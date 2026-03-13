@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -20,7 +20,9 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
 
+const STAGGER_MS = 50;
 const quickAccessItems = [
   { key: 'home.quickAccess.membership', path: '/membership', icon: Group },
   { key: 'home.quickAccess.news', path: '/news', icon: Article },
@@ -36,75 +38,124 @@ export const QuickAccessCardsSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
+  const { ref, inView } = useScrollReveal();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(m.matches);
+    const handler = () => setPrefersReducedMotion(m.matches);
+    m.addEventListener('change', handler);
+    return () => m.removeEventListener('change', handler);
+  }, []);
 
   return (
-    <Box sx={{ py: { xs: 4, sm: 5 }, backgroundColor: theme.palette.background.default }}>
+    <Box
+      ref={ref}
+      component="nav"
+      aria-label={t('nav.quickLinks')}
+      sx={{ py: { xs: 4, sm: 5 }, backgroundColor: theme.palette.background.default }}
+    >
       <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 }, mb: 3 }}>
+          <Box
+            sx={{
+              width: 4,
+              height: { xs: 40, md: 48 },
+              borderRadius: 1,
+              backgroundColor: theme.palette.secondary.main,
+              flexShrink: 0,
+            }}
+          />
+          <Typography
+            variant="h4"
+            fontWeight={700}
+            color="primary"
+            sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' } }}
+          >
+            {t('nav.quickLinks')}
+          </Typography>
+        </Box>
+
         <Grid container spacing={{ xs: 2, sm: 2.5 }} justifyContent="center">
-          {quickAccessItems.map((item) => {
+          {quickAccessItems.map((item, index) => {
             const Icon = item.icon;
+            const delay = prefersReducedMotion ? 0 : index * STAGGER_MS;
             return (
               <Grid item xs={6} sm={3} key={item.key}>
-                <Card
-                  component="button"
-                  type="button"
-                  onClick={() => navigate(item.path)}
+                <Box
                   sx={{
-                    height: '100%',
-                    minHeight: { xs: 120, sm: 140 },
-                    cursor: 'pointer',
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: theme.palette.background.paper,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
-                    textAlign: 'center',
-                    p: 0,
-                    overflow: 'hidden',
-                    '&:hover': {
-                      transform: 'translateY(-10px)',
-                      boxShadow: `0 20px 40px rgba(30, 58, 138, 0.2), 0 0 0 2px ${theme.palette.primary.main}`,
-                      borderColor: theme.palette.primary.main,
-                    },
-                    '&:hover .quick-access-icon': {
-                      transform: 'scale(1.08)',
-                      boxShadow: `0 12px 28px ${theme.palette.primary.main}50`,
-                    },
+                    opacity: inView ? 1 : 0,
+                    transform: inView ? 'translateY(0)' : 'translateY(14px)',
+                    transition: prefersReducedMotion
+                      ? 'none'
+                      : `opacity 0.5s ease-out ${delay}ms, transform 0.5s ease-out ${delay}ms`,
                   }}
                 >
-                  <CardContent sx={{ py: { xs: 2, sm: 2.5 }, px: { xs: 1.5, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
-                    <Box
-                      className="quick-access-icon"
-                      sx={{
-                        width: { xs: 52, sm: 60, md: 64 },
-                        height: { xs: 52, sm: 60, md: 64 },
-                        borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: { xs: 1.25, sm: 1.5 },
+                  <Card
+                    component="button"
+                    type="button"
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      height: '100%',
+                      minHeight: { xs: 128, sm: 148 },
+                      cursor: 'pointer',
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      backgroundColor: theme.palette.background.paper,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                      transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+                      textAlign: 'center',
+                      p: 0,
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: `0 12px 28px rgba(30, 58, 138, 0.12), 0 0 0 1px ${theme.palette.primary.main}`,
+                        borderColor: theme.palette.primary.main,
+                      },
+                      '&:focus-visible': {
+                        outline: `2px solid ${theme.palette.primary.main}`,
+                        outlineOffset: 2,
+                      },
+                      '&:hover .quick-access-icon': {
+                        transform: 'scale(1.04)',
                         boxShadow: `0 8px 20px ${theme.palette.primary.main}40`,
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                      }}
-                    >
-                      <Icon sx={{ fontSize: { xs: 26, sm: 28, md: 32 }, color: 'white' }} />
-                    </Box>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight={700}
-                      color="text.primary"
-                      sx={{
-                        lineHeight: 1.25,
-                        fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.95rem' },
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {t(item.key)}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ py: { xs: 2, sm: 2.5 }, px: { xs: 1.5, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+                      <Box
+                        className="quick-access-icon"
+                        sx={{
+                          width: { xs: 52, sm: 60, md: 64 },
+                          height: { xs: 52, sm: 60, md: 64 },
+                          borderRadius: '50%',
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: { xs: 1.25, sm: 1.5 },
+                          boxShadow: `0 8px 20px ${theme.palette.primary.main}40`,
+                          transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                        }}
+                      >
+                        <Icon sx={{ fontSize: { xs: 26, sm: 28, md: 32 }, color: 'white' }} />
+                      </Box>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={700}
+                        color="text.primary"
+                        sx={{
+                          lineHeight: 1.25,
+                          fontSize: { xs: '0.75rem', sm: '0.85rem', md: '0.95rem' },
+                          wordBreak: 'break-word',
+                        }}
+                      >
+                        {t(item.key)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
               </Grid>
             );
           })}

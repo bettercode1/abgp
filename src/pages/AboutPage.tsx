@@ -61,7 +61,7 @@ export const AboutPage: React.FC = () => {
     },
     {
       quote: t('about.quotes.president.text', "The work of Grahak Panchayat is right effort in the right direction. You should strive to take this activity to every city and village."),
-      author: "President Frakrudin Ali Ahmad",
+      author: "President Fakhruddin Ali Ahmad",
       date: "14th Jan 1975"
     },
     {
