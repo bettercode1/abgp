@@ -120,6 +120,8 @@ export const PanelPage: React.FC = () => {
   const [contact, setContact] = useState('');
   const [complaintFormData, setComplaintFormData] = useState<Record<string, string | string[] | boolean>>({});
   const [complaintSubmitted, setComplaintSubmitted] = useState(false);
+  const [complaintPrantKey, setComplaintPrantKey] = useState<string>(() => user?.prant ?? '');
+  const [complaintPrantError, setComplaintPrantError] = useState<string>('');
 
   // Director content by section (history, blog, videos, gallery, home)
   const [directorContentBySection, setDirectorContentBySection] = useState(() => loadDirectorContentBySection());
@@ -174,6 +176,11 @@ export const PanelPage: React.FC = () => {
       // ignore
     }
   }, []);
+
+  // Keep complaint prant selection in sync with the logged-in user (when available).
+  useEffect(() => {
+    if (user?.prant) setComplaintPrantKey(user.prant);
+  }, [user?.prant]);
 
   const apiMemberToMember = useCallback((a: ApiMember): Member => ({
     id: a.id,
@@ -459,9 +466,47 @@ export const PanelPage: React.FC = () => {
     }
   }, [complaintsDialogMember]);
 
-  type StoredComplaint = { category: string; formData?: Record<string, unknown>; message?: string; contact?: string; at?: string; memberEmail?: string };
+  type StoredComplaint = {
+    category: string;
+    formData?: Record<string, unknown>;
+    message?: string;
+    contact?: string;
+    at?: string;
+    memberEmail?: string;
+    assignedPrantKey?: string;
+  };
 
   const normalizeEmail = (s: string) => (s || '').trim().toLowerCase();
+
+  const normalizePrantKey = (s: string | null | undefined) => (s ?? '').toString().trim().toLowerCase();
+
+  const getComplaintAssignedPrantKey = (c: StoredComplaint): string | null => {
+    const direct = normalizePrantKey(c.assignedPrantKey);
+    if (direct) return direct;
+
+    const email = normalizeEmail(c.memberEmail || c.contact || '');
+    if (!email) return null;
+
+    const member = members.find((m) => m.email.toLowerCase() === email);
+    if (!member?.prant) return null;
+    return normalizePrantKey(member.prant);
+  };
+
+  const getComplaintsForAssignedPrant = (prantKey: string): StoredComplaint[] => {
+    const key = normalizePrantKey(prantKey);
+    if (!key) return [];
+    try {
+      const raw = localStorage.getItem('abgp-complaints');
+      if (!raw) return [];
+      const list = JSON.parse(raw) as StoredComplaint[];
+      if (!Array.isArray(list)) return [];
+      return list
+        .filter((c) => (getComplaintAssignedPrantKey(c) ?? '') === key)
+        .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
+    } catch {
+      return [];
+    }
+  };
 
   const getComplaintCountForEmail = (email: string): number => {
     try {
@@ -539,7 +584,29 @@ export const PanelPage: React.FC = () => {
     if (isComplaintCategory(subject)) {
       try {
         const memberEmailVal = (user?.email || contact || '').trim().toLowerCase() || undefined;
-        const payload = { category: subject, formData: complaintFormData, message, contact, at: new Date().toISOString(), memberEmail: memberEmailVal };
+
+        const selectedPrantKey =
+          user?.role === 'prant'
+            ? (user.prant ?? complaintPrantKey)
+            : user?.role === 'member'
+              ? (user.prant ?? complaintPrantKey)
+              : complaintPrantKey;
+        const assignedPrantKey = normalizePrantKey(selectedPrantKey);
+
+        if (!assignedPrantKey) {
+          setComplaintPrantError(t('panel.prantListPrant') + ' is required');
+          return;
+        }
+
+        const payload = {
+          category: subject,
+          formData: complaintFormData,
+          message,
+          contact,
+          at: new Date().toISOString(),
+          memberEmail: memberEmailVal,
+          assignedPrantKey,
+        };
         const stored = JSON.parse(localStorage.getItem('abgp-complaints') || '[]');
         stored.push(payload);
         localStorage.setItem('abgp-complaints', JSON.stringify(stored));
@@ -551,10 +618,12 @@ export const PanelPage: React.FC = () => {
               name: user?.name || contact || memberEmailVal.split('@')[0],
               role: 'member',
               isNewMember: true,
+              prant: assignedPrantKey,
             });
           }
         }
         setComplaintSubmitted(true);
+        setComplaintPrantError('');
         setSubject('');
         setComplaintFormData({});
         setMessage('');
@@ -657,6 +726,49 @@ export const PanelPage: React.FC = () => {
               <Button variant="contained" color="primary" startIcon={<Logout />} onClick={handleLogout} fullWidth sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', py: 1.5 }}>
                 {t('panel.logout')}
               </Button>
+              {isPrant && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary" gutterBottom>
+                    {t('panel.recentComplaints')}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                    {t('panel.recentComplaintsDesc')}
+                  </Typography>
+                  {(() => {
+                    const list = getComplaintsForAssignedPrant(user.prant ?? '').slice(0, 12);
+                    return list.length > 0 ? (
+                      <Stack spacing={1} sx={{ maxHeight: 240, overflow: 'auto', pr: 0.5 }}>
+                        {list.map((c, i) => (
+                          <Paper key={i} variant="outlined" sx={{ p: 1.5 }}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
+                              <Chip
+                                size="small"
+                                label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category}
+                                color="secondary"
+                                variant="outlined"
+                              />
+                              <Typography variant="caption" color="text.secondary">
+                                {c.at ? new Date(c.at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                              </Typography>
+                              {(c.memberEmail || c.contact) && (
+                                <Typography variant="caption" noWrap title={c.memberEmail || c.contact}>
+                                  {c.memberEmail || c.contact}
+                                </Typography>
+                              )}
+                            </Box>
+                            {c.message && <Typography variant="body2" sx={{ mt: 0.5 }} noWrap>{c.message}</Typography>}
+                          </Paper>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {t('panel.noComplaintsYet')}
+                      </Typography>
+                    );
+                  })()}
+                </>
+              )}
             </Paper>
                 )}
 
@@ -1544,12 +1656,40 @@ export const PanelPage: React.FC = () => {
                   <MenuItem value="other">{t('complaint.category.other')}</MenuItem>
                 </TextField>
                 {subject && isComplaintCategory(subject) && (
-                  <ComplaintCategoryFields
-                    category={subject}
-                    formData={complaintFormData}
-                    onUpdate={handleComplaintFormUpdate}
-                    onToggleCheck={handleComplaintFormToggle}
-                  />
+                  <>
+                    <TextField
+                      select
+                      fullWidth
+                      label={t('panel.prantListPrant')}
+                      value={user.prant ?? complaintPrantKey}
+                      onChange={(e) => {
+                        setComplaintPrantKey(e.target.value);
+                        setComplaintPrantError('');
+                      }}
+                      variant="outlined"
+                      required={!user.prant}
+                      disabled={Boolean(user.prant)}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    >
+                      <MenuItem value="">{t('login.select')}</MenuItem>
+                      {PRANT_KEYS.map((key) => (
+                        <MenuItem key={key} value={key}>
+                          {t(`prant.${key}`)}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    {complaintPrantError && (
+                      <Typography variant="body2" color="error.main" fontWeight={600} sx={{ mt: -1 }}>
+                        {complaintPrantError}
+                      </Typography>
+                    )}
+                    <ComplaintCategoryFields
+                      category={subject}
+                      formData={complaintFormData}
+                      onUpdate={handleComplaintFormUpdate}
+                      onToggleCheck={handleComplaintFormToggle}
+                    />
+                  </>
                 )}
                 {complaintSubmitted && (
                   <Typography variant="body2" color="success.main" fontWeight={600}>

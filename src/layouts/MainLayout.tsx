@@ -30,8 +30,9 @@ import {
   Menu as MenuIcon,
   Search,
   Facebook,
-  Twitter,
+  Instagram,
   YouTube,
+  WhatsApp,
   KeyboardArrowDown,
   Email,
   LocationOn,
@@ -316,6 +317,52 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-end' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: { xs: 0, md: 0.5 } }}>
+                <IconButton
+                  component="a"
+                  href="https://www.facebook.com/groups/abgpindia/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  size="medium"
+                  sx={{ color: '#1877F2', '&:hover': { color: '#166FE5' } }}
+                >
+                  <Facebook fontSize="medium" />
+                </IconButton>
+                <IconButton
+                  component="a"
+                  href="https://www.instagram.com/abgpindia"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  size="medium"
+                  sx={{ color: '#E1306C', '&:hover': { color: '#C13584' } }}
+                >
+                  <Instagram fontSize="medium" />
+                </IconButton>
+                <IconButton
+                  component="a"
+                  href="https://www.youtube.com/@abgpindia3505"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  size="medium"
+                  sx={{ color: '#FF0000', '&:hover': { color: '#CC0000' } }}
+                >
+                  <YouTube fontSize="medium" />
+                </IconButton>
+                <IconButton
+                  component="a"
+                  href="https://whatsapp.com/channel/0029VaAv96YDeON0aHeabH2s"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  size="medium"
+                  sx={{ color: '#25D366', '&:hover': { color: '#1DAF58' } }}
+                >
+                  <WhatsApp fontSize="medium" />
+                </IconButton>
+              </Box>
               {!isAuthenticated && (
                 <Button
                   component={RouterLink}
@@ -585,14 +632,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 </Typography>
               </Stack>
               <Box sx={{ display: 'flex', gap: 0.5 }}>
-                <IconButton component="a" href="#" aria-label="Facebook" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                <IconButton component="a" href="https://www.facebook.com/groups/abgpindia/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
                   <Facebook fontSize="small" />
                 </IconButton>
-                <IconButton component="a" href="#" aria-label="Twitter" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
-                  <Twitter fontSize="small" />
+                <IconButton component="a" href="https://www.instagram.com/abgpindia" target="_blank" rel="noopener noreferrer" aria-label="Instagram" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                  <Instagram fontSize="small" />
                 </IconButton>
-                <IconButton component="a" href="#" aria-label="YouTube" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
+                <IconButton component="a" href="https://www.youtube.com/@abgpindia3505" target="_blank" rel="noopener noreferrer" aria-label="YouTube" sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}>
                   <YouTube fontSize="small" />
+                </IconButton>
+                <IconButton
+                  component="a"
+                  href="https://whatsapp.com/channel/0029VaAv96YDeON0aHeabH2s"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  sx={{ color: 'rgba(255,255,255,0.9)', '&:hover': { color: '#fff' } }}
+                >
+                  <WhatsApp fontSize="small" />
                 </IconButton>
               </Box>
             </Grid>

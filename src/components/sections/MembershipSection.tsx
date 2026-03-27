@@ -37,6 +37,8 @@ const constitutionPoints = [
   'membership.constPoint4',
 ];
 
+const MEMBERSHIP_PAYMENT_LINK = 'https://pages.razorpay.com/ABGPdonation';
+
 export const MembershipSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -111,11 +113,8 @@ export const MembershipSection: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={() => {
-                    // TODO: Replace with new Razorpay integration
-                    // window.open('https://pages.razorpay.com/ABGPmembership', '_blank');
-                    console.log('Membership apply button clicked - waiting for new Razorpay integration');
+                    window.open(MEMBERSHIP_PAYMENT_LINK, '_blank', 'noopener,noreferrer');
                   }}
-                  disabled
                 >
                   {t('membership.cta.apply')}
                 </Button>

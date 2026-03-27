@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS abgp.complaints (
   category          VARCHAR(50),
   form_data         JSONB,
   message           TEXT,
+  assigned_prant_key VARCHAR(80),
   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -58,6 +59,9 @@ CREATE INDEX IF NOT EXISTS idx_abgp_complaints_member_email
 
 CREATE INDEX IF NOT EXISTS idx_abgp_complaints_created_at 
   ON abgp.complaints(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_abgp_complaints_assigned_prant_key
+  ON abgp.complaints(assigned_prant_key);
 
 -- =============================================================================
 -- UPDATED_AT TRIGGER FUNCTION
