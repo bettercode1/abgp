@@ -120,8 +120,7 @@ export const MediaPage: React.FC = () => {
           image: img.url,
         }))
       : [];
-
-  const newsForDisplay = directorNewsForDisplay.length ? directorNewsForDisplay : newsData;
+  // newsForDisplay is computed after newsData is declared (below).
 
   React.useEffect(() => {
     if (tabValue !== 0) return;
@@ -256,6 +255,8 @@ export const MediaPage: React.FC = () => {
       category: t('media.news.item16.category'),
     },
   ];
+
+  const newsForDisplay = directorNewsForDisplay.length ? directorNewsForDisplay : newsData;
 
   const eventsData = [
     {
