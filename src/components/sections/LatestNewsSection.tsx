@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Container,
@@ -17,12 +17,14 @@ import { Article, Event as EventIcon, MenuBook, PlayCircleOutline } from '@mui/i
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
+import { useDirectorContent } from '../../hooks/useDirectorContent';
 import mp_whatsapp_1 from '../../assets/news/mp_whatsapp_1.jpeg';
 import rj_woman_safety from '../../assets/news/rj_woman_safety.jpeg';
 import mp_adulteration from '../../assets/news/mp_adulteration.jpg';
 import rj_bikaner from '../../assets/news/rj_bikaner.jpeg';
 import rj_1 from '../../assets/news/rj_1.jpg';
 import mp_china from '../../assets/news/mp_china.jpeg';
+import mp_mobile from '../../assets/news/mp_mobile.jpg';
 
 const newsItems = [
   { titleKey: 'media.news.item1.title', dateKey: 'media.news.item1.date', image: mp_whatsapp_1 },
@@ -40,6 +42,8 @@ const blogKeys = [
   { titleKey: 'media.blog.item4.title', dateKey: 'media.blog.item4.date', excerptKey: 'media.blog.item4.excerpt' },
 ];
 
+const blogImages = [mp_whatsapp_1, rj_woman_safety, mp_adulteration, mp_mobile];
+
 const eventKeys = [
   { titleKey: 'media.event.item1.title', dateKey: 'media.event.item1.date', typeKey: 'media.event.item1.type' },
   { titleKey: 'media.event.item2.title', dateKey: 'media.event.item2.date', typeKey: 'media.event.item2.type' },
@@ -50,6 +54,8 @@ const eventKeys = [
   { titleKey: 'media.event.item7.title', dateKey: 'media.event.item7.date', typeKey: 'media.event.item7.type' },
 ];
 
+const eventImages = [mp_whatsapp_1, rj_woman_safety, mp_adulteration, rj_bikaner, rj_1, mp_china, mp_mobile];
+
 type MediaTab = 0 | 1 | 2 | 3; // News | Blogs | Events | Videos
 
 export const LatestNewsSection: React.FC = () => {
@@ -59,8 +65,166 @@ export const LatestNewsSection: React.FC = () => {
   const [tabValue, setTabValue] = useState<MediaTab>(0);
   const { ref, inView } = useScrollReveal();
 
-  const featuredNews = newsItems[0];
-  const listNews = newsItems.slice(1, 6);
+  const directorNews = useDirectorContent('news');
+  const directorBlogs = useDirectorContent('blog');
+  const directorEvents = useDirectorContent('events');
+  const directorVideos = useDirectorContent('videos');
+
+  type PanelItem = {
+    title: string;
+    dateLabel?: string;
+    excerpt?: string;
+    imageUrl?: string;
+    typeLabel?: string;
+  };
+
+  const directorNewsItems: PanelItem[] = useMemo(() => {
+    const texts = directorNews.texts;
+    if (texts.length === 0) {
+      // If Director only added images, still show something in the panel.
+      return directorNews.images.slice(0, 6).map((img) => ({
+        title: img.caption || t('panel.uploadImage') || 'News',
+        dateLabel: img.caption,
+        imageUrl: img.url,
+        excerpt: '',
+      }));
+    }
+
+    return texts.slice(0, 6).map((txt, idx) => ({
+      title: txt.title,
+      dateLabel: directorNews.images[idx]?.caption || directorNews.images[0]?.caption || undefined,
+      excerpt: txt.body,
+      imageUrl: directorNews.images[idx]?.url,
+    }));
+  }, [directorNews.images, directorNews.texts, t]);
+
+  const directorBlogItems: PanelItem[] = useMemo(() => {
+    const texts = directorBlogs.texts;
+    if (texts.length === 0) {
+      if (directorBlogs.images.length === 0) return [];
+      return directorBlogs.images.slice(0, 6).map((img) => ({
+        title: img.caption || t('panel.uploadImage') || 'Blog',
+        dateLabel: img.caption,
+        excerpt: '',
+        imageUrl: img.url,
+      }));
+    }
+    return texts.slice(0, 6).map((txt, idx) => ({
+      title: txt.title,
+      dateLabel: directorBlogs.images[idx]?.caption || directorBlogs.images[0]?.caption,
+      excerpt: txt.body,
+      imageUrl: directorBlogs.images[idx]?.url || directorBlogs.images[0]?.url,
+    }));
+  }, [directorBlogs.images, directorBlogs.texts, t]);
+
+  const directorEventItems: PanelItem[] = useMemo(() => {
+    const texts = directorEvents.texts;
+    if (texts.length === 0) {
+      if (directorEvents.images.length === 0) return [];
+      return directorEvents.images.slice(0, 7).map((img) => ({
+        title: img.caption || 'Event',
+        dateLabel: img.caption,
+        excerpt: '',
+        typeLabel: t('media.events') || 'Events',
+        imageUrl: img.url,
+      }));
+    }
+    return texts.slice(0, 7).map((txt, idx) => ({
+      title: txt.title,
+      dateLabel: directorEvents.images[idx]?.caption || directorEvents.images[0]?.caption,
+      excerpt: txt.body,
+      typeLabel: t('media.events') || 'Events',
+      imageUrl: directorEvents.images[idx]?.url || directorEvents.images[0]?.url,
+    }));
+  }, [directorEvents.images, directorEvents.texts, t]);
+
+  const directorVideoItems: PanelItem[] = useMemo(() => {
+    const toYoutubeThumb = (url: string): string | undefined => {
+      const id = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)?.[1];
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : undefined;
+    };
+
+    const mapped = directorVideos.videos.slice(0, 6).map((vid) => ({
+      title: vid.title || vid.url,
+      dateLabel: vid.caption || '',
+      imageUrl: toYoutubeThumb(vid.url),
+    }));
+
+    if (mapped.length > 0) return mapped;
+    return [1, 2, 3].map((n) => ({
+      title: `${t('nav.videos')} ${n}`,
+      dateLabel: '',
+      imageUrl: undefined,
+    }));
+  }, [directorVideos.videos, t]);
+
+  const featuredNews = directorNewsItems[0]
+    ? {
+        titleKey: '',
+        dateKey: '',
+        image: directorNewsItems[0].imageUrl || newsItems[0].image,
+      }
+    : newsItems[0];
+
+  const newsList = directorNewsItems.length ? directorNewsItems.slice(1, 6) : newsItems.slice(1, 6).map((it) => ({
+    title: t(it.titleKey),
+    dateLabel: t(it.dateKey),
+    excerpt: undefined,
+  }));
+
+  const fallbackBlogItems: PanelItem[] = blogKeys.map((it, idx) => ({
+    title: t(it.titleKey),
+    dateLabel: t(it.dateKey),
+    excerpt: t(it.excerptKey),
+    imageUrl: blogImages[idx % blogImages.length],
+  }));
+
+  const blogItemsForDisplay: PanelItem[] = directorBlogItems.length
+    ? [...directorBlogItems, ...fallbackBlogItems].slice(0, 4)
+    : fallbackBlogItems;
+
+  const featuredBlog = blogItemsForDisplay[0]
+    ? {
+        title: blogItemsForDisplay[0].title,
+        date: blogItemsForDisplay[0].dateLabel,
+        excerpt: blogItemsForDisplay[0].excerpt,
+        image: blogItemsForDisplay[0].imageUrl,
+      }
+    : {
+        title: t(blogKeys[0].titleKey),
+        date: t(blogKeys[0].dateKey),
+        excerpt: t(blogKeys[0].excerptKey),
+        image: blogImages[0],
+      };
+
+  const blogList = blogItemsForDisplay.slice(1, 4);
+
+  const fallbackEventItems: PanelItem[] = eventKeys.map((it, idx) => ({
+    title: t(it.titleKey),
+    dateLabel: t(it.dateKey),
+    typeLabel: t(it.typeKey),
+    imageUrl: eventImages[idx % eventImages.length],
+  }));
+
+  const eventItemsForDisplay: PanelItem[] = directorEventItems.length
+    ? [...directorEventItems, ...fallbackEventItems].slice(0, 7)
+    : fallbackEventItems;
+
+  const featuredEvent = eventItemsForDisplay[0]
+    ? {
+        title: eventItemsForDisplay[0].title,
+        date: eventItemsForDisplay[0].dateLabel,
+        type: eventItemsForDisplay[0].typeLabel || t('media.events'),
+        image: eventItemsForDisplay[0].imageUrl,
+      }
+    : {
+        title: t(eventKeys[0].titleKey),
+        date: t(eventKeys[0].dateKey),
+        type: t(eventKeys[0].typeKey),
+        image: eventImages[0],
+      };
+
+  const eventList = eventItemsForDisplay.slice(1, 6);
 
   return (
     <Box
@@ -92,7 +256,9 @@ export const LatestNewsSection: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
           <Tabs
             value={tabValue}
-            onChange={(_e, v: number) => setTabValue(v as MediaTab)}
+            onChange={(_e, v: number) => {
+              setTabValue(v as MediaTab);
+            }}
             variant="scrollable"
             scrollButtons="auto"
             sx={{
@@ -140,28 +306,9 @@ export const LatestNewsSection: React.FC = () => {
                     component="img"
                     height="260"
                     image={featuredNews.image}
-                    alt={t(featuredNews.titleKey)}
+                    alt={featuredNews.image ? 'News' : 'News'}
                     sx={{ objectFit: 'cover' }}
                   />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: '60%',
-                      background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                  <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2.5, color: 'white' }}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                      {t(featuredNews.dateKey)}
-                    </Typography>
-                    <Typography variant="h6" fontWeight={700} sx={{ mt: 0.5, lineHeight: 1.3 }}>
-                      {t(featuredNews.titleKey)}
-                    </Typography>
-                  </Box>
                 </Box>
               </Card>
             )}
@@ -173,7 +320,7 @@ export const LatestNewsSection: React.FC = () => {
                 onClick={() => navigate('/blogs')}
                 sx={{
                   height: '100%',
-                  minHeight: { xs: 200, sm: 220 },
+                  minHeight: { xs: 260, sm: 300, md: 320 },
                   cursor: 'pointer',
                   borderRadius: 3,
                   overflow: 'hidden',
@@ -181,29 +328,28 @@ export const LatestNewsSection: React.FC = () => {
                   border: 'none',
                   boxShadow: theme.shadows[4],
                   p: 0,
-                  display: 'flex',
                   transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
                 }}
               >
-                <Box
-                  sx={{
-                    width: 4,
-                    flexShrink: 0,
-                    borderRadius: '4px 0 0 4px',
-                    backgroundColor: theme.palette.primary.main,
-                    alignSelf: 'stretch',
-                  }}
-                />
+                {featuredBlog.image ? (
+                  <CardMedia
+                    component="img"
+                    height="180"
+                    image={featuredBlog.image}
+                    alt={featuredBlog.title}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                ) : null}
                 <CardContent sx={{ flex: 1, py: 2.5, px: 2.5, '&:last-child': { pb: 2.5 } }}>
                   <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                    {t(blogKeys[0].dateKey)}
+                    {featuredBlog.date || '—'}
                   </Typography>
                   <Typography variant="h6" fontWeight={700} sx={{ mt: 0.75, mb: 1.25, lineHeight: 1.35 }}>
-                    {t(blogKeys[0].titleKey)}
+                    {featuredBlog.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                    {t(blogKeys[0].excerptKey)}
+                    {featuredBlog.excerpt}
                   </Typography>
                 </CardContent>
               </Card>
@@ -216,7 +362,7 @@ export const LatestNewsSection: React.FC = () => {
                 onClick={() => navigate('/media?tab=events')}
                 sx={{
                   height: '100%',
-                  minHeight: { xs: 200, sm: 220 },
+                  minHeight: { xs: 260, sm: 300, md: 320 },
                   cursor: 'pointer',
                   borderRadius: 3,
                   overflow: 'hidden',
@@ -224,23 +370,22 @@ export const LatestNewsSection: React.FC = () => {
                   border: 'none',
                   boxShadow: theme.shadows[4],
                   p: 0,
-                  display: 'flex',
                   transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
                 }}
               >
-                <Box
-                  sx={{
-                    width: 4,
-                    flexShrink: 0,
-                    borderRadius: '4px 0 0 4px',
-                    backgroundColor: theme.palette.secondary.main,
-                    alignSelf: 'stretch',
-                  }}
-                />
+                {featuredEvent.image ? (
+                  <CardMedia
+                    component="img"
+                    height="180"
+                    image={featuredEvent.image}
+                    alt={featuredEvent.title}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                ) : null}
                 <CardContent sx={{ flex: 1, py: 2.5, px: 2.5, '&:last-child': { pb: 2.5 } }}>
                   <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                    {t(eventKeys[0].dateKey)}
+                    {featuredEvent.date || '—'}
                   </Typography>
                   <Box sx={{ mt: 0.75, mb: 1 }}>
                     <Typography
@@ -255,11 +400,11 @@ export const LatestNewsSection: React.FC = () => {
                         fontWeight: 600,
                       }}
                     >
-                      {t(eventKeys[0].typeKey)}
+                      {featuredEvent.type || t('media.events')}
                     </Typography>
                   </Box>
                   <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.35 }}>
-                    {t(eventKeys[0].titleKey)}
+                    {featuredEvent.title}
                   </Typography>
                 </CardContent>
               </Card>
@@ -276,36 +421,38 @@ export const LatestNewsSection: React.FC = () => {
                   cursor: 'pointer',
                   borderRadius: 3,
                   overflow: 'hidden',
-                  textAlign: 'center',
+                  textAlign: 'left',
                   border: 'none',
                   boxShadow: theme.shadows[4],
                   p: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   transition: 'transform 0.25s ease, box-shadow 0.25s ease',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
                 }}
               >
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
-                  }}
-                >
-                  <PlayCircleOutline sx={{ fontSize: 48 }} />
-                </Box>
-                <CardContent>
+                {directorVideoItems[0]?.imageUrl ? (
+                  <CardMedia
+                    component="img"
+                    height="190"
+                    image={directorVideoItems[0].imageUrl}
+                    alt={directorVideoItems[0].title}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      minHeight: 190,
+                      backgroundColor: theme.palette.action.hover,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <PlayCircleOutline sx={{ fontSize: 56, color: theme.palette.primary.main }} />
+                  </Box>
+                )}
+                <CardContent sx={{ p: 2.5 }}>
                   <Typography variant="h6" fontWeight={700} gutterBottom>
-                    {t('nav.videos')}
+                    {directorVideoItems[0]?.title ? directorVideoItems[0].title : t('nav.videos')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320, mx: 'auto' }}>
                     {t('home.mediaVideosCta')}
@@ -320,17 +467,17 @@ export const LatestNewsSection: React.FC = () => {
             {tabValue === 0 && (
               <>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {listNews.map((item, index) => (
+                  {newsList.map((item, index) => (
                     <Link
                       key={index}
                       component={RouterLink}
-                      to="/media?tab=news"
+                      to={`/media?tab=news&directorNewsIndex=${index + 1}`}
                       sx={{
                         display: 'block',
                         py: 2,
                         px: 2,
                         borderRadius: 2,
-                        borderBottom: index < listNews.length - 1 ? 1 : 0,
+                        borderBottom: index < newsList.length - 1 ? 1 : 0,
                         borderColor: 'divider',
                         textDecoration: 'none',
                         color: 'text.primary',
@@ -338,12 +485,32 @@ export const LatestNewsSection: React.FC = () => {
                         '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
                       }}
                     >
-                      <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                        {t(item.dateKey)}
+                      <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                        {item.dateLabel || '—'}
                       </Typography>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
-                        {t(item.titleKey)}
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{ mt: 0.5, lineHeight: 1.25 }}
+                      >
+                        {item.title}
                       </Typography>
+                      {item.excerpt ? (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mt: 0.5,
+                            lineHeight: 1.6,
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 2,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {item.excerpt}
+                        </Typography>
+                      ) : null}
                     </Link>
                   ))}
                 </Box>
@@ -363,13 +530,15 @@ export const LatestNewsSection: React.FC = () => {
             {tabValue === 1 && (
               <>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {blogKeys.slice(1, 4).map((item, index) => (
+                  {blogList.map((item, index) => (
                     <Link
                       key={index}
                       component={RouterLink}
                       to="/blogs"
                       sx={{
-                        display: 'block',
+                        display: 'flex',
+                        gap: 1.25,
+                        alignItems: 'flex-start',
                         py: 2,
                         px: 2,
                         borderRadius: 2,
@@ -381,12 +550,22 @@ export const LatestNewsSection: React.FC = () => {
                         '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
                       }}
                     >
-                      <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                        {t(item.dateKey)}
-                      </Typography>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
-                        {t(item.titleKey)}
-                      </Typography>
+                      {item.imageUrl ? (
+                        <Box
+                          component="img"
+                          src={item.imageUrl}
+                          alt={item.title}
+                          sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
+                        />
+                      ) : null}
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                          {item.dateLabel || '—'}
+                        </Typography>
+                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
+                          {item.title}
+                        </Typography>
+                      </Box>
                     </Link>
                   ))}
                 </Box>
@@ -406,17 +585,19 @@ export const LatestNewsSection: React.FC = () => {
             {tabValue === 2 && (
               <>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {eventKeys.slice(1, 6).map((item, index) => (
+                  {eventList.map((item, index) => (
                     <Link
                       key={index}
                       component={RouterLink}
                       to="/media?tab=events"
                       sx={{
-                        display: 'block',
+                        display: 'flex',
+                        gap: 1.25,
+                        alignItems: 'flex-start',
                         py: 2,
                         px: 2,
                         borderRadius: 2,
-                        borderBottom: index < 4 ? 1 : 0,
+                        borderBottom: index < eventList.length - 1 ? 1 : 0,
                         borderColor: 'divider',
                         textDecoration: 'none',
                         color: 'text.primary',
@@ -424,15 +605,25 @@ export const LatestNewsSection: React.FC = () => {
                         '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
                       }}
                     >
-                      <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                        {t(item.dateKey)}
-                      </Typography>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
-                        {t(item.titleKey)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                        {t(item.typeKey)}
-                      </Typography>
+                      {item.imageUrl ? (
+                        <Box
+                          component="img"
+                          src={item.imageUrl}
+                          alt={item.title}
+                          sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
+                        />
+                      ) : null}
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                          {item.dateLabel || '—'}
+                        </Typography>
+                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
+                          {item.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                          {item.typeLabel || t('media.events')}
+                        </Typography>
+                      </Box>
                     </Link>
                   ))}
                 </Box>
@@ -451,6 +642,58 @@ export const LatestNewsSection: React.FC = () => {
 
             {tabValue === 3 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', pt: 2 }}>
+                {directorVideoItems.length > 0 && (
+                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {directorVideoItems.slice(0, 3).map((vid, index) => (
+                      <Link
+                        key={index}
+                        component={RouterLink}
+                        to="/videos"
+                        sx={{
+                          display: 'flex',
+                          gap: 1.25,
+                          alignItems: 'flex-start',
+                          py: 2,
+                          px: 2,
+                          borderRadius: 2,
+                          borderBottom: index < Math.min(3, directorVideoItems.length) - 1 ? 1 : 0,
+                          borderColor: 'divider',
+                          textDecoration: 'none',
+                          color: 'text.primary',
+                          transition: 'background-color 0.2s ease',
+                          '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
+                        }}
+                      >
+                        {vid.imageUrl ? (
+                          <Box
+                            component="img"
+                            src={vid.imageUrl}
+                            alt={vid.title}
+                            sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: 72,
+                              height: 56,
+                              borderRadius: 1,
+                              backgroundColor: theme.palette.action.hover,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <PlayCircleOutline sx={{ fontSize: 24, color: theme.palette.primary.main }} />
+                          </Box>
+                        )}
+                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0 }}>
+                          {vid.title}
+                        </Typography>
+                      </Link>
+                    ))}
+                  </Box>
+                )}
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.7 }}>
                   {t('home.mediaVideosCta')}
                 </Typography>

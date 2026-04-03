@@ -45,6 +45,7 @@ import { GlobalLoader } from '../components/GlobalLoader';
 import { ScrollProgressIndicator } from '../components/ScrollProgressIndicator';
 import { ThemeName } from '../theme/themes';
 import logoImage from '../assest/Logo 1.jpg';
+import footerLogoImage from '../assest/Untitled design (10).png';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -601,9 +602,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <Box component={RouterLink} to="/" sx={{ display: 'inline-block', textDecoration: 'none', color: 'inherit', mb: 2 }}>
                 <Box
                   component="img"
-                  src={logoImage}
+                  src={footerLogoImage}
                   alt={t('header.fullName')}
-                  sx={{ height: 48, width: 'auto', maxWidth: 160, objectFit: 'contain' }}
+                  sx={{
+                    height: '300px',
+                    width: 'auto',
+                    maxWidth: '400px',
+                    objectFit: 'contain',
+                  }}
                 />
               </Box>
               <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, fontSize: '0.8125rem', mb: 2 }}>

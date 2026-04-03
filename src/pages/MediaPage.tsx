@@ -25,8 +25,10 @@ import {
   CalendarToday,
   Label,
   MenuBook,
+  VideoLibrary,
 } from '@mui/icons-material';
 import { DirectorContentBlock } from '../components/DirectorContentBlock';
+import { useDirectorContent } from '../hooks/useDirectorContent';
 
 // Magazine PDFs (not on home – listed on Media > Magazines tab)
 import pdfOctober2021 from '../assets/images/October-2021.pdf';
@@ -77,6 +79,8 @@ function TabPanel(props: TabPanelProps) {
 const tabFromParam = (param: string | null): number => {
   if (param === 'news') return 0;
   if (param === 'events') return 1;
+  if (param === 'videos') return 2;
+  if (param === 'magazines') return 3;
   return 0;
 };
 
@@ -86,13 +90,50 @@ export const MediaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [tabValue, setTabValue] = useState(() => tabFromParam(tabParam));
+  const [expandedNewsCard, setExpandedNewsCard] = useState<number | null>(null);
+  const [expandedEventCard, setExpandedEventCard] = useState<number | null>(null);
+  const directorEvents = useDirectorContent('events');
+  const directorNews = useDirectorContent('news');
+  const directorVideos = useDirectorContent('videos');
+  const directorNewsIndexParam = searchParams.get('directorNewsIndex');
 
   React.useEffect(() => {
     setTabValue(tabFromParam(tabParam));
   }, [tabParam]);
 
+  const directorNewsIndex = directorNewsIndexParam ? Number(directorNewsIndexParam) : null;
+
+  const directorNewsForDisplay = directorNews.texts.length
+    ? directorNews.texts.map((txt, idx) => ({
+        title: txt.title,
+        date: directorNews.images[idx]?.caption || directorNews.images[0]?.caption || '—',
+        category: t('panel.sectionNews'),
+        summary: txt.body,
+        image: directorNews.images[idx]?.url,
+      }))
+    : directorNews.images.length
+      ? directorNews.images.map((img) => ({
+          title: img.caption || 'News',
+          date: img.caption || '—',
+          category: t('panel.sectionNews'),
+          summary: '',
+          image: img.url,
+        }))
+      : [];
+
+  const newsForDisplay = directorNewsForDisplay.length ? directorNewsForDisplay : newsData;
+
+  React.useEffect(() => {
+    if (tabValue !== 0) return;
+    if (directorNewsIndex === null || Number.isNaN(directorNewsIndex)) return;
+    const el = document.getElementById(`director-news-${directorNewsIndex}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [tabValue, directorNewsIndex]);
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    setExpandedNewsCard(null);
+    setExpandedEventCard(null);
   };
 
   const magazinesData = [
@@ -261,6 +302,22 @@ export const MediaPage: React.FC = () => {
     },
   ];
 
+  const eventsForDisplay = directorEvents.texts.length
+    ? directorEvents.texts.map((txt, idx) => ({
+        title: txt.title,
+        date: directorEvents.images[idx]?.caption || '—',
+        category: t('media.events'),
+        description: txt.body,
+      }))
+    : directorEvents.images.length
+      ? directorEvents.images.slice(0, 7).map((img) => ({
+          title: img.caption || 'Event',
+          date: img.caption || '—',
+          category: t('media.events'),
+          description: '',
+        }))
+      : eventsData;
+
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
       <Container maxWidth="lg">
@@ -275,8 +332,6 @@ export const MediaPage: React.FC = () => {
           {t('media.title')}
         </Typography>
 
-        <DirectorContentBlock section="videos" showTitle />
-
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 4 }}>
           <Tabs 
             value={tabValue} 
@@ -287,16 +342,33 @@ export const MediaPage: React.FC = () => {
           >
             <Tab label={t('media.news')} icon={<Article />} iconPosition="start" />
             <Tab label={t('media.events')} icon={<Event />} iconPosition="start" />
+            <Tab label={t('nav.videos')} icon={<VideoLibrary />} iconPosition="start" />
             <Tab label={t('media.magazines')} icon={<MenuBook />} iconPosition="start" />
           </Tabs>
         </Box>
 
         <TabPanel value={tabValue} index={0}>
-          <DirectorContentBlock section="news" showTitle />
+          {directorNewsForDisplay.length > 0 && (
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
+              {t('panel.directorAdded')}
+            </Typography>
+          )}
           <Grid container spacing={3}>
-            {newsData.map((item, index) => (
+            {newsForDisplay.map((item, index) => (
               <Grid item xs={12} md={6} key={index}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
+                <Card
+                  id={directorNewsForDisplay.length > 0 ? `director-news-${index}` : undefined}
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: 2,
+                    border:
+                      directorNewsForDisplay.length > 0 && directorNewsIndex === index
+                        ? `2px solid ${theme.palette.secondary.main}`
+                        : undefined,
+                  }}
+                >
                   {item.image && (
                     <CardMedia
                       component="img"
@@ -316,7 +388,9 @@ export const MediaPage: React.FC = () => {
                       />
                       <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', gap: 0.5 }}>
                         <CalendarToday sx={{ fontSize: 16 }} />
-                        <Typography variant="caption">{item.date}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                          {item.date}
+                        </Typography>
                       </Box>
                     </Stack>
                     <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -324,13 +398,31 @@ export const MediaPage: React.FC = () => {
                     </Typography>
                     <Divider sx={{ my: 1.5 }} />
                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                      {item.summary}
+                      <Box
+                        component="span"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: expandedNewsCard === index ? 'unset' : 3,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {item.summary}
+                      </Box>
                     </Typography>
                   </CardContent>
                   <Box sx={{ p: 2, pt: 0 }}>
-                    <Button size="small" variant="text" color="primary" sx={{ fontWeight: 600 }}>
-                      {t('media.readMore')} →
-                    </Button>
+                    {item.summary ? (
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        onClick={() => setExpandedNewsCard((prev) => (prev === index ? null : index))}
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {expandedNewsCard === index ? 'Show less' : `${t('media.readMore')} →`}
+                      </Button>
+                    ) : null}
                   </Box>
                 </Card>
               </Grid>
@@ -339,8 +431,13 @@ export const MediaPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
+          {directorEvents.texts.length > 0 && (
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
+              {t('panel.directorAdded')}
+            </Typography>
+          )}
           <Grid container spacing={3}>
-            {eventsData.map((item, index) => (
+            {eventsForDisplay.map((item, index) => (
               <Grid item xs={12} md={6} key={index}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
                   <CardContent sx={{ flexGrow: 1 }}>
@@ -361,13 +458,31 @@ export const MediaPage: React.FC = () => {
                     </Typography>
                     <Divider sx={{ my: 1.5 }} />
                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                      {item.description}
+                      <Box
+                        component="span"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: expandedEventCard === index ? 'unset' : 3,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {item.description}
+                      </Box>
                     </Typography>
                   </CardContent>
                   <Box sx={{ p: 2, pt: 0 }}>
-                    <Button size="small" variant="text" color="primary" sx={{ fontWeight: 600 }}>
-                      {t('media.readMore')} →
-                    </Button>
+                    {item.description ? (
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        onClick={() => setExpandedEventCard((prev) => (prev === index ? null : index))}
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {expandedEventCard === index ? 'Show less' : `${t('media.readMore')} →`}
+                      </Button>
+                    ) : null}
                   </Box>
                 </Card>
               </Grid>
@@ -376,6 +491,16 @@ export const MediaPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={2}>
+          {directorVideos.videos.length > 0 ? (
+            <DirectorContentBlock section="videos" showTitle />
+          ) : (
+            <Typography variant="subtitle1" color="text.secondary">
+              No videos added by director yet.
+            </Typography>
+          )}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
             {t('media.magazinesSubtitle')}
           </Typography>

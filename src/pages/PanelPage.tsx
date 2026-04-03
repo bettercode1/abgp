@@ -34,7 +34,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -123,9 +123,9 @@ export const PanelPage: React.FC = () => {
   const [complaintPrantKey, setComplaintPrantKey] = useState<string>(() => user?.prant ?? '');
   const [complaintPrantError, setComplaintPrantError] = useState<string>('');
 
-  // Director content by section (history, blog, videos, gallery, home)
+  // Director content by section (blog, news, events, videos, gallery)
   const [directorContentBySection, setDirectorContentBySection] = useState(() => loadDirectorContentBySection());
-  const [selectedSection, setSelectedSection] = useState<DirectorSectionKey>('history');
+  const [selectedSection, setSelectedSection] = useState<DirectorSectionKey>('blog');
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageCaption, setImageCaption] = useState('');
   const [imageError, setImageError] = useState('');
@@ -295,6 +295,10 @@ export const PanelPage: React.FC = () => {
 
   const isPrant = user?.role === 'prant';
   const effectiveSection: DirectorSectionKey = isPrant ? 'news' : selectedSection;
+  const isSinglePostSection = effectiveSection === 'news' || effectiveSection === 'blog' || effectiveSection === 'events';
+  const isVideosSection = effectiveSection === 'videos';
+  const isGallerySection = effectiveSection === 'gallery';
+  const isAdsSection = effectiveSection === 'ads';
   const sectionContent = directorContentBySection[effectiveSection] ?? { images: [], texts: [], videos: [] };
 
   const saveContent = useCallback((section: DirectorSectionKey, updates: Partial<typeof sectionContent>) => {
@@ -352,7 +356,7 @@ export const PanelPage: React.FC = () => {
     setImageLoading(true);
     try {
       const dataUrls = await Promise.all(validFiles.map(readFileAsDataUrl));
-      setImagePreviews((prev) => [...prev, ...dataUrls]);
+      setImagePreviews((prev) => (isSinglePostSection ? dataUrls.slice(0, 1) : [...prev, ...dataUrls]));
     } finally {
       setImageLoading(false);
       e.target.value = '';
@@ -389,6 +393,36 @@ export const PanelPage: React.FC = () => {
     setTextBody('');
   };
 
+  const handleAddSinglePostItem = () => {
+    if (!imagePreviews.length || !textTitle.trim() || !textBody.trim()) return;
+    const now = Date.now();
+    const newImage: DirectorImage = {
+      id: `img-${now}`,
+      url: imagePreviews[0],
+      caption: imageCaption.trim() || undefined,
+    };
+    const newText: DirectorText = {
+      id: `txt-${now}`,
+      title: textTitle.trim(),
+      body: textBody.trim(),
+    };
+    saveContent(effectiveSection, {
+      images: [...sectionContent.images, newImage],
+      texts: [...sectionContent.texts, newText],
+    });
+    setImagePreviews([]);
+    setImageCaption('');
+    setTextTitle('');
+    setTextBody('');
+    setImageError('');
+  };
+
+  const handleRemoveSinglePostItem = (index: number) => {
+    const nextImages = sectionContent.images.filter((_, i) => i !== index);
+    const nextTexts = sectionContent.texts.filter((_, i) => i !== index);
+    saveContent(effectiveSection, { images: nextImages, texts: nextTexts });
+  };
+
   const handleRemoveText = (id: string) => {
     saveContent(effectiveSection, { texts: sectionContent.texts.filter((t) => t.id !== id) });
   };
@@ -406,12 +440,12 @@ export const PanelPage: React.FC = () => {
   };
 
   const sectionLabels: Record<DirectorSectionKey, string> = {
-    history: t('panel.sectionHistory'),
     blog: t('panel.sectionBlog'),
     news: t('panel.sectionNews'),
+    events: t('panel.sectionEvents'),
     videos: t('panel.sectionVideos'),
     gallery: t('panel.sectionGallery'),
-    home: t('panel.sectionHome'),
+    ads: t('panel.sectionAds'),
   };
 
   useEffect(() => {
@@ -1262,12 +1296,12 @@ export const PanelPage: React.FC = () => {
                   variant="outlined"
                   sx={{ mt: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 >
-                  <MenuItem value="history">{sectionLabels.history}</MenuItem>
                   <MenuItem value="blog">{sectionLabels.blog}</MenuItem>
                   <MenuItem value="news">{sectionLabels.news}</MenuItem>
+                  <MenuItem value="events">{sectionLabels.events}</MenuItem>
                   <MenuItem value="videos">{sectionLabels.videos}</MenuItem>
                   <MenuItem value="gallery">{sectionLabels.gallery}</MenuItem>
-                  <MenuItem value="home">{sectionLabels.home}</MenuItem>
+                  <MenuItem value="ads">{sectionLabels.ads}</MenuItem>
                 </TextField>
                 <Chip label={sectionLabels[selectedSection]} color="primary" size="small" sx={{ mt: 2 }} />
               </Paper>
@@ -1281,7 +1315,151 @@ export const PanelPage: React.FC = () => {
               </Paper>
             )}
 
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple={!isSinglePostSection}
+              onChange={handleImageFileChange}
+              style={{ display: 'none' }}
+              aria-hidden
+            />
+
+            {isSinglePostSection && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                  <AddPhotoAlternate color="primary" sx={{ fontSize: 32 }} />
+                  <Typography variant="h6" fontWeight={700} color="primary">
+                    Add {sectionLabels[effectiveSection]} Item
+                  </Typography>
+                </Box>
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<AddPhotoAlternate />}
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={imageLoading}
+                      sx={{ borderRadius: 2, textTransform: 'none', justifyContent: 'flex-start' }}
+                    >
+                      {imagePreviews.length ? `${t('panel.uploadImage')} ✓` : t('panel.chooseImage')}
+                    </Button>
+                    {imagePreviews.length > 0 && (
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        startIcon={<Delete />}
+                        onClick={() => { setImagePreviews([]); setImageError(''); }}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        {t('panel.clearImage')}
+                      </Button>
+                    )}
+                  </Box>
+                  {imagePreviews.length > 0 && (
+                    <Box sx={{ borderRadius: 2, overflow: 'hidden', border: '1px solid', borderColor: 'divider', maxWidth: 360 }}>
+                      <CardMedia component="img" height="140" image={imagePreviews[0]} alt="News preview" sx={{ objectFit: 'cover' }} />
+                    </Box>
+                  )}
+                  {imageError && (
+                    <Alert severity="error" onClose={() => setImageError('')} sx={{ borderRadius: 2 }}>
+                      {imageError}
+                    </Alert>
+                  )}
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Date"
+                    value={imageCaption}
+                    onChange={(e) => setImageCaption(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarToday fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    variant="outlined"
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('panel.textTitle')}
+                    value={textTitle}
+                    onChange={(e) => setTextTitle(e.target.value)}
+                    variant="outlined"
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('panel.textBody')}
+                    value={textBody}
+                    onChange={(e) => setTextBody(e.target.value)}
+                    multiline
+                    rows={4}
+                    variant="outlined"
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<TextFields />}
+                    onClick={handleAddSinglePostItem}
+                    disabled={!imagePreviews.length || !textTitle.trim() || !textBody.trim()}
+                    sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+                  >
+                    Add {sectionLabels[effectiveSection]}
+                  </Button>
+                </Stack>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  {sectionLabels[effectiveSection]} Items
+                </Typography>
+                {sectionContent.texts.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No {sectionLabels[effectiveSection].toLowerCase()} items added yet.
+                  </Typography>
+                ) : (
+                  <Stack spacing={2} sx={{ mt: 1 }}>
+                    {sectionContent.texts.map((txt, index) => (
+                      <Card key={txt.id} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                        {sectionContent.images[index]?.url && (
+                          <CardMedia component="img" height="120" image={sectionContent.images[index].url} alt={txt.title} sx={{ objectFit: 'cover' }} />
+                        )}
+                        <CardContent sx={{ py: 1.5 }}>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {sectionContent.images[index]?.caption || '—'}
+                          </Typography>
+                          <Typography variant="subtitle1" fontWeight={600}>
+                            {txt.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}>
+                            {txt.body}
+                          </Typography>
+                          <Box sx={{ mt: 1.5 }}>
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              startIcon={<Delete />}
+                              onClick={() => handleRemoveSinglePostItem(index)}
+                              sx={{ textTransform: 'none' }}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            )}
+
             {/* Add Image (to selected section) */}
+            {!isSinglePostSection && !isVideosSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <AddPhotoAlternate color="primary" sx={{ fontSize: 32 }} />
@@ -1289,15 +1467,6 @@ export const PanelPage: React.FC = () => {
                   {t('panel.addImage')}
                 </Typography>
               </Box>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageFileChange}
-                style={{ display: 'none' }}
-                aria-hidden
-              />
               <Stack spacing={2} sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                   <Button
@@ -1385,8 +1554,10 @@ export const PanelPage: React.FC = () => {
                 </Stack>
               )}
             </Paper>
+            )}
 
             {/* Add Text (to selected section) */}
+            {!isSinglePostSection && !isVideosSection && !isGallerySection && !isAdsSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.light}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <TextFields color="primary" sx={{ fontSize: 32 }} />
@@ -1430,8 +1601,10 @@ export const PanelPage: React.FC = () => {
                 </Stack>
               )}
             </Paper>
+            )}
 
             {/* Add Video (to selected section) */}
+            {!isSinglePostSection && !isGallerySection && !isAdsSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.info?.main || theme.palette.primary.main}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <VideoLibrary color="primary" sx={{ fontSize: 32 }} />
@@ -1475,6 +1648,7 @@ export const PanelPage: React.FC = () => {
                 </Stack>
               )}
             </Paper>
+            )}
               </>
             )}
           </Stack>

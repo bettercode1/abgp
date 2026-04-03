@@ -37,14 +37,13 @@ export interface DashboardSidebarProps {
   onSidebarToggle: () => void;
 }
 
-const CONTENT_SECTIONS: DirectorSectionKey[] = ['history', 'blog', 'news', 'videos', 'gallery', 'home'];
+const CONTENT_SECTIONS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads'];
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeView,
   contentSection,
   onNavigate,
   isDirector,
-  isPrant,
   sidebarOpen,
   onSidebarToggle,
 }) => {
@@ -203,7 +202,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <Collapse in={contentExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {CONTENT_SECTIONS.map((section) => {
-              const label = t(`panel.section${section.charAt(0).toUpperCase()}${section.slice(1)}` as 'panel.sectionHistory');
+              const label = t(`panel.section${section.charAt(0).toUpperCase()}${section.slice(1)}`);
               const isSectionActive = activeView === 'content' && contentSection === section;
               return (
                 <ListItemButton

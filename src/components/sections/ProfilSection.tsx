@@ -3,11 +3,14 @@ import { Box, Container, Typography, Button, useTheme, Grid } from '@mui/materia
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
+import { useDirectorContent } from '../../hooks/useDirectorContent';
 
 export const ProfilSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { ref, inView } = useScrollReveal();
+  const adsContent = useDirectorContent('ads');
+  const adImage = adsContent.images[0];
 
   return (
     <Box
@@ -101,13 +104,29 @@ export const ProfilSection: React.FC = () => {
                   p: 2,
                   lineHeight: 1.5,
                   fontSize: { xs: '0.85rem', md: '0.95rem' },
+                  overflow: 'hidden',
                 }}
               >
-                Add your ad banner here
+                {adImage ? (
+                  <Box
+                    component="img"
+                    src={adImage.url}
+                    alt={adImage.caption || 'Advertisement'}
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 1.5 }}
+                  />
+                ) : (
+                  'Add your ad banner here'
+                )}
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                (Right-side blank space filled)
-              </Typography>
+              {adImage?.caption ? (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                  {adImage.caption}
+                </Typography>
+              ) : (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                  (Right-side blank space filled)
+                </Typography>
+              )}
             </Box>
           </Grid>
         </Grid>

@@ -1,11 +1,11 @@
 /**
- * Director content: section-based (history, blog, videos, gallery, home).
+ * Director content: section-based (blog, news, events, videos, gallery).
  * Stored in localStorage; pages use useDirectorContent(section) to display it.
  */
 
 export const DIRECTOR_CONTENT_KEY = 'abgp-director-content';
 
-export type DirectorSectionKey = 'history' | 'blog' | 'news' | 'videos' | 'gallery' | 'home';
+export type DirectorSectionKey = 'blog' | 'news' | 'events' | 'videos' | 'gallery' | 'ads';
 
 export interface DirectorImage {
   id: string;
@@ -40,7 +40,7 @@ const DEFAULT_SECTION: DirectorSectionContent = {
   videos: [],
 };
 
-const SECTION_KEYS: DirectorSectionKey[] = ['history', 'blog', 'news', 'videos', 'gallery', 'home'];
+const SECTION_KEYS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads'];
 
 function getDefaultContent(): DirectorContentBySection {
   return SECTION_KEYS.reduce<DirectorContentBySection>(
