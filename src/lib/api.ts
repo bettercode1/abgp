@@ -33,10 +33,15 @@ async function getAccessToken(): Promise<string | null> {
 async function fetchJson<T = unknown>(
   url: string,
   token?: string | null,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  requireAuth = false
 ): Promise<T> {
   // Prefer current Supabase session token so we always send a valid, up-to-date token
   const authToken = (await getAccessToken()) ?? token ?? null;
+  if (requireAuth && !authToken) {
+    throw new Error('Authentication required. Please log in again.');
+  }
+
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -70,7 +75,7 @@ export async function loginWithApi(email: string, password: string): Promise<Log
 }
 
 export async function fetchMembersFromApi(token: string): Promise<ApiMember[]> {
-  const data = await fetchJson<{ members: ApiMember[] }>(`${API_BASE}/api/members`, token);
+  const data = await fetchJson<{ members: ApiMember[] }>(`${API_BASE}/api/members`, token, {}, true);
   return data.members;
 }
 
@@ -81,12 +86,12 @@ export async function addMemberViaApi(
   const res = await fetchJson<{ member: ApiMember }>(`${API_BASE}/api/members`, token, {
     method: 'POST',
     body: JSON.stringify(data),
-  });
+  }, true);
   return res.member;
 }
 
 export async function deleteMemberViaApi(token: string, id: string): Promise<void> {
-  await fetchJson<void>(`${API_BASE}/api/members/${id}`, token, { method: 'DELETE' });
+  await fetchJson<void>(`${API_BASE}/api/members/${id}`, token, { method: 'DELETE' }, true);
 }
 
 export interface ApiPrant {
@@ -100,7 +105,7 @@ export interface ApiPrant {
 type ApiPrantRaw = ApiPrant & { prant_key?: string };
 
 export async function fetchPrantsFromApi(token: string): Promise<ApiPrant[]> {
-  const data = await fetchJson<{ prants: ApiPrantRaw[] }>(`${API_BASE}/api/prants`, token);
+  const data = await fetchJson<{ prants: ApiPrantRaw[] }>(`${API_BASE}/api/prants`, token, {}, true);
   const raw = data.prants ?? [];
   return raw.map((p) => ({
     prantKey: p.prantKey ?? p.prant_key ?? '',
@@ -118,5 +123,5 @@ export async function changePrantPassword(
   await fetchJson<void>(`${API_BASE}/api/prants/${prantKey}/change-password`, token, {
     method: 'POST',
     body: JSON.stringify({ newPassword }),
-  });
+  }, true);
 }

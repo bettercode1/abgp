@@ -51,6 +51,15 @@ import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar
 
 const PRANT_PASSWORDS_KEY = 'abgp-prant-passwords';
 const PRANT_PROFILES_KEY = 'abgp-prant-profiles';
+const PETITIONS_STORAGE_KEY = 'abgp-petitions';
+
+type Petition = {
+  id: string;
+  title: string;
+  description: string;
+  targetEmail: string;
+  createdAt: string;
+};
 
 export interface PrantProfile {
   name: string;
@@ -154,6 +163,19 @@ export const PanelPage: React.FC = () => {
   const [prantsFetchError, setPrantsFetchError] = useState<string | null>(null);
   const [panelView, setPanelView] = useState<PanelView>('profile');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [petitionTitle, setPetitionTitle] = useState('');
+  const [petitionDescription, setPetitionDescription] = useState('');
+  const [petitionTargetEmail, setPetitionTargetEmail] = useState('');
+  const [petitionSavedMessage, setPetitionSavedMessage] = useState('');
+  const [petitions, setPetitions] = useState<Petition[]>([]);
+  const handleMissingAuthToken = useCallback(() => {
+    setPrantsFetchError('Your session has expired. Please log in again.');
+    navigate('/login', { replace: true });
+  }, [navigate]);
+  const isAuthTokenMissingError = useCallback(
+    (error: unknown) => error instanceof Error && error.message === 'Authentication required. Please log in again.',
+    []
+  );
 
   useEffect(() => {
     try {
@@ -197,10 +219,14 @@ export const PanelPage: React.FC = () => {
     try {
       const list = await fetchMembersFromApi(token);
       setMembers(list.map(apiMemberToMember));
-    } catch {
+    } catch (error) {
+      if (isAuthTokenMissingError(error)) {
+        handleMissingAuthToken();
+        return;
+      }
       setMembers(getMembers());
     }
-  }, [token, user?.role, apiMemberToMember]);
+  }, [token, user?.role, apiMemberToMember, handleMissingAuthToken, isAuthTokenMissingError]);
 
   // When Director has API token, fetch members from backend; otherwise use localStorage
   useEffect(() => {
@@ -225,6 +251,10 @@ export const PanelPage: React.FC = () => {
           setPrantsFetchError(null);
         }
       } catch (e) {
+        if (isAuthTokenMissingError(e)) {
+          handleMissingAuthToken();
+          return;
+        }
         if (!cancelled) {
           setApiPrants([]);
           setPrantsFetchError(e instanceof Error ? e.message : 'Failed to load prants');
@@ -232,7 +262,7 @@ export const PanelPage: React.FC = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [panelView, user?.role, token]);
+  }, [panelView, user?.role, token, handleMissingAuthToken, isAuthTokenMissingError]);
 
   // Ensure every complainant from stored complaints has a member row (localStorage or API)
   useEffect(() => {
@@ -257,7 +287,11 @@ export const PanelPage: React.FC = () => {
           }
           const updated = await fetchMembersFromApi(token);
           setMembers(updated.map(apiMemberToMember));
-        } catch {
+        } catch (error) {
+          if (isAuthTokenMissingError(error)) {
+            handleMissingAuthToken();
+            return;
+          }
           // ignore
         }
       })();
@@ -281,7 +315,7 @@ export const PanelPage: React.FC = () => {
         // ignore
       }
     }
-  }, [user?.role, token, apiMemberToMember]);
+  }, [user?.role, token, apiMemberToMember, handleMissingAuthToken, isAuthTokenMissingError]);
 
   useEffect(() => {
     if (user?.role !== 'director') return;
@@ -477,7 +511,11 @@ export const PanelPage: React.FC = () => {
       try {
         await deleteMemberViaApi(token, id);
         await refetchMembersFromApi();
-      } catch {
+      } catch (error) {
+        if (isAuthTokenMissingError(error)) {
+          handleMissingAuthToken();
+          return;
+        }
         setMembers(getMembers());
       }
     } else {
@@ -580,6 +618,47 @@ export const PanelPage: React.FC = () => {
     }
   };
 
+  const loadPetitionsFromStorage = useCallback((): Petition[] => {
+    try {
+      const raw = localStorage.getItem(PETITIONS_STORAGE_KEY);
+      const parsed = raw ? (JSON.parse(raw) as Petition[]) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const refreshPetitionData = useCallback(() => {
+    setPetitions(loadPetitionsFromStorage());
+  }, [loadPetitionsFromStorage]);
+
+  useEffect(() => {
+    if (user?.role !== 'director') return;
+    refreshPetitionData();
+  }, [user?.role, refreshPetitionData]);
+
+  const handleCreatePetition = (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const nextPetition: Petition = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title: petitionTitle.trim(),
+        description: petitionDescription.trim(),
+        targetEmail: petitionTargetEmail.trim(),
+        createdAt: new Date().toISOString(),
+      };
+      const nextPetitions = [...loadPetitionsFromStorage(), nextPetition];
+      localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(nextPetitions));
+      setPetitionSavedMessage('Petition created successfully.');
+      setPetitionTitle('');
+      setPetitionDescription('');
+      setPetitionTargetEmail('');
+      refreshPetitionData();
+    } catch {
+      setPetitionSavedMessage('Unable to create petition. Please try again.');
+    }
+  };
+
   const analyticsMembersOnly = members.filter((m) => m.role === 'member');
   const analyticsFiltered = analyticsMembersOnly.filter((m) => {
     const q = analyticsSearch.trim().toLowerCase();
@@ -679,10 +758,10 @@ export const PanelPage: React.FC = () => {
   const roleLabel = roleLabels[user.role] ?? user.role;
   const isDirector = user.role === 'director';
 
-  const handlePanelNavigate = useCallback((view: PanelView, contentSection?: DirectorSectionKey) => {
+  const handlePanelNavigate = (view: PanelView, contentSection?: DirectorSectionKey) => {
     setPanelView(view);
     if (view === 'content' && contentSection) setSelectedSection(contentSection);
-  }, []);
+  };
 
   // Director or Prant Dashboard: sidebar + main content
   if (isDirector || isPrant) {
@@ -760,6 +839,111 @@ export const PanelPage: React.FC = () => {
               <Button variant="contained" color="primary" startIcon={<Logout />} onClick={handleLogout} fullWidth sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', py: 1.5 }}>
                 {t('panel.logout')}
               </Button>
+              {isDirector && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        px: { xs: 2, md: 3 },
+                        py: 2,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                        color: theme.palette.primary.contrastText,
+                      }}
+                    >
+                      <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1 }}>
+                        MAILBOX
+                      </Typography>
+                      <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                        Create Petition Mail Draft
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.95 }}>
+                        Compose petition details that users will send via their email app.
+                      </Typography>
+                    </Box>
+
+                    <Box component="form" onSubmit={handleCreatePetition} sx={{ p: { xs: 2, md: 3 } }}>
+                      <Stack spacing={2}>
+                        <TextField
+                          label="Subject (Petition Title)"
+                          placeholder="Example: Request for consumer refund resolution"
+                          value={petitionTitle}
+                          onChange={(e) => setPetitionTitle(e.target.value)}
+                          required
+                          fullWidth
+                        />
+                        <TextField
+                          label="Email Body (Petition Description)"
+                          placeholder="Write the petition details users should send."
+                          value={petitionDescription}
+                          onChange={(e) => setPetitionDescription(e.target.value)}
+                          required
+                          multiline
+                          rows={5}
+                          fullWidth
+                        />
+                        <TextField
+                          label="Recipient Email (Target Email)"
+                          type="email"
+                          placeholder="example@domain.com"
+                          value={petitionTargetEmail}
+                          onChange={(e) => setPetitionTargetEmail(e.target.value)}
+                          required
+                          fullWidth
+                        />
+
+                        {petitionSavedMessage && (
+                          <Alert severity={petitionSavedMessage.includes('successfully') ? 'success' : 'error'}>
+                            {petitionSavedMessage}
+                          </Alert>
+                        )}
+
+                        <Box
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            border: '1px dashed',
+                            borderColor: 'divider',
+                            bgcolor: 'action.hover',
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            Mail Preview: recipients will receive subject as petition title and body with your description plus Name, Mobile, and Message fields.
+                          </Typography>
+                        </Box>
+
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                          <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
+                            Save Mail Petition
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                            onClick={() => window.open('/petitions', '_blank')}
+                          >
+                            Open Public Listing
+                          </Button>
+                        </Stack>
+
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                          Total mail petitions: {petitions.length}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  </Paper>
+                </>
+              )}
               {isPrant && (
                 <>
                   <Divider sx={{ my: 3 }} />
@@ -1266,6 +1450,10 @@ export const PanelPage: React.FC = () => {
                           setChangePasswordNew('');
                           setChangePasswordConfirm('');
                         } catch (err) {
+                          if (isAuthTokenMissingError(err)) {
+                            handleMissingAuthToken();
+                            return;
+                          }
                           setChangePasswordError(err instanceof Error ? err.message : 'Failed to change password');
                         } finally {
                           setChangePasswordLoading(false);
