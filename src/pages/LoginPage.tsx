@@ -134,6 +134,21 @@ export const LoginPage: React.FC = () => {
     navigate('/panel');
   };
 
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
+      transition: 'all 0.2s ease-in-out',
+      '&:hover': {
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+      },
+      '&.Mui-focused': {
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: `0 0 0 4px ${theme.palette.primary.main}20`,
+      }
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -141,125 +156,103 @@ export const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        py: 6,
+        py: { xs: 6, md: 8 },
         px: 2,
         background: theme.palette.mode === 'dark'
           ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)`
-          : `linear-gradient(180deg, ${theme.palette.grey[50]} 0%, ${theme.palette.background.paper} 100%)`,
+          : `linear-gradient(180deg, ${theme.palette.grey[50]} 0%, #E8F0FE 100%)`,
       }}
     >
       <Container maxWidth="sm">
         <Paper
-          elevation={4}
+          elevation={0}
           sx={{
-            p: { xs: 3, sm: 4 },
-            borderRadius: 3,
+            p: { xs: 4, sm: 5 },
+            borderRadius: 4,
             overflow: 'hidden',
-            boxShadow: theme.shadows[10],
+            border: '1px solid',
+            borderColor: theme.palette.divider,
+            boxShadow: '0 24px 48px rgba(0,0,0,0.08)',
+            backgroundColor: theme.palette.background.paper,
           }}
         >
           <Box
             sx={{
               height: 4,
+              width: 64,
+              mx: 'auto',
+              borderRadius: 2,
               background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`,
-              mb: 3,
+              mb: 4,
             }}
           />
           <Typography
-            variant="h5"
+            variant="h4"
             component="h1"
-            gutterBottom
             align="center"
-            fontWeight={700}
-            sx={{ color: theme.palette.primary.main, letterSpacing: '-0.02em' }}
+            fontWeight={800}
+            sx={{ color: theme.palette.text.primary, letterSpacing: '-0.02em', mb: 1 }}
           >
             {t('header.login')}
           </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4, fontWeight: 500 }}>
             {loginMode === 'director' ? t('login.directorLogin') : t('login.memberPrantLogin')}
           </Typography>
 
           <form onSubmit={handleSubmit}>
             {loginMode === 'director' && (
-              <Button variant="text" size="small" onClick={() => setLoginMode('member')} sx={{ mb: 2, textTransform: 'none' }}>
+              <Button 
+                variant="text" 
+                size="small" 
+                onClick={() => setLoginMode('member')} 
+                sx={{ mb: 3, textTransform: 'none', fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'primary.main', backgroundColor: 'transparent' } }}
+              >
                 ← {t('login.back')}
               </Button>
             )}
-            <Grid container spacing={3}>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {/* Role dropdown: only for Member/Prant (no Director option) */}
               {loginMode === 'member' && (
-                <Grid item xs={12}>
-                  <Grid container alignItems="center">
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="body1" color="text.secondary">
-                        {t('login.role')}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={8}>
-                      <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value as LoginRole)}
-                        label={t('login.select')}
-                        InputLabelProps={{ shrink: true }}
-                      >
-                        <MenuItem value="member">{t('login.roleCustomer')}</MenuItem>
-                        <MenuItem value="prant">{t('login.rolePresident')}</MenuItem>
-                      </TextField>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                <TextField
+                  select
+                  fullWidth
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as LoginRole)}
+                  label={t('login.role')}
+                  variant="outlined"
+                  sx={textFieldStyles}
+                >
+                  <MenuItem value="member">{t('login.roleCustomer')}</MenuItem>
+                  <MenuItem value="prant">{t('login.rolePresident')}</MenuItem>
+                </TextField>
               )}
 
               {/* Director: Email + Password (separate flow) */}
               {loginMode === 'director' && (
                 <>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.email')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.password')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          error={Boolean(loginError)}
-                          helperText={loginError}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    fullWidth
+                    label={t('login.email')}
+                    variant="outlined"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    sx={textFieldStyles}
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('login.password')}
+                    variant="outlined"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    error={Boolean(loginError)}
+                    helperText={loginError}
+                    sx={textFieldStyles}
+                  />
                   {loginError && (
-                    <Grid item xs={12}>
-                      <Typography variant="body2" color="error">{loginError}</Typography>
-                    </Grid>
+                    <Typography variant="body2" color="error" sx={{ mt: -1 }}>{loginError}</Typography>
                   )}
                 </>
               )}
@@ -267,276 +260,153 @@ export const LoginPage: React.FC = () => {
               {/* Prant: Select Prant + Email + Password */}
               {role === 'prant' && (
                 <>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.selectPrant')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          select
-                          fullWidth
-                          size="small"
-                          value={prant}
-                          onChange={(e) => setPrant(e.target.value)}
-                          label={t('login.select')}
-                          InputLabelProps={{ shrink: true }}
-                          variant="outlined"
-                        >
-                          {PRANT_KEYS.map((key) => (
-                            <MenuItem key={key} value={key}>
-                              {t(`prant.${key}`)}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.email')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.password')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    select
+                    fullWidth
+                    value={prant}
+                    onChange={(e) => setPrant(e.target.value)}
+                    label={t('login.selectPrant')}
+                    variant="outlined"
+                    sx={textFieldStyles}
+                  >
+                    {PRANT_KEYS.map((key) => (
+                      <MenuItem key={key} value={key}>
+                        {t(`prant.${key}`)}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    fullWidth
+                    label={t('login.email')}
+                    variant="outlined"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    sx={textFieldStyles}
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('login.password')}
+                    variant="outlined"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    sx={textFieldStyles}
+                  />
                 </>
               )}
 
               {/* Member: New or Existing + conditional fields */}
               {!isDirectorOrPresident && (
                 <>
-                  <Grid item xs={12}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body1" color="text.secondary">
-                          {t('login.memberType')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <TextField
-                          select
-                          fullWidth
-                          size="small"
-                          value={memberType}
-                          onChange={(e) => setMemberType(e.target.value as MemberType)}
-                          label={t('login.select')}
-                          InputLabelProps={{ shrink: true }}
-                        >
-                          <MenuItem value="new">{t('login.newMember')}</MenuItem>
-                          <MenuItem value="existing">{t('login.existingMember')}</MenuItem>
-                        </TextField>
-                      </Grid>
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    select
+                    fullWidth
+                    value={memberType}
+                    onChange={(e) => setMemberType(e.target.value as MemberType)}
+                    label={t('login.memberType')}
+                    variant="outlined"
+                    sx={textFieldStyles}
+                  >
+                    <MenuItem value="new">{t('login.newMember')}</MenuItem>
+                    <MenuItem value="existing">{t('login.existingMember')}</MenuItem>
+                  </TextField>
 
                   {isExistingMember && (
                     <>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.email')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.phone')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
+                      <TextField
+                        fullWidth
+                        label={t('login.email')}
+                        variant="outlined"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        sx={textFieldStyles}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t('login.phone')}
+                        variant="outlined"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        sx={textFieldStyles}
+                      />
                     </>
                   )}
 
                   {!isExistingMember && (
                     <>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.fullName')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              value={fullName}
-                              onChange={(e) => setFullName(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.state')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              select
-                              fullWidth
-                              size="small"
-                              value={state}
-                              onChange={(e) => {
-                                setState(e.target.value);
-                                setDistrict('');
-                              }}
-                              label={t('login.select')}
-                              InputLabelProps={{ shrink: true }}
-                            >
-                              {STATE_NAMES.map((s) => (
-                                <MenuItem key={s} value={s}>{s}</MenuItem>
-                              ))}
-                            </TextField>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.district')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              select
-                              fullWidth
-                              size="small"
-                              value={district}
-                              onChange={(e) => setDistrict(e.target.value)}
-                              label={t('login.select')}
-                              InputLabelProps={{ shrink: true }}
-                              disabled={!state}
-                            >
-                              {districtOptions.map((d) => (
-                                <MenuItem key={d} value={d}>{d}</MenuItem>
-                              ))}
-                            </TextField>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.city')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              value={city}
-                              onChange={(e) => setCity(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.phone')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Grid container alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <Typography variant="body1" color="text.secondary">
-                              {t('login.email')}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Grid>
+                      <TextField
+                        fullWidth
+                        label={t('login.fullName')}
+                        variant="outlined"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        sx={textFieldStyles}
+                      />
+                      <Box sx={{ display: 'flex', gap: 2.5, flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <TextField
+                          select
+                          fullWidth
+                          value={state}
+                          onChange={(e) => {
+                            setState(e.target.value);
+                            setDistrict('');
+                          }}
+                          label={t('login.state')}
+                          variant="outlined"
+                          sx={textFieldStyles}
+                        >
+                          {STATE_NAMES.map((s) => (
+                            <MenuItem key={s} value={s}>{s}</MenuItem>
+                          ))}
+                        </TextField>
+                        <TextField
+                          select
+                          fullWidth
+                          value={district}
+                          onChange={(e) => setDistrict(e.target.value)}
+                          label={t('login.district')}
+                          variant="outlined"
+                          disabled={!state}
+                          sx={textFieldStyles}
+                        >
+                          {districtOptions.map((d) => (
+                            <MenuItem key={d} value={d}>{d}</MenuItem>
+                          ))}
+                        </TextField>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        label={t('login.city')}
+                        variant="outlined"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        sx={textFieldStyles}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t('login.phone')}
+                        variant="outlined"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        sx={textFieldStyles}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t('login.email')}
+                        variant="outlined"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        sx={textFieldStyles}
+                      />
                     </>
                   )}
                 </>
               )}
 
-              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', pt: 2, pb: 1 }}>
+              <Box sx={{ mt: 2 }}>
                 <Button
                   type="submit"
                   variant="contained"
@@ -544,22 +414,24 @@ export const LoginPage: React.FC = () => {
                   size="large"
                   fullWidth
                   sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
+                    py: 1.75,
+                    borderRadius: 2.5,
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
                     textTransform: 'none',
-                    boxShadow: theme.shadows[4],
+                    boxShadow: '0 8px 24px rgba(30, 58, 138, 0.25)',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                     '&:hover': {
-                      boxShadow: theme.shadows[8],
-                      transform: 'translateY(-1px)',
+                      boxShadow: '0 12px 32px rgba(30, 58, 138, 0.35)',
+                      transform: 'translateY(-2px)',
                     },
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
                   {t('login.button')}
                 </Button>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </form>
         </Paper>
       </Container>

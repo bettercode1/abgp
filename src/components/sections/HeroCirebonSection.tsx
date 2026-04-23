@@ -40,15 +40,15 @@ export const HeroCirebonSection: React.FC = () => {
           <Grid container spacing={2} justifyContent="center" textAlign="center">
             <Grid item xs={4}>
               <Typography variant="h4" fontWeight={800} sx={{ lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                25+
+                42
               </Typography>
               <Typography variant="body2" fontWeight={600} sx={{ opacity: 0.95, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                {t('home.stats.states')}
+                Prants
               </Typography>
             </Grid>
             <Grid item xs={4}>
               <Typography variant="h4" fontWeight={800} sx={{ lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                510
+                450
               </Typography>
               <Typography variant="body2" fontWeight={600} sx={{ opacity: 0.95, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                 {t('home.stats.districts')}

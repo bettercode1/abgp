@@ -84,6 +84,7 @@ export const QuickAccessCardsSection: React.FC = () => {
               <Grid item xs={6} sm={3} key={item.key}>
                 <Box
                   sx={{
+                    height: '100%',
                     opacity: inView ? 1 : 0,
                     transform: inView ? 'translateY(0)' : 'translateY(14px)',
                     transition: prefersReducedMotion
@@ -96,7 +97,12 @@ export const QuickAccessCardsSection: React.FC = () => {
                     type="button"
                     onClick={() => navigate(item.path)}
                     sx={{
+                      width: '100%',
                       height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       minHeight: { xs: 128, sm: 148 },
                       cursor: 'pointer',
                       borderRadius: 3,
@@ -123,20 +129,31 @@ export const QuickAccessCardsSection: React.FC = () => {
                       },
                     }}
                   >
-                    <CardContent sx={{ py: { xs: 2, sm: 2.5 }, px: { xs: 1.5, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+                    <CardContent
+                      sx={{
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        py: { xs: 2, sm: 2.5 },
+                        px: { xs: 1.5, sm: 2.5 },
+                        '&:last-child': { pb: { xs: 2, sm: 2.5 } }
+                      }}
+                    >
                       <Box
                         className="quick-access-icon"
                         sx={{
                           width: { xs: 52, sm: 60, md: 64 },
                           height: { xs: 52, sm: 60, md: 64 },
                           borderRadius: '50%',
-                          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                          display: 'inline-flex',
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                          display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          mb: { xs: 1.25, sm: 1.5 },
+                          mb: { xs: 1.5, sm: 2 },
                           boxShadow: `0 8px 20px ${theme.palette.primary.main}40`,
-                          transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
                         }}
                       >
                         <Icon sx={{ fontSize: { xs: 26, sm: 28, md: 32 }, color: 'white' }} />

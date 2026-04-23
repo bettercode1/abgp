@@ -5,7 +5,12 @@
  */
 import { getSupabase } from './supabase';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const RAW_API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+// Support both:
+// - VITE_API_URL=https://host
+// - VITE_API_URL=https://host/api
+// so endpoint builders never produce /api/api/*
+const API_BASE = RAW_API_BASE.endsWith('/api') ? RAW_API_BASE : `${RAW_API_BASE}/api`;
 
 export interface ApiMember {
   id: string;
@@ -67,7 +72,7 @@ export function isApiConfigured(): boolean {
 }
 
 export async function loginWithApi(email: string, password: string): Promise<LoginResponse> {
-  const url = `${API_BASE}/api/auth/login`;
+  const url = `${API_BASE}/auth/login`;
   return fetchJson<LoginResponse>(url, undefined, {
     method: 'POST',
     body: JSON.stringify({ email: email.trim(), password }),
@@ -75,7 +80,7 @@ export async function loginWithApi(email: string, password: string): Promise<Log
 }
 
 export async function fetchMembersFromApi(token: string): Promise<ApiMember[]> {
-  const data = await fetchJson<{ members: ApiMember[] }>(`${API_BASE}/api/members`, token, {}, true);
+  const data = await fetchJson<{ members: ApiMember[] }>(`${API_BASE}/members`, token, {}, true);
   return data.members;
 }
 
@@ -83,7 +88,7 @@ export async function addMemberViaApi(
   token: string,
   data: { email: string; name?: string; role?: string; prant?: string }
 ): Promise<ApiMember> {
-  const res = await fetchJson<{ member: ApiMember }>(`${API_BASE}/api/members`, token, {
+  const res = await fetchJson<{ member: ApiMember }>(`${API_BASE}/members`, token, {
     method: 'POST',
     body: JSON.stringify(data),
   }, true);
@@ -91,7 +96,7 @@ export async function addMemberViaApi(
 }
 
 export async function deleteMemberViaApi(token: string, id: string): Promise<void> {
-  await fetchJson<void>(`${API_BASE}/api/members/${id}`, token, { method: 'DELETE' }, true);
+  await fetchJson<void>(`${API_BASE}/members/${id}`, token, { method: 'DELETE' }, true);
 }
 
 export interface ApiPrant {
@@ -105,8 +110,28 @@ export interface ApiPrant {
 type ApiPrantRaw = ApiPrant & { prant_key?: string };
 
 export async function fetchPrantsFromApi(token: string): Promise<ApiPrant[]> {
-  const data = await fetchJson<{ prants: ApiPrantRaw[] }>(`${API_BASE}/api/prants`, token, {}, true);
-  const raw = data.prants ?? [];
+  const supabase = getSupabase();
+  const { data: sessionData } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+  const sessionToken = sessionData.session?.access_token ?? token ?? null;
+  console.log(sessionToken);
+  if (!sessionToken) {
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
+    throw new Error('Authentication required. Please log in again.');
+  }
+  const res = await fetch(`${API_BASE}/prants`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  const responseData = (await res.json()) as { prants: ApiPrantRaw[] };
+  const raw = responseData.prants ?? [];
   return raw.map((p) => ({
     prantKey: p.prantKey ?? p.prant_key ?? '',
     email: p.email ?? '',
@@ -120,7 +145,7 @@ export async function changePrantPassword(
   prantKey: string,
   newPassword: string
 ): Promise<void> {
-  await fetchJson<void>(`${API_BASE}/api/prants/${prantKey}/change-password`, token, {
+  await fetchJson<void>(`${API_BASE}/prants/${prantKey}/change-password`, token, {
     method: 'POST',
     body: JSON.stringify({ newPassword }),
   }, true);

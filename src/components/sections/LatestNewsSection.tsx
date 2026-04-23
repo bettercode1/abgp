@@ -160,11 +160,17 @@ export const LatestNewsSection: React.FC = () => {
 
   const featuredNews = directorNewsItems[0]
     ? {
-        titleKey: '',
-        dateKey: '',
+        title: directorNewsItems[0].title,
+        date: directorNewsItems[0].dateLabel,
         image: directorNewsItems[0].imageUrl || newsItems[0].image,
+        excerpt: directorNewsItems[0].excerpt,
       }
-    : newsItems[0];
+    : {
+        title: t(newsItems[0].titleKey),
+        date: t(newsItems[0].dateKey),
+        image: newsItems[0].image,
+        excerpt: '',
+      };
 
   const newsList = directorNewsItems.length ? directorNewsItems.slice(1, 6) : newsItems.slice(1, 6).map((it) => ({
     title: t(it.titleKey),
@@ -288,28 +294,51 @@ export const LatestNewsSection: React.FC = () => {
                 type="button"
                 onClick={() => navigate('/media?tab=news')}
                 sx={{
-                  height: '100%',
-                  minHeight: { xs: 260, sm: 300, md: 320 },
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   cursor: 'pointer',
-                  borderRadius: 3,
+                  borderRadius: 4,
                   overflow: 'hidden',
                   textAlign: 'left',
-                  border: 'none',
-                  boxShadow: theme.shadows[4],
-                  transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.05)',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   p: 0,
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
+                  '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 20px 48px rgba(0,0,0,0.1)' },
                 }}
               >
-                <Box sx={{ position: 'relative' }}>
-                  <CardMedia
-                    component="img"
-                    height="260"
-                    image={featuredNews.image}
-                    alt={featuredNews.image ? 'News' : 'News'}
-                    sx={{ objectFit: 'cover' }}
-                  />
+                <Box sx={{ position: 'relative', width: '100%' }}>
+                  {featuredNews.image ? (
+                    <CardMedia
+                      component="img"
+                      sx={{ height: { xs: 240, sm: 300, md: 360 }, objectFit: 'cover' }}
+                      image={featuredNews.image}
+                      alt={featuredNews.title}
+                    />
+                  ) : null}
+                  <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ px: 1.5, py: 0.75, borderRadius: 1.5, backgroundColor: 'rgba(255,255,255,0.9)', color: 'text.primary', fontWeight: 800, backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                    >
+                      {t('media.news')}
+                    </Typography>
+                  </Box>
                 </Box>
+                <CardContent sx={{ py: 3.5, px: 3.5, '&:last-child': { pb: 3.5 } }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    {featuredNews.date || '—'}
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ mt: 1, mb: 1.5, lineHeight: 1.3 }}>
+                    {featuredNews.title}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>
+                    {featuredNews.excerpt}
+                  </Typography>
+                </CardContent>
               </Card>
             )}
 
@@ -319,36 +348,48 @@ export const LatestNewsSection: React.FC = () => {
                 type="button"
                 onClick={() => navigate('/blogs')}
                 sx={{
-                  height: '100%',
-                  minHeight: { xs: 260, sm: 300, md: 320 },
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   cursor: 'pointer',
-                  borderRadius: 3,
+                  borderRadius: 4,
                   overflow: 'hidden',
                   textAlign: 'left',
-                  border: 'none',
-                  boxShadow: theme.shadows[4],
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.05)',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   p: 0,
-                  transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
+                  '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 20px 48px rgba(0,0,0,0.1)' },
                 }}
               >
-                {featuredBlog.image ? (
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    image={featuredBlog.image}
-                    alt={featuredBlog.title}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                ) : null}
-                <CardContent sx={{ flex: 1, py: 2.5, px: 2.5, '&:last-child': { pb: 2.5 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                <Box sx={{ position: 'relative', width: '100%' }}>
+                  {featuredBlog.image ? (
+                    <CardMedia
+                      component="img"
+                      sx={{ height: { xs: 240, sm: 300, md: 360 }, objectFit: 'cover' }}
+                      image={featuredBlog.image}
+                      alt={featuredBlog.title}
+                    />
+                  ) : null}
+                  <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ px: 1.5, py: 0.75, borderRadius: 1.5, backgroundColor: 'rgba(255,255,255,0.9)', color: 'text.primary', fontWeight: 800, backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                    >
+                      {t('nav.blogs')}
+                    </Typography>
+                  </Box>
+                </Box>
+                <CardContent sx={{ py: 3.5, px: 3.5, '&:last-child': { pb: 3.5 } }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     {featuredBlog.date || '—'}
                   </Typography>
-                  <Typography variant="h6" fontWeight={700} sx={{ mt: 0.75, mb: 1.25, lineHeight: 1.35 }}>
+                  <Typography variant="h5" fontWeight={800} sx={{ mt: 1, mb: 1.5, lineHeight: 1.3 }}>
                     {featuredBlog.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>
                     {featuredBlog.excerpt}
                   </Typography>
                 </CardContent>
@@ -361,49 +402,45 @@ export const LatestNewsSection: React.FC = () => {
                 type="button"
                 onClick={() => navigate('/media?tab=events')}
                 sx={{
-                  height: '100%',
-                  minHeight: { xs: 260, sm: 300, md: 320 },
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   cursor: 'pointer',
-                  borderRadius: 3,
+                  borderRadius: 4,
                   overflow: 'hidden',
                   textAlign: 'left',
-                  border: 'none',
-                  boxShadow: theme.shadows[4],
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.05)',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   p: 0,
-                  transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
+                  '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 20px 48px rgba(0,0,0,0.1)' },
                 }}
               >
-                {featuredEvent.image ? (
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    image={featuredEvent.image}
-                    alt={featuredEvent.title}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                ) : null}
-                <CardContent sx={{ flex: 1, py: 2.5, px: 2.5, '&:last-child': { pb: 2.5 } }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                    {featuredEvent.date || '—'}
-                  </Typography>
-                  <Box sx={{ mt: 0.75, mb: 1 }}>
+                <Box sx={{ position: 'relative', width: '100%' }}>
+                  {featuredEvent.image ? (
+                    <CardMedia
+                      component="img"
+                      sx={{ height: { xs: 240, sm: 300, md: 360 }, objectFit: 'cover' }}
+                      image={featuredEvent.image}
+                      alt={featuredEvent.title}
+                    />
+                  ) : null}
+                  <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
                     <Typography
-                      component="span"
                       variant="caption"
-                      sx={{
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1,
-                        backgroundColor: theme.palette.secondary.main,
-                        color: theme.palette.secondary.contrastText,
-                        fontWeight: 600,
-                      }}
+                      sx={{ px: 1.5, py: 0.75, borderRadius: 1.5, backgroundColor: theme.palette.secondary.main, color: theme.palette.secondary.contrastText, fontWeight: 800, backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
                     >
                       {featuredEvent.type || t('media.events')}
                     </Typography>
                   </Box>
-                  <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.35 }}>
+                </Box>
+                <CardContent sx={{ py: 3.5, px: 3.5, '&:last-child': { pb: 3.5 } }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    {featuredEvent.date || '—'}
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ mt: 1, mb: 1.5, lineHeight: 1.3 }}>
                     {featuredEvent.title}
                   </Typography>
                 </CardContent>
@@ -416,45 +453,74 @@ export const LatestNewsSection: React.FC = () => {
                 type="button"
                 onClick={() => navigate('/videos')}
                 sx={{
-                  height: '100%',
-                  minHeight: { xs: 260, sm: 300, md: 320 },
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   cursor: 'pointer',
-                  borderRadius: 3,
+                  borderRadius: 4,
                   overflow: 'hidden',
                   textAlign: 'left',
-                  border: 'none',
-                  boxShadow: theme.shadows[4],
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.05)',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   p: 0,
-                  transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[8] },
+                  '&:hover': { transform: 'translateY(-8px)', boxShadow: '0 20px 48px rgba(0,0,0,0.1)' },
                 }}
               >
                 {directorVideoItems[0]?.imageUrl ? (
-                  <CardMedia
-                    component="img"
-                    height="190"
-                    image={directorVideoItems[0].imageUrl}
-                    alt={directorVideoItems[0].title}
-                    sx={{ objectFit: 'cover' }}
-                  />
+                  <Box sx={{ position: 'relative', width: '100%' }}>
+                    <CardMedia
+                      component="img"
+                      sx={{ height: { xs: 240, sm: 300, md: 360 }, objectFit: 'cover' }}
+                      image={directorVideoItems[0].imageUrl}
+                      alt={directorVideoItems[0].title}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(0,0,0,0.3)',
+                        transition: 'background-color 0.3s ease',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.4)' }
+                      }}
+                    >
+                      <PlayCircleOutline sx={{ fontSize: 72, color: 'white', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' }} />
+                    </Box>
+                    <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ px: 1.5, py: 0.75, borderRadius: 1.5, backgroundColor: '#FF0000', color: 'white', fontWeight: 800, backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                      >
+                        {t('nav.videos')}
+                      </Typography>
+                    </Box>
+                  </Box>
                 ) : (
                   <Box
                     sx={{
-                      minHeight: 190,
+                      height: { xs: 240, sm: 300, md: 360 },
                       backgroundColor: theme.palette.action.hover,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <PlayCircleOutline sx={{ fontSize: 56, color: theme.palette.primary.main }} />
+                    <PlayCircleOutline sx={{ fontSize: 72, color: theme.palette.primary.main }} />
                   </Box>
                 )}
-                <CardContent sx={{ p: 2.5 }}>
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
+                <CardContent sx={{ py: 3.5, px: 3.5, '&:last-child': { pb: 3.5 } }}>
+                  <Typography variant="h5" fontWeight={800} sx={{ mt: 1, mb: 1.5, lineHeight: 1.3 }}>
                     {directorVideoItems[0]?.title ? directorVideoItems[0].title : t('nav.videos')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320, mx: 'auto' }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>
                     {t('home.mediaVideosCta')}
                   </Typography>
                 </CardContent>
@@ -466,7 +532,7 @@ export const LatestNewsSection: React.FC = () => {
           <Grid item xs={12} md={6}>
             {tabValue === 0 && (
               <>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {newsList.map((item, index) => (
                     <Link
                       key={index}
@@ -474,24 +540,31 @@ export const LatestNewsSection: React.FC = () => {
                       to={`/media?tab=news&directorNewsIndex=${index + 1}`}
                       sx={{
                         display: 'block',
-                        py: 2,
-                        px: 2,
-                        borderRadius: 2,
-                        borderBottom: index < newsList.length - 1 ? 1 : 0,
-                        borderColor: 'divider',
+                        py: 2.5,
+                        px: 3,
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'transparent',
+                        backgroundColor: theme.palette.background.default,
                         textDecoration: 'none',
                         color: 'text.primary',
-                        transition: 'background-color 0.2s ease',
-                        '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: theme.palette.background.paper,
+                          borderColor: theme.palette.divider,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                          transform: 'translateX(4px)',
+                          '& .MuiTypography-h6': { color: theme.palette.primary.main }
+                        },
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                      <Typography variant="caption" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
                         {item.dateLabel || '—'}
                       </Typography>
                       <Typography
                         variant="h6"
                         fontWeight={700}
-                        sx={{ mt: 0.5, lineHeight: 1.25 }}
+                        sx={{ mt: 0.75, lineHeight: 1.3, transition: 'color 0.2s ease' }}
                       >
                         {item.title}
                       </Typography>
@@ -500,7 +573,7 @@ export const LatestNewsSection: React.FC = () => {
                           variant="body2"
                           color="text.secondary"
                           sx={{
-                            mt: 0.5,
+                            mt: 1,
                             lineHeight: 1.6,
                             display: '-webkit-box',
                             WebkitBoxOrient: 'vertical',
@@ -529,7 +602,7 @@ export const LatestNewsSection: React.FC = () => {
 
             {tabValue === 1 && (
               <>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {blogList.map((item, index) => (
                     <Link
                       key={index}
@@ -537,17 +610,24 @@ export const LatestNewsSection: React.FC = () => {
                       to="/blogs"
                       sx={{
                         display: 'flex',
-                        gap: 1.25,
-                        alignItems: 'flex-start',
+                        gap: 2,
+                        alignItems: 'center',
                         py: 2,
-                        px: 2,
-                        borderRadius: 2,
-                        borderBottom: index < 2 ? 1 : 0,
-                        borderColor: 'divider',
+                        px: 2.5,
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'transparent',
+                        backgroundColor: theme.palette.background.default,
                         textDecoration: 'none',
                         color: 'text.primary',
-                        transition: 'background-color 0.2s ease',
-                        '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: theme.palette.background.paper,
+                          borderColor: theme.palette.divider,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                          transform: 'translateX(4px)',
+                          '& .MuiTypography-subtitle1': { color: theme.palette.primary.main }
+                        },
                       }}
                     >
                       {item.imageUrl ? (
@@ -555,14 +635,14 @@ export const LatestNewsSection: React.FC = () => {
                           component="img"
                           src={item.imageUrl}
                           alt={item.title}
-                          sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
+                          sx={{ width: 84, height: 68, borderRadius: 2, objectFit: 'cover', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                         />
                       ) : null}
                       <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                        <Typography variant="caption" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
                           {item.dateLabel || '—'}
                         </Typography>
-                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 0.5, lineHeight: 1.3, transition: 'color 0.2s ease' }}>
                           {item.title}
                         </Typography>
                       </Box>
@@ -584,7 +664,7 @@ export const LatestNewsSection: React.FC = () => {
 
             {tabValue === 2 && (
               <>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {eventList.map((item, index) => (
                     <Link
                       key={index}
@@ -592,17 +672,24 @@ export const LatestNewsSection: React.FC = () => {
                       to="/media?tab=events"
                       sx={{
                         display: 'flex',
-                        gap: 1.25,
-                        alignItems: 'flex-start',
+                        gap: 2,
+                        alignItems: 'center',
                         py: 2,
-                        px: 2,
-                        borderRadius: 2,
-                        borderBottom: index < eventList.length - 1 ? 1 : 0,
-                        borderColor: 'divider',
+                        px: 2.5,
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'transparent',
+                        backgroundColor: theme.palette.background.default,
                         textDecoration: 'none',
                         color: 'text.primary',
-                        transition: 'background-color 0.2s ease',
-                        '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: theme.palette.background.paper,
+                          borderColor: theme.palette.divider,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                          transform: 'translateX(4px)',
+                          '& .MuiTypography-subtitle1': { color: theme.palette.primary.main }
+                        },
                       }}
                     >
                       {item.imageUrl ? (
@@ -610,18 +697,20 @@ export const LatestNewsSection: React.FC = () => {
                           component="img"
                           src={item.imageUrl}
                           alt={item.title}
-                          sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
+                          sx={{ width: 84, height: 68, borderRadius: 2, objectFit: 'cover', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                         />
                       ) : null}
-                      <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                          {item.dateLabel || '—'}
-                        </Typography>
-                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0.5 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                           <Typography variant="caption" color="primary" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                             {item.dateLabel || '—'}
+                           </Typography>
+                           <Typography variant="caption" sx={{ px: 1, py: 0.25, borderRadius: 1, backgroundColor: theme.palette.secondary.light, color: theme.palette.secondary.contrastText, fontWeight: 700, fontSize: '0.65rem' }}>
+                             {item.typeLabel || t('media.events')}
+                           </Typography>
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 0, lineHeight: 1.3, transition: 'color 0.2s ease' }}>
                           {item.title}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                          {item.typeLabel || t('media.events')}
                         </Typography>
                       </Box>
                     </Link>
@@ -643,7 +732,7 @@ export const LatestNewsSection: React.FC = () => {
             {tabValue === 3 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', pt: 2 }}>
                 {directorVideoItems.length > 0 && (
-                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     {directorVideoItems.slice(0, 3).map((vid, index) => (
                       <Link
                         key={index}
@@ -651,32 +740,44 @@ export const LatestNewsSection: React.FC = () => {
                         to="/videos"
                         sx={{
                           display: 'flex',
-                          gap: 1.25,
-                          alignItems: 'flex-start',
+                          gap: 2,
+                          alignItems: 'center',
                           py: 2,
-                          px: 2,
-                          borderRadius: 2,
-                          borderBottom: index < Math.min(3, directorVideoItems.length) - 1 ? 1 : 0,
-                          borderColor: 'divider',
+                          px: 2.5,
+                          borderRadius: 3,
+                          border: '1px solid',
+                          borderColor: 'transparent',
+                          backgroundColor: theme.palette.background.default,
                           textDecoration: 'none',
                           color: 'text.primary',
-                          transition: 'background-color 0.2s ease',
-                          '&:hover': { backgroundColor: theme.palette.action.hover, color: theme.palette.primary.main },
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            backgroundColor: theme.palette.background.paper,
+                            borderColor: theme.palette.divider,
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                            transform: 'translateX(4px)',
+                            '& .MuiTypography-subtitle1': { color: theme.palette.primary.main }
+                          },
                         }}
                       >
                         {vid.imageUrl ? (
-                          <Box
-                            component="img"
-                            src={vid.imageUrl}
-                            alt={vid.title}
-                            sx={{ width: 72, height: 56, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }}
-                          />
+                          <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                            <Box
+                              component="img"
+                              src={vid.imageUrl}
+                              alt={vid.title}
+                              sx={{ width: 100, height: 68, borderRadius: 2, objectFit: 'cover', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                            />
+                            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 32, height: 32, borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <PlayCircleOutline sx={{ color: 'white', fontSize: 20 }} />
+                            </Box>
+                          </Box>
                         ) : (
                           <Box
                             sx={{
-                              width: 72,
-                              height: 56,
-                              borderRadius: 1,
+                              width: 100,
+                              height: 68,
+                              borderRadius: 2,
                               backgroundColor: theme.palette.action.hover,
                               display: 'flex',
                               alignItems: 'center',
@@ -684,10 +785,10 @@ export const LatestNewsSection: React.FC = () => {
                               flexShrink: 0,
                             }}
                           >
-                            <PlayCircleOutline sx={{ fontSize: 24, color: theme.palette.primary.main }} />
+                            <PlayCircleOutline sx={{ fontSize: 32, color: theme.palette.primary.main }} />
                           </Box>
                         )}
-                        <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 0 }}>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 0, lineHeight: 1.3, transition: 'color 0.2s ease' }}>
                           {vid.title}
                         </Typography>
                       </Link>

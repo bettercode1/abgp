@@ -659,6 +659,17 @@ export const PanelPage: React.FC = () => {
     }
   };
 
+  const handleDeletePetition = (id: string) => {
+    try {
+      const current = loadPetitionsFromStorage();
+      const nextPetitions = current.filter(p => p.id !== id);
+      localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(nextPetitions));
+      refreshPetitionData();
+    } catch {
+      // ignore
+    }
+  };
+
   const analyticsMembersOnly = members.filter((m) => m.role === 'member');
   const analyticsFiltered = analyticsMembersOnly.filter((m) => {
     const q = analyticsSearch.trim().toLowerCase();
@@ -889,7 +900,8 @@ export const PanelPage: React.FC = () => {
                           onChange={(e) => setPetitionDescription(e.target.value)}
                           required
                           multiline
-                          rows={5}
+                          minRows={8}
+                          maxRows={15}
                           fullWidth
                         />
                         <TextField
@@ -936,9 +948,32 @@ export const PanelPage: React.FC = () => {
                           </Button>
                         </Stack>
 
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                          Total mail petitions: {petitions.length}
-                        </Typography>
+                        {petitions.length > 0 && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5, color: 'text.primary' }}>
+                              Saved Petitions ({petitions.length})
+                            </Typography>
+                            <Stack spacing={1.5}>
+                              {petitions.map((p) => (
+                                <Paper key={p.id} variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2, backgroundColor: 'background.default' }}>
+                                  <Box sx={{ overflow: 'hidden', flex: 1 }}>
+                                    <Typography variant="body2" fontWeight={600} noWrap>{p.title}</Typography>
+                                    <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', mt: 0.25 }}>Target: {p.targetEmail}</Typography>
+                                  </Box>
+                                  <Button 
+                                    size="small" 
+                                    color="error" 
+                                    variant="outlined" 
+                                    onClick={() => handleDeletePetition(p.id)}
+                                    sx={{ minWidth: 'auto', textTransform: 'none', px: 2 }}
+                                  >
+                                    Delete
+                                  </Button>
+                                </Paper>
+                              ))}
+                            </Stack>
+                          </Box>
+                        )}
                       </Stack>
                     </Box>
                   </Paper>
