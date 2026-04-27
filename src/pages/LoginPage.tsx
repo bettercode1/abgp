@@ -19,6 +19,7 @@ import { loginWithApi, isApiConfigured } from '../lib/api';
 import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 
 type MemberType = 'new' | 'existing';
+type NameTitle = 'Mr' | 'Ms';
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -42,6 +43,7 @@ export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [nameTitle, setNameTitle] = useState<NameTitle>('Mr');
   const [fullName, setFullName] = useState('');
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
@@ -53,6 +55,7 @@ export const LoginPage: React.FC = () => {
 
   const isDirectorOrPresident = loginMode === 'director' || role === 'prant';
   const isExistingMember = !isDirectorOrPresident && memberType === 'existing';
+  const formattedName = fullName.trim() ? `${nameTitle} ${fullName.trim()}` : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +121,7 @@ export const LoginPage: React.FC = () => {
     if (effectiveRole === 'member' || effectiveRole === 'prant') {
       addMember({
         email: emailVal,
-        name: fullName || undefined,
+        name: formattedName || undefined,
         role: effectiveRole,
         prant: effectiveRole === 'prant' ? prant || undefined : undefined,
         isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
@@ -127,7 +130,7 @@ export const LoginPage: React.FC = () => {
     login({
       role: effectiveRole,
       email: emailVal,
-      name: fullName || undefined,
+      name: formattedName || undefined,
       isNewMember,
     });
     navigate('/panel');
@@ -335,14 +338,27 @@ export const LoginPage: React.FC = () => {
 
                   {!isExistingMember && (
                     <>
-                      <TextField
-                        fullWidth
-                        label={t('login.fullName')}
-                        variant="outlined"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        sx={textFieldStyles}
-                      />
+                      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
+                        <TextField
+                          select
+                          label="Title"
+                          variant="outlined"
+                          value={nameTitle}
+                          onChange={(e) => setNameTitle(e.target.value as NameTitle)}
+                          sx={{ ...textFieldStyles, minWidth: 110, maxWidth: 120 }}
+                        >
+                          <MenuItem value="Mr">Mr</MenuItem>
+                          <MenuItem value="Ms">Ms</MenuItem>
+                        </TextField>
+                        <TextField
+                          fullWidth
+                          label={t('login.fullName')}
+                          variant="outlined"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          sx={textFieldStyles}
+                        />
+                      </Box>
                       <Box sx={{ display: 'flex', gap: 2.5, flexDirection: { xs: 'column', sm: 'row' } }}>
                         <TextField
                           select

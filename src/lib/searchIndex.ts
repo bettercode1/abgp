@@ -11,7 +11,6 @@ export const searchIndex: SearchEntry[] = [
   { path: '/', titleKey: 'nav.home' },
   { path: '/about', titleKey: 'nav.about' },
   { path: '/history', titleKey: 'nav.history' },
-  { path: '/constitution', titleKey: 'nav.constitution' },
   { path: '/court-decisions', titleKey: 'nav.courtDecisions' },
   { path: '/terms', titleKey: 'nav.terms' },
   { path: '/activities', titleKey: 'nav.activities' },

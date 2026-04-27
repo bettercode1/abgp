@@ -167,21 +167,21 @@ const executiveMembers: ExecutiveMember[] = [
   },
   {
     id: 20,
-    name: 'Shri Sulil Jain',
+    name: 'Shri Sunil Jain',
     responsibility: 'Executive Member',
     phone: '9529073600',
     prant: 'Jaipur, Alwar',
   },
   {
     id: 21,
-    name: 'Shri Gajanand Pandey',
+    name: 'Shri Gajanan Pande',
     responsibility: 'Executive Member',
     phone: '9422116281',
     prant: 'Vidarbh, Nagpur',
   },
   {
     id: 22,
-    name: 'Shri Pradeep Vaurasiya',
+    name: 'Shri Pradip Chaurasiya',
     responsibility: 'Executive Member',
     phone: '9451570645',
     prant: 'Kashi, Varanasi',
@@ -189,7 +189,7 @@ const executiveMembers: ExecutiveMember[] = [
   },
   {
     id: 23,
-    name: 'Shri Mahindra Dev Sharma',
+    name: 'Shri Mohindra Dev Sharma',
     responsibility: 'Executive Member',
     phone: '9419878030',
     prant: 'Jammu, Jammu',
@@ -354,7 +354,13 @@ export const NationalExecutiveList: React.FC = () => {
               </Grid>
 
               {/* Members of this group */}
-              {members.map((member) => {
+              {responsibility === 'Sangathan Mantri' ? (
+                <Grid item xs={12}>
+                  <Typography variant="h6" color="text.secondary" sx={{ px: 1, py: 1 }}>
+                    -
+                  </Typography>
+                </Grid>
+              ) : members.map((member) => {
                 // Dynamic sizing based on group size to "use the gap"
                 let lgSize = 3;
                 let mdSize = 4;

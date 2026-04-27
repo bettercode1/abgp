@@ -886,6 +886,15 @@ export const PanelPage: React.FC = () => {
                     <Box component="form" onSubmit={handleCreatePetition} sx={{ p: { xs: 2, md: 3 } }}>
                       <Stack spacing={2}>
                         <TextField
+                          label="Recipient Email (Target Email)"
+                          type="email"
+                          placeholder="example@domain.com"
+                          value={petitionTargetEmail}
+                          onChange={(e) => setPetitionTargetEmail(e.target.value)}
+                          required
+                          fullWidth
+                        />
+                        <TextField
                           label="Subject (Petition Title)"
                           placeholder="Example: Request for consumer refund resolution"
                           value={petitionTitle}
@@ -900,39 +909,17 @@ export const PanelPage: React.FC = () => {
                           onChange={(e) => setPetitionDescription(e.target.value)}
                           required
                           multiline
-                          minRows={8}
-                          maxRows={15}
+                          minRows={20}
+                          maxRows={50}
                           fullWidth
                         />
-                        <TextField
-                          label="Recipient Email (Target Email)"
-                          type="email"
-                          placeholder="example@domain.com"
-                          value={petitionTargetEmail}
-                          onChange={(e) => setPetitionTargetEmail(e.target.value)}
-                          required
-                          fullWidth
-                        />
-
                         {petitionSavedMessage && (
                           <Alert severity={petitionSavedMessage.includes('successfully') ? 'success' : 'error'}>
                             {petitionSavedMessage}
                           </Alert>
                         )}
 
-                        <Box
-                          sx={{
-                            p: 1.5,
-                            borderRadius: 2,
-                            border: '1px dashed',
-                            borderColor: 'divider',
-                            bgcolor: 'action.hover',
-                          }}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            Mail Preview: recipients will receive subject as petition title and body with your description plus Name, Mobile, and Message fields.
-                          </Typography>
-                        </Box>
+
 
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                           <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>

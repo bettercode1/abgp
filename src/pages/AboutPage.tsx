@@ -20,7 +20,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Groups as GroupsIcon,
-  VerifiedUser as VerifiedUserIcon,
   History as HistoryIcon,
   Gavel as GavelIcon,
   FormatQuote as QuoteIcon,
@@ -233,14 +232,6 @@ export const AboutPage: React.FC = () => {
                     startIcon={<HistoryIcon />}
                   >
                     {t('about.navigation.history')}
-                  </Button>
-                  <Button 
-                    component={RouterLink} to="/constitution" 
-                    variant="contained" fullWidth
-                    sx={{ backgroundColor: 'white', color: theme.palette.secondary.main, '&:hover': { backgroundColor: '#f0f0f0' } }}
-                    startIcon={<VerifiedUserIcon />}
-                  >
-                    {t('about.navigation.constitution')}
                   </Button>
                   <Button 
                     component={RouterLink} to="/court-decisions" 

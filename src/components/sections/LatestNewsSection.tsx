@@ -83,7 +83,7 @@ export const LatestNewsSection: React.FC = () => {
     if (texts.length === 0) {
       // If Director only added images, still show something in the panel.
       return directorNews.images.slice(0, 6).map((img) => ({
-        title: img.caption || t('panel.uploadImage') || 'News',
+        title: img.caption || t('media.news'),
         dateLabel: img.caption,
         imageUrl: img.url,
         excerpt: '',
@@ -103,7 +103,7 @@ export const LatestNewsSection: React.FC = () => {
     if (texts.length === 0) {
       if (directorBlogs.images.length === 0) return [];
       return directorBlogs.images.slice(0, 6).map((img) => ({
-        title: img.caption || t('panel.uploadImage') || 'Blog',
+        title: img.caption || t('nav.blogs'),
         dateLabel: img.caption,
         excerpt: '',
         imageUrl: img.url,
@@ -122,7 +122,7 @@ export const LatestNewsSection: React.FC = () => {
     if (texts.length === 0) {
       if (directorEvents.images.length === 0) return [];
       return directorEvents.images.slice(0, 7).map((img) => ({
-        title: img.caption || 'Event',
+        title: img.caption || t('media.events'),
         dateLabel: img.caption,
         excerpt: '',
         typeLabel: t('media.events') || 'Events',

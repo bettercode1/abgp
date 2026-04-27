@@ -149,7 +149,7 @@ export const MembershipSection: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={() => {
-                    navigate('/constitution');
+                    navigate('/about');
                   }}
                 >
                   {t('membership.cta.view')}

@@ -46,7 +46,7 @@ const kshetraData: KshetraData[] = [
   },
   {
     id: 2,
-    name: 'Shri Datatreya Nadin',
+    name: 'Shri Datatreya Nadig',
     prant: 'Karnataka',
     responsibilityArea: 'South Central Zone',
     responsibility: 'Regional Organization Secretary',
@@ -134,7 +134,7 @@ const kshetraData: KshetraData[] = [
   },
   {
     id: 12,
-    name: 'Shri Ramvann Ravai',
+    name: 'Shri Ramchndra Swai',
     prant: 'Purv Odisha',
     responsibilityArea: 'East Zone',
     responsibility: 'Regional Organization Secretary',

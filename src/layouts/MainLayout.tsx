@@ -69,12 +69,10 @@ const navigationItems: NavItem[] = [
     children: [
       { key: 'nav.about', path: '/about' },
       { key: 'nav.history', path: '/history' },
-      { key: 'nav.constitution', path: '/constitution' },
       { key: 'nav.courtDecisions', path: '/court-decisions' },
       { key: 'nav.terms', path: '/terms' },
     ],
   },
-  { key: 'nav.activities', path: '/activities' },
   {
     key: 'nav.gyandeep',
     path: '/gyandeep',
@@ -83,8 +81,9 @@ const navigationItems: NavItem[] = [
       { key: 'nav.spandana', path: '/spandana' },
     ],
   },
-  { key: 'nav.membership', path: '/membership' },
+  { key: 'nav.kshetraMantri', path: '/kshetra-mantri' },
   { key: 'nav.prantContacts', path: '/prant-contacts' },
+  { key: 'nav.nationalExecutive', path: '/national-executive' },
   {
     key: 'nav.media',
     path: '/media',
@@ -96,9 +95,10 @@ const navigationItems: NavItem[] = [
     ],
   },
   { key: 'nav.gallery', path: '/gallery' },
-  { key: 'nav.kshetraMantri', path: '/kshetra-mantri' },
+  { key: 'nav.membership', path: '/membership' },
   { key: 'nav.quickMemos', path: '/quickmemos' },
   { key: 'nav.faq', path: '/faq' },
+  { key: 'nav.activities', path: '/activities' },
   { key: 'nav.petition', path: '/petition' },
   { key: 'nav.contact', path: '/contact' },
 ];
@@ -132,7 +132,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   const quickLinks = flattenNavItems(navigationItems);
 
-  const isAboutActive = location.pathname === '/about' || location.pathname === '/history' || location.pathname === '/constitution' || location.pathname === '/court-decisions' || location.pathname === '/terms';
+  const isAboutActive = location.pathname === '/about' || location.pathname === '/history' || location.pathname === '/court-decisions' || location.pathname === '/terms';
   const isGyandeepActive = location.pathname === '/gyandeep' || location.pathname === '/spandana';
   const isMediaActive = location.pathname === '/media' || location.pathname === '/blogs' || location.pathname === '/news' || location.pathname === '/events' || location.pathname === '/videos';
 

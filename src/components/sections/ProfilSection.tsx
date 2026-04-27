@@ -89,7 +89,7 @@ export const ProfilSection: React.FC = () => {
               }}
             >
               <Typography variant="subtitle2" fontWeight={700} color="primary" sx={{ mb: 1.5 }}>
-                Advertisement
+                {t('home.profil.ad')}
               </Typography>
               <Box
                 sx={{
@@ -115,7 +115,7 @@ export const ProfilSection: React.FC = () => {
                     sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 1.5 }}
                   />
                 ) : (
-                  'Add your ad banner here'
+                  t('home.profil.adBanner')
                 )}
               </Box>
               {adImage?.caption ? (
@@ -124,7 +124,7 @@ export const ProfilSection: React.FC = () => {
                 </Typography>
               ) : (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                  (Right-side blank space filled)
+                  {t('home.profil.adBlank')}
                 </Typography>
               )}
             </Box>

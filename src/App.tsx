@@ -8,7 +8,6 @@ import { TermsPage } from './pages/TermsPage';
 import { AboutPage } from './pages/AboutPage';
 import { CourtDecisionsPage } from './pages/CourtDecisionsPage';
 import { HistoryTimelinePage } from './pages/HistoryTimelinePage';
-import { ConstitutionPage } from './pages/ConstitutionPage';
 import { BlogsPage } from './pages/BlogsPage';
 import { FAQPage } from './pages/FAQPage';
 import { MediaPage } from './pages/MediaPage';
@@ -182,7 +181,7 @@ function App() {
             <Route path="/court-decisions" element={<CourtDecisionsPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/history" element={<HistoryTimelinePage />} />
-            <Route path="/constitution" element={<ConstitutionPage />} />
+            <Route path="/constitution" element={<Navigate to="/about" replace />} />
             <Route path="/blogs" element={<BlogsPage />} />
             <Route path="/faq" element={<FAQPage />} />
                     <Route path="/media" element={<MediaPage />} />

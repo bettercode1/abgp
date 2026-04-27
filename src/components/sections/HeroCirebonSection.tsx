@@ -43,7 +43,7 @@ export const HeroCirebonSection: React.FC = () => {
                 42
               </Typography>
               <Typography variant="body2" fontWeight={600} sx={{ opacity: 0.95, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                Prants
+                {t('home.stats.prants')}
               </Typography>
             </Grid>
             <Grid item xs={4}>
@@ -56,7 +56,7 @@ export const HeroCirebonSection: React.FC = () => {
             </Grid>
             <Grid item xs={4}>
               <Typography variant="h4" fontWeight={800} sx={{ lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                India
+                {t('home.stats.india')}
               </Typography>
               <Typography variant="body2" fontWeight={600} sx={{ opacity: 0.95, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                 {t('home.stats.locations')}
