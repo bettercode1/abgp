@@ -15,7 +15,7 @@ const languages = [
 ];
 
 export const LanguageSwitcher: React.FC = () => {
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
   // Ensure we get the resolved language to properly highlight the active one
   const currentCode = i18n.resolvedLanguage || i18n.language?.split('-')[0] || 'en';
 
