@@ -55,14 +55,38 @@ export const LoginPage: React.FC = () => {
 
   const isDirectorOrPresident = loginMode === 'director' || role === 'prant';
   const isExistingMember = !isDirectorOrPresident && memberType === 'existing';
-  const formattedName = fullName.trim() ? `${nameTitle} ${fullName.trim()}` : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
     const isNewMember = effectiveRole === 'member' && memberType === 'new';
-    const emailVal = (email || 'user@example.com').trim();
+    const emailVal = email.trim();
+    const phoneVal = phone.trim();
+    const fullNameVal = fullName.trim();
+    const cityVal = city.trim();
+
+    if (loginMode === 'director') {
+      if (!emailVal || !password) {
+        setLoginError('Please enter email and password.');
+        return;
+      }
+    } else if (effectiveRole === 'prant') {
+      if (!prant || !emailVal || !password) {
+        setLoginError('Please select prant and enter email/password.');
+        return;
+      }
+    } else if (effectiveRole === 'member' && memberType === 'existing') {
+      if (!emailVal || !phoneVal) {
+        setLoginError('Please enter email and phone number.');
+        return;
+      }
+    } else if (effectiveRole === 'member' && memberType === 'new') {
+      if (!fullNameVal || !state || !district || !cityVal || !phoneVal || !emailVal) {
+        setLoginError('Please fill all required member details.');
+        return;
+      }
+    }
 
     const useSupabaseAuth =
       isSupabaseConfigured() &&
@@ -121,7 +145,7 @@ export const LoginPage: React.FC = () => {
     if (effectiveRole === 'member' || effectiveRole === 'prant') {
       addMember({
         email: emailVal,
-        name: formattedName || undefined,
+        name: fullNameVal ? `${nameTitle} ${fullNameVal}` : undefined,
         role: effectiveRole,
         prant: effectiveRole === 'prant' ? prant || undefined : undefined,
         isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
@@ -130,7 +154,7 @@ export const LoginPage: React.FC = () => {
     login({
       role: effectiveRole,
       email: emailVal,
-      name: formattedName || undefined,
+      name: fullNameVal ? `${nameTitle} ${fullNameVal}` : undefined,
       isNewMember,
     });
     navigate('/panel');
@@ -249,13 +273,8 @@ export const LoginPage: React.FC = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    error={Boolean(loginError)}
-                    helperText={loginError}
                     sx={textFieldStyles}
                   />
-                  {loginError && (
-                    <Typography variant="body2" color="error" sx={{ mt: -1 }}>{loginError}</Typography>
-                  )}
                 </>
               )}
 
@@ -422,6 +441,11 @@ export const LoginPage: React.FC = () => {
               )}
 
               <Box sx={{ mt: 2 }}>
+                {loginError && (
+                  <Typography variant="body2" color="error" sx={{ mb: 1.5, textAlign: 'center' }}>
+                    {loginError}
+                  </Typography>
+                )}
                 <Button
                   type="submit"
                   variant="contained"
