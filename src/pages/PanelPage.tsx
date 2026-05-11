@@ -55,7 +55,6 @@ import {
   addComplaintViaApi,
   fetchComplaintsFromApi,
   deleteComplaintViaApi,
-  type ApiMember,
   type ApiPrant,
   type ApiComplaint
 } from '../lib/api';
@@ -1380,7 +1379,7 @@ export const PanelPage: React.FC = () => {
                                       </Typography>
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="primary" variant="outlined" sx={{ fontWeight: 500 }} />
-                                        <IconButton size="small" color="error" onClick={() => handleDeleteComplaint(c.id)} title={t('panel.deleteMember')}>
+                                        <IconButton size="small" color="error" onClick={() => c.id && handleDeleteComplaint(c.id)} title={t('panel.deleteMember')}>
                                           <Delete fontSize="small" />
                                         </IconButton>
                                       </Box>
