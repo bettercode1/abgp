@@ -16,13 +16,12 @@ import { useAuth, type LoginRole } from '../contexts/AuthContext';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { addMember } from '../lib/memberRegistry';
-import { loginWithApi, isApiConfigured } from '../lib/api';
+import { isApiConfigured } from '../lib/api';
 import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 
 type MemberType = 'new' | 'existing';
 type NameTitle = 'Mr' | 'Ms';
-const DIRECTOR_ALLOWED_EMAIL = 'director@abgp.in';
-const DIRECTOR_LOGIN_ERROR = 'Invalid director credentials';
+// Removed unused constants
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -68,6 +67,7 @@ export const LoginPage: React.FC = () => {
     const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
     const isNewMember = effectiveRole === 'member' && memberType === 'new';
     const emailVal = (email || 'user@example.com').trim();
+    const formattedName = fullName?.trim() || '';
 
     const useSupabaseAuth =
       isSupabaseConfigured() &&
@@ -95,12 +95,13 @@ export const LoginPage: React.FC = () => {
               },
               data.session.access_token
             );
-            shouldResetSubmitting = false;
+            setIsSubmitting(false);
             navigate('/panel');
             return;
           }
         } catch (err) {
           setLoginError(err instanceof Error ? err.message : 'Login failed');
+          setIsSubmitting(false);
           return;
         }
       }
@@ -117,11 +118,13 @@ export const LoginPage: React.FC = () => {
           }
           if (data?.session?.user) {
             const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+            setIsSubmitting(false);
             login(
               {
                 role: (r === 'director' ? 'director' : 'member') as LoginRole,
                 email: data.session.user.email ?? emailVal,
                 prant: p ?? undefined,
+                name: formattedName || undefined,
               },
               data.session.access_token
             );
@@ -130,6 +133,7 @@ export const LoginPage: React.FC = () => {
           }
         } catch (err) {
           setLoginError(err instanceof Error ? err.message : 'Login failed');
+          setIsSubmitting(false);
           return;
         }
       }
@@ -149,6 +153,7 @@ export const LoginPage: React.FC = () => {
       name: formattedName || undefined,
       isNewMember,
     });
+    setIsSubmitting(false);
     navigate('/panel');
   };
 

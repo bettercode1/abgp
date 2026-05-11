@@ -184,8 +184,7 @@ export const PanelPage: React.FC = () => {
   const [petitionSavedMessage, setPetitionSavedMessage] = useState('');
   const [petitions, setPetitions] = useState<Petition[]>([]);
   const [apiComplaints, setApiComplaints] = useState<ApiComplaint[]>([]);
-  const [complaintsLoading, setComplaintsLoading] = useState(false);
-  const [contentLoading, setContentLoading] = useState(false);
+
   const handleMissingAuthToken = useCallback(() => {
     setPrantsFetchError('Your session has expired. Please log in again.');
     navigate('/login', { replace: true });
@@ -357,11 +356,9 @@ export const PanelPage: React.FC = () => {
   // Fetch complaints from API when analytics view is opened
   useEffect(() => {
     if (panelView !== 'analytics' || !token || !isApiConfigured()) return;
-    setComplaintsLoading(true);
     fetchComplaintsFromApi(token)
       .then((list) => setApiComplaints(list))
-      .catch((err) => console.error('Failed to fetch complaints:', err))
-      .finally(() => setComplaintsLoading(false));
+      .catch((err) => console.error('Failed to fetch complaints:', err));
   }, [panelView, token]);
 
   // Fetch content from API when section or role changes
@@ -371,7 +368,6 @@ export const PanelPage: React.FC = () => {
     const ownerType = user?.role === 'prant' ? 'prant' : 'director';
     const prantKey = user?.role === 'prant' ? user.prant : undefined;
 
-    setContentLoading(true);
     fetchContentViaApi(token, section, ownerType, prantKey)
       .then((data) => {
         if (data && data.content) {
@@ -381,8 +377,7 @@ export const PanelPage: React.FC = () => {
           }));
         }
       })
-      .catch((err) => console.error('Failed to fetch content:', err))
-      .finally(() => setContentLoading(false));
+      .catch((err) => console.error('Failed to fetch content:', err));
   }, [token, selectedSection, user?.role, user?.prant]);
 
   const isPrant = user?.role === 'prant';
@@ -677,7 +672,7 @@ export const PanelPage: React.FC = () => {
       const localMatch = list.filter((c) => (getComplaintAssignedPrantKey(c) ?? '') === key);
       
       // De-duplicate by ID if possible, otherwise just combine and sort
-      return [...apiMatch, ...localMatch]
+      return ([...apiMatch, ...localMatch] as StoredComplaint[])
         .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     } catch {
       return apiMatch as any;
@@ -709,7 +704,7 @@ export const PanelPage: React.FC = () => {
       if (!Array.isArray(list)) return apiMatch as any;
       const localMatch = list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower);
       
-      return [...apiMatch, ...localMatch]
+      return ([...apiMatch, ...localMatch] as StoredComplaint[])
         .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     } catch {
       return apiMatch as any;
