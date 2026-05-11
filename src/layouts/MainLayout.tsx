@@ -44,8 +44,8 @@ import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { GlobalLoader } from '../components/GlobalLoader';
 import { ScrollProgressIndicator } from '../components/ScrollProgressIndicator';
 import { ThemeName } from '../theme/themes';
-import logoImage from '../assest/Logo 1.jpg';
-import footerLogoImage from '../assest/Untitled design (10).png';
+import logoImage from '../assets/Logo 1.jpg';
+import footerLogoImage from '../assets/Untitled design (10).png';
 
 interface MainLayoutProps {
   children: React.ReactNode;

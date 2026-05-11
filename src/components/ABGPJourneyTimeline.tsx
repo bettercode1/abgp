@@ -47,13 +47,6 @@ const ImpressionClickTrackerHOC: React.FC<ImpressionClickTrackerHOCProps> = ({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasTracked) {
-          // Track impression
-          console.log('Impression tracked:', {
-            clickEvent,
-            trackerId,
-            displayName,
-            listingId,
-          });
           setHasTracked(true);
         }
       },
@@ -73,14 +66,7 @@ const ImpressionClickTrackerHOC: React.FC<ImpressionClickTrackerHOCProps> = ({
     };
   }, [clickEvent, disableViewportTracking, hasTracked, trackerId, displayName, listingId]);
 
-  const handleClick = () => {
-    console.log('Click tracked:', {
-      clickEvent,
-      trackerId,
-      displayName,
-      listingId,
-    });
-  };
+  const handleClick = () => {};
 
   return (
     <div

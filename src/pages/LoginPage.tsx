@@ -7,6 +7,7 @@ import {
   TextField,
   MenuItem,
   Button,
+  CircularProgress,
   useTheme,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,8 @@ import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/s
 
 type MemberType = 'new' | 'existing';
 type NameTitle = 'Mr' | 'Ms';
+const DIRECTOR_ALLOWED_EMAIL = 'director@abgp.in';
+const DIRECTOR_LOGIN_ERROR = 'Invalid director credentials';
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -50,6 +53,7 @@ export const LoginPage: React.FC = () => {
   const [city, setCity] = useState('');
   const [prant, setPrant] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const districtOptions = state ? getDistrictsForState(state) : [];
 
@@ -59,81 +63,154 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setLoginError('');
-    const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
-    const isNewMember = effectiveRole === 'member' && memberType === 'new';
-    const emailVal = (email || 'user@example.com').trim();
+    let shouldResetSubmitting = true;
+    try {
+      const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
+      const isNewMember = effectiveRole === 'member' && memberType === 'new';
+      const emailVal = (email || 'user@example.com').trim();
+      const normalizedEmail = emailVal.toLowerCase();
 
-    const useSupabaseAuth =
-      isSupabaseConfigured() &&
-      emailVal &&
-      password &&
-      (loginMode === 'director' || (loginMode === 'member' && role === 'prant'));
-    if (useSupabaseAuth) {
-      const supabase = getSupabase();
-      if (supabase) {
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
-          if (error) {
-            setLoginError(error.message ?? 'Login failed');
-            return;
-          }
-          if (data?.session?.user) {
-            const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
-            const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
-            login(
-              {
-                role: authRole,
-                email: data.session.user.email ?? emailVal,
-                prant: p ?? undefined,
-              },
-              data.session.access_token
-            );
-            navigate('/panel');
-            return;
-          }
-        } catch (err) {
-          setLoginError(err instanceof Error ? err.message : 'Login failed');
+      if (loginMode === 'director') {
+        if (!emailVal || !password) {
+          setLoginError(DIRECTOR_LOGIN_ERROR);
           return;
         }
-      }
-    }
 
-    if (loginMode === 'director' && emailVal && password && isApiConfigured()) {
-      try {
-        const res = await loginWithApi(emailVal, password);
-        login(
-          {
-            role: res.user.role as LoginRole,
-            email: res.user.email,
-            name: res.user.name,
-            prant: res.user.prant,
-          },
-          res.token
-        );
-        navigate('/panel');
-        return;
-      } catch (err) {
-        setLoginError(err instanceof Error ? err.message : 'Login failed');
+        if (normalizedEmail !== DIRECTOR_ALLOWED_EMAIL) {
+          setLoginError(DIRECTOR_LOGIN_ERROR);
+          return;
+        }
+
+        if (isSupabaseConfigured()) {
+          const supabase = getSupabase();
+          if (supabase) {
+            try {
+              const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
+              if (error) {
+                setLoginError(error.message ?? 'Login failed');
+                return;
+              }
+              if (data?.session?.user) {
+                const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+                const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
+                const sessionEmail = (data.session.user.email ?? '').toLowerCase();
+                if (authRole !== 'director' || sessionEmail !== DIRECTOR_ALLOWED_EMAIL) {
+                  await supabase.auth.signOut();
+                  setLoginError(DIRECTOR_LOGIN_ERROR);
+                  return;
+                }
+                login(
+                  {
+                    role: authRole,
+                    email: data.session.user.email ?? emailVal,
+                    prant: p ?? undefined,
+                  },
+                  data.session.access_token
+                );
+                shouldResetSubmitting = false;
+                navigate('/panel');
+                return;
+              }
+              setLoginError('Login failed');
+              return;
+            } catch (_err) {
+              setLoginError(DIRECTOR_LOGIN_ERROR);
+              return;
+            }
+          }
+        }
+
+        if (isApiConfigured()) {
+          try {
+            const res = await loginWithApi(emailVal, password);
+            if ((res.user.email ?? '').toLowerCase() !== DIRECTOR_ALLOWED_EMAIL || res.user.role !== 'director') {
+              setLoginError(DIRECTOR_LOGIN_ERROR);
+              return;
+            }
+            login(
+              {
+                role: 'director',
+                email: res.user.email,
+                name: res.user.name,
+                prant: res.user.prant,
+              },
+              res.token
+            );
+            shouldResetSubmitting = false;
+            navigate('/panel');
+            return;
+          } catch (_err) {
+            setLoginError(DIRECTOR_LOGIN_ERROR);
+            return;
+          }
+        }
+
+        setLoginError(DIRECTOR_LOGIN_ERROR);
         return;
       }
-    }
-    if (effectiveRole === 'member' || effectiveRole === 'prant') {
-      addMember({
+
+      const useSupabaseAuth =
+        isSupabaseConfigured() &&
+        emailVal &&
+        password &&
+        loginMode === 'member' &&
+        role === 'prant';
+      if (useSupabaseAuth) {
+        const supabase = getSupabase();
+        if (supabase) {
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
+            if (error) {
+              setLoginError(error.message ?? 'Login failed');
+              return;
+            }
+            if (data?.session?.user) {
+              const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+              const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
+              login(
+                {
+                  role: authRole,
+                  email: data.session.user.email ?? emailVal,
+                  prant: p ?? undefined,
+                },
+                data.session.access_token
+              );
+              shouldResetSubmitting = false;
+              navigate('/panel');
+              return;
+            }
+          } catch (err) {
+            setLoginError(err instanceof Error ? err.message : 'Login failed');
+            return;
+          }
+        }
+      }
+
+      if (effectiveRole === 'member' || effectiveRole === 'prant') {
+        addMember({
+          email: emailVal,
+          name: formattedName || undefined,
+          role: effectiveRole,
+          prant: effectiveRole === 'prant' ? prant || undefined : undefined,
+          isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
+        });
+      }
+      login({
+        role: effectiveRole,
         email: emailVal,
         name: formattedName || undefined,
-        role: effectiveRole,
-        prant: effectiveRole === 'prant' ? prant || undefined : undefined,
-        isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
+        isNewMember,
       });
+      shouldResetSubmitting = false;
+      navigate('/panel');
+    } finally {
+      if (shouldResetSubmitting) {
+        setIsSubmitting(false);
+      }
     }
-    login({
-      role: effectiveRole,
-      email: emailVal,
-      name: formattedName || undefined,
-      isNewMember,
-    });
-    navigate('/panel');
   };
 
   const textFieldStyles = {
@@ -428,6 +505,8 @@ export const LoginPage: React.FC = () => {
                   color="primary"
                   size="large"
                   fullWidth
+                  disabled={isSubmitting}
+                  startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : undefined}
                   sx={{
                     py: 1.75,
                     borderRadius: 2.5,
@@ -443,7 +522,7 @@ export const LoginPage: React.FC = () => {
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  {t('login.button')}
+                  {isSubmitting ? 'Please wait...' : t('login.button')}
                 </Button>
               </Box>
             </Box>

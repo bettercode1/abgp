@@ -44,7 +44,21 @@ import {
   type DirectorVideo,
 } from '../lib/directorContent';
 import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
-import { fetchMembersFromApi, addMemberViaApi, deleteMemberViaApi, fetchPrantsFromApi, changePrantPassword, isApiConfigured, type ApiMember, type ApiPrant } from '../lib/api';
+import {
+  fetchMembersFromApi,
+  addMemberViaApi,
+  deleteMemberViaApi,
+  fetchPrantsFromApi,
+  changePrantPassword,
+  isApiConfigured,
+  fetchContentViaApi,
+  saveContentViaApi,
+  addComplaintViaApi,
+  fetchComplaintsFromApi,
+  type ApiMember,
+  type ApiPrant,
+  type ApiComplaint
+} from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
@@ -168,6 +182,9 @@ export const PanelPage: React.FC = () => {
   const [petitionTargetEmail, setPetitionTargetEmail] = useState('');
   const [petitionSavedMessage, setPetitionSavedMessage] = useState('');
   const [petitions, setPetitions] = useState<Petition[]>([]);
+  const [apiComplaints, setApiComplaints] = useState<ApiComplaint[]>([]);
+  const [complaintsLoading, setComplaintsLoading] = useState(false);
+  const [contentLoading, setContentLoading] = useState(false);
   const handleMissingAuthToken = useCallback(() => {
     setPrantsFetchError('Your session has expired. Please log in again.');
     navigate('/login', { replace: true });
@@ -327,6 +344,37 @@ export const PanelPage: React.FC = () => {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [user?.role, token, refetchMembersFromApi]);
 
+  // Fetch complaints from API when analytics view is opened
+  useEffect(() => {
+    if (panelView !== 'analytics' || !token || !isApiConfigured()) return;
+    setComplaintsLoading(true);
+    fetchComplaintsFromApi(token)
+      .then((list) => setApiComplaints(list))
+      .catch((err) => console.error('Failed to fetch complaints:', err))
+      .finally(() => setComplaintsLoading(false));
+  }, [panelView, token]);
+
+  // Fetch content from API when section or role changes
+  useEffect(() => {
+    if (!token || !isApiConfigured()) return;
+    const section = user?.role === 'prant' ? 'news' : selectedSection;
+    const ownerType = user?.role === 'prant' ? 'prant' : 'director';
+    const prantKey = user?.role === 'prant' ? user.prant : undefined;
+
+    setContentLoading(true);
+    fetchContentViaApi(token, section, ownerType, prantKey)
+      .then((data) => {
+        if (data && data.content) {
+          setDirectorContentBySection((prev) => ({
+            ...prev,
+            [section]: data.content
+          }));
+        }
+      })
+      .catch((err) => console.error('Failed to fetch content:', err))
+      .finally(() => setContentLoading(false));
+  }, [token, selectedSection, user?.role, user?.prant]);
+
   const isPrant = user?.role === 'prant';
   const effectiveSection: DirectorSectionKey = isPrant ? 'news' : selectedSection;
   const isSinglePostSection = effectiveSection === 'news' || effectiveSection === 'blog' || effectiveSection === 'events';
@@ -335,14 +383,25 @@ export const PanelPage: React.FC = () => {
   const isAdsSection = effectiveSection === 'ads';
   const sectionContent = directorContentBySection[effectiveSection] ?? { images: [], texts: [], videos: [] };
 
-  const saveContent = useCallback((section: DirectorSectionKey, updates: Partial<typeof sectionContent>) => {
-    setDirectorContentBySection((prev) => {
-      const next = { ...prev };
-      next[section] = { ...(next[section] ?? { images: [], texts: [], videos: [] }), ...updates };
-      saveDirectorContentBySection(next);
-      return next;
-    });
-  }, []);
+  const saveContent = useCallback(async (section: DirectorSectionKey, updates: Partial<typeof sectionContent>) => {
+    const current = directorContentBySection[section] ?? { images: [], texts: [], videos: [] };
+    const next = { ...current, ...updates };
+
+    // Update local state immediately
+    setDirectorContentBySection((prev) => ({ ...prev, [section]: next }));
+
+    if (token && isApiConfigured()) {
+      try {
+        await saveContentViaApi(token, section, next);
+      } catch (err) {
+        console.error('Failed to save content to API:', err);
+      }
+    }
+    
+    // Always backup to localStorage
+    const allContent = { ...directorContentBySection, [section]: next };
+    saveDirectorContentBySection(allContent);
+  }, [token, directorContentBySection]);
 
   const MAX_IMAGE_SIZE_MB = 2;
   const MAX_IMAGE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
@@ -567,16 +626,24 @@ export const PanelPage: React.FC = () => {
   const getComplaintsForAssignedPrant = (prantKey: string): StoredComplaint[] => {
     const key = normalizePrantKey(prantKey);
     if (!key) return [];
+    
+    // Combine API and localStorage
+    const apiMatch = apiComplaints
+      .filter((c) => normalizePrantKey((c as any).assignedPrantKey) === key)
+      .map(c => ({ ...c, assignedPrantKey: (c as any).assignedPrantKey }));
+
     try {
       const raw = localStorage.getItem('abgp-complaints');
-      if (!raw) return [];
+      if (!raw) return apiMatch as any;
       const list = JSON.parse(raw) as StoredComplaint[];
-      if (!Array.isArray(list)) return [];
-      return list
-        .filter((c) => (getComplaintAssignedPrantKey(c) ?? '') === key)
+      if (!Array.isArray(list)) return apiMatch as any;
+      const localMatch = list.filter((c) => (getComplaintAssignedPrantKey(c) ?? '') === key);
+      
+      // De-duplicate by ID if possible, otherwise just combine and sort
+      return [...apiMatch, ...localMatch]
         .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     } catch {
-      return [];
+      return apiMatch as any;
     }
   };
 
@@ -594,15 +661,21 @@ export const PanelPage: React.FC = () => {
   };
 
   const getComplaintsForEmail = (email: string): StoredComplaint[] => {
+    const lower = normalizeEmail(email);
+    
+    const apiMatch = apiComplaints.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower);
+
     try {
       const raw = localStorage.getItem('abgp-complaints');
-      if (!raw) return [];
+      if (!raw) return apiMatch as any;
       const list = JSON.parse(raw) as StoredComplaint[];
-      if (!Array.isArray(list)) return [];
-      const lower = normalizeEmail(email);
-      return list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower);
+      if (!Array.isArray(list)) return apiMatch as any;
+      const localMatch = list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower);
+      
+      return [...apiMatch, ...localMatch]
+        .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     } catch {
-      return [];
+      return apiMatch as any;
     }
   };
 
@@ -703,7 +776,7 @@ export const PanelPage: React.FC = () => {
     });
   };
 
-  const handleHelpSubmit = (e: React.FormEvent) => {
+  const handleHelpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isComplaintCategory(subject)) {
       try {
@@ -727,22 +800,45 @@ export const PanelPage: React.FC = () => {
           formData: complaintFormData,
           message,
           contact,
-          at: new Date().toISOString(),
           memberEmail: memberEmailVal,
           assignedPrantKey,
         };
+
+        // 1. Save to API if configured
+        if (token && isApiConfigured()) {
+          try {
+            await addComplaintViaApi(token, payload);
+          } catch (err) {
+            console.error('Failed to add complaint via API:', err);
+          }
+        }
+
+        // 2. Backup to localStorage (legacy)
         const stored = JSON.parse(localStorage.getItem('abgp-complaints') || '[]');
-        stored.push(payload);
+        stored.push({ ...payload, at: new Date().toISOString() });
         localStorage.setItem('abgp-complaints', JSON.stringify(stored));
+
         if (memberEmailVal && memberEmailVal.includes('@')) {
           const existing = getMembers().some((m) => m.email.toLowerCase() === memberEmailVal);
           if (!existing) {
-            addMember({
+            const memberData = {
               email: memberEmailVal,
               name: user?.name || contact || memberEmailVal.split('@')[0],
-              role: 'member',
-              isNewMember: true,
+              role: 'member' as const,
               prant: assignedPrantKey,
+            };
+            
+            if (token && isApiConfigured()) {
+              try {
+                await addMemberViaApi(token, memberData);
+              } catch (err) {
+                console.error('Failed to add member via API:', err);
+              }
+            }
+            
+            addMember({
+              ...memberData,
+              isNewMember: true,
             });
           }
         }
@@ -752,8 +848,13 @@ export const PanelPage: React.FC = () => {
         setComplaintFormData({});
         setMessage('');
         setContact('');
-      } catch {
-        // ignore
+        
+        // Refresh complaints list if on analytics view
+        if (panelView === 'analytics' && token) {
+          fetchComplaintsFromApi(token).then(setApiComplaints).catch(() => {});
+        }
+      } catch (err) {
+        console.error('Error submitting help/complaint:', err);
       }
       return;
     }

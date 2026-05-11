@@ -113,7 +113,6 @@ export async function fetchPrantsFromApi(token: string): Promise<ApiPrant[]> {
   const supabase = getSupabase();
   const { data: sessionData } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
   const sessionToken = sessionData.session?.access_token ?? token ?? null;
-  console.log(sessionToken);
   if (!sessionToken) {
     if (typeof window !== 'undefined') {
       window.location.replace('/login');
@@ -149,4 +148,73 @@ export async function changePrantPassword(
     method: 'POST',
     body: JSON.stringify({ newPassword }),
   }, true);
+}
+
+export interface ApiContent {
+  section: string;
+  content: {
+    images: any[];
+    texts: any[];
+    videos: any[];
+  };
+  ownerType: 'director' | 'prant';
+  prantKey?: string;
+  updatedAt?: string;
+}
+
+export async function fetchContentViaApi(
+  token: string,
+  section: string,
+  ownerType?: 'director' | 'prant',
+  prantKey?: string
+): Promise<ApiContent> {
+  let url = `${API_BASE}/content?section=${section}`;
+  if (ownerType) url += `&owner_type=${ownerType}`;
+  if (prantKey) url += `&prant_key=${prantKey}`;
+  return fetchJson<ApiContent>(url, token, {}, true);
+}
+
+export async function saveContentViaApi(
+  token: string,
+  section: string,
+  content: any
+): Promise<ApiContent> {
+  return fetchJson<ApiContent>(`${API_BASE}/content`, token, {
+    method: 'PUT',
+    body: JSON.stringify({ section, content }),
+  }, true);
+}
+
+export interface ApiComplaint {
+  id: string;
+  memberEmail?: string;
+  contact?: string;
+  category?: string;
+  formData?: any;
+  message?: string;
+  at: string;
+}
+
+export async function fetchComplaintsFromApi(token: string, memberEmail?: string): Promise<ApiComplaint[]> {
+  let url = `${API_BASE}/complaints`;
+  if (memberEmail) url += `?member_email=${encodeURIComponent(memberEmail)}`;
+  const data = await fetchJson<{ complaints: ApiComplaint[] }>(url, token, {}, true);
+  return data.complaints;
+}
+
+export async function addComplaintViaApi(
+  token: string,
+  data: {
+    memberEmail?: string;
+    contact?: string;
+    category?: string;
+    formData?: any;
+    message?: string;
+  }
+): Promise<ApiComplaint> {
+  const res = await fetchJson<{ complaint: ApiComplaint }>(`${API_BASE}/complaints`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }, true);
+  return res.complaint;
 }
