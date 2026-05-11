@@ -61,23 +61,27 @@ export const BlogsPage: React.FC = () => {
     },
   ];
 
-  const directorBlogsForDisplay = directorBlogs.texts.length
-    ? directorBlogs.texts.map((txt, idx) => ({
-        id: txt.id,
-        title: txt.title || 'Blog',
-        date: directorBlogs.images[idx]?.caption || directorBlogs.images[0]?.caption || '—',
-        content: txt.body || '',
-        category: t('media.blogs'),
-        image: directorBlogs.images[idx]?.url,
-      }))
-    : directorBlogs.images.map((img) => ({
-        id: img.id,
-        title: img.caption || 'Blog',
-        date: img.caption || '—',
-        content: '',
-        category: t('media.blogs'),
-        image: img.url,
-      }));
+  const mergedBlogs = useMemo(() => {
+    const directorList = directorBlogs.texts.length
+      ? directorBlogs.texts.map((txt, idx) => ({
+          id: txt.id,
+          title: txt.title || 'Blog',
+          date: directorBlogs.images[idx]?.caption || directorBlogs.images[0]?.caption || '—',
+          content: txt.body || '',
+          category: t('media.blogs'),
+          image: directorBlogs.images[idx]?.url,
+        }))
+      : directorBlogs.images.map((img) => ({
+          id: img.id,
+          title: img.caption || 'Blog',
+          date: img.caption || '—',
+          content: '',
+          category: t('media.blogs'),
+          image: img.url,
+        }));
+    
+    return [...directorList, ...blogs];
+  }, [directorBlogs, blogs, t]);
 
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
@@ -93,83 +97,18 @@ export const BlogsPage: React.FC = () => {
           {t('media.blog.pageTitle')}
         </Typography>
 
-        {directorBlogsForDisplay.length > 0 && (
-          <>
-            <Typography variant="h6" color="primary" fontWeight={700} sx={{ mb: 2 }}>
-              {t('panel.directorAdded')}
-            </Typography>
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              {directorBlogsForDisplay.map((blog, index) => (
-                <Grid item xs={12} md={6} key={blog.id}>
-                  <Card sx={{ borderRadius: 2, boxShadow: theme.shadows[2], height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    {blog.image ? (
-                      <Box
-                        component="img"
-                        src={blog.image}
-                        alt={blog.title}
-                        sx={{ width: '100%', height: 220, objectFit: 'cover' }}
-                      />
-                    ) : null}
-                    <CardContent sx={{ p: 3, flexGrow: 1 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                        <Chip label={blog.category} color="primary" size="small" variant="outlined" />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
-                          <CalendarToday sx={{ fontSize: 16 }} />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {blog.date}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                      <Typography variant="h6" fontWeight={700} gutterBottom>
-                        {blog.title}
-                      </Typography>
-                      {blog.content ? (
-                        <>
-                          <Divider sx={{ my: 1.5 }} />
-                          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                            <Box
-                              component="span"
-                              sx={{
-                                display: '-webkit-box',
-                                WebkitBoxOrient: 'vertical',
-                                WebkitLineClamp: expandedDirectorBlog === index ? 'unset' : 3,
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {blog.content}
-                            </Box>
-                          </Typography>
-                          <Button
-                            size="small"
-                            variant="text"
-                            color="primary"
-                            onClick={() => setExpandedDirectorBlog((prev) => (prev === index ? null : index))}
-                            sx={{ mt: 1, px: 0, fontWeight: 600 }}
-                          >
-                            {expandedDirectorBlog === index ? 'Show less' : `${t('media.readMore')} →`}
-                          </Button>
-                        </>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </>
-        )}
-
         <Grid container spacing={3}>
-          {blogs.map((blog, index) => (
+          {mergedBlogs.map((blog, index) => (
             <Grid item xs={12} md={6} key={blog.id}>
-              <Card
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: theme.shadows[2],
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <Card sx={{ borderRadius: 2, boxShadow: theme.shadows[2], height: '100%', display: 'flex', flexDirection: 'column' }}>
+                {(blog as any).image ? (
+                  <Box
+                    component="img"
+                    src={(blog as any).image}
+                    alt={blog.title}
+                    sx={{ width: '100%', height: 220, objectFit: 'cover' }}
+                  />
+                ) : null}
                 <CardContent sx={{ p: 3, flexGrow: 1 }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
                     <Chip label={blog.category} color="primary" size="small" variant="outlined" />
@@ -180,41 +119,36 @@ export const BlogsPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </Stack>
-
-                  <Typography variant="h6" component="h2" fontWeight={700} gutterBottom>
+                  <Typography variant="h6" fontWeight={700} gutterBottom>
                     {blog.title}
                   </Typography>
-
-                  <Stack direction="row" spacing={1} sx={{ color: 'text.secondary', mb: 1.5 }}>
-                    <Person sx={{ fontSize: 16 }} />
-                    <Typography variant="body2">{blog.author}</Typography>
-                  </Stack>
-
-                  <Divider sx={{ my: 1.5 }} />
-
-                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                    <Box
-                      component="span"
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: expandedExistingBlog === index ? 'unset' : 4,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {blog.content}
-                    </Box>
-                  </Typography>
-
-                  <Button
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    onClick={() => setExpandedExistingBlog((prev) => (prev === index ? null : index))}
-                    sx={{ mt: 1, px: 0, fontWeight: 600 }}
-                  >
-                    {expandedExistingBlog === index ? 'Show less' : `${t('media.readMore')} →`}
-                  </Button>
+                  {blog.content ? (
+                    <>
+                      <Divider sx={{ my: 1.5 }} />
+                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                        <Box
+                          component="span"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: expandedDirectorBlog === index ? 'unset' : 4,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {blog.content}
+                        </Box>
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        onClick={() => setExpandedDirectorBlog((prev) => (prev === index ? null : index))}
+                        sx={{ mt: 1, px: 0, fontWeight: 600 }}
+                      >
+                        {expandedDirectorBlog === index ? 'Show less' : `${t('media.readMore')} →`}
+                      </Button>
+                    </>
+                  ) : null}
                 </CardContent>
               </Card>
             </Grid>

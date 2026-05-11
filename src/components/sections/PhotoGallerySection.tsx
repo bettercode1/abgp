@@ -16,6 +16,7 @@ import {
 import { Close, ZoomIn, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useDirectorContent } from '../../hooks/useDirectorContent';
 
 // Dynamic import of all images using Vite's import.meta.glob
 const imageModules = import.meta.glob('../../assets/images/*.jpeg', { eager: true });
@@ -50,8 +51,25 @@ export const PhotoGallerySection: React.FC = () => {
       .sort((a, b) => a.number - b.number);
   }, []);
 
+  const directorContent = useDirectorContent('gallery');
+  
+  const mergedImages = useMemo(() => {
+    const list = [...allImages];
+    if (directorContent.images.length > 0) {
+      directorContent.images.forEach(img => {
+        list.push({
+          id: img.id,
+          src: img.url,
+          filename: img.caption || 'Added Image',
+          number: 999,
+        });
+      });
+    }
+    return list;
+  }, [allImages, directorContent.images]);
+
   // Show first 12 images on homepage
-  const displayedImages = allImages.slice(0, 12);
+  const displayedImages = mergedImages.slice(0, 12);
 
   const handleImageClick = (image: GalleryImage) => {
     setSelectedImage(image);
@@ -63,17 +81,17 @@ export const PhotoGallerySection: React.FC = () => {
 
   const handlePreviousImage = () => {
     if (!selectedImage) return;
-    const currentIndex = allImages.findIndex((img) => img.id === selectedImage.id);
+    const currentIndex = mergedImages.findIndex((img) => img.id === selectedImage.id);
     if (currentIndex > 0) {
-      setSelectedImage(allImages[currentIndex - 1]);
+      setSelectedImage(mergedImages[currentIndex - 1]);
     }
   };
 
   const handleNextImage = () => {
     if (!selectedImage) return;
-    const currentIndex = allImages.findIndex((img) => img.id === selectedImage.id);
-    if (currentIndex < allImages.length - 1) {
-      setSelectedImage(allImages[currentIndex + 1]);
+    const currentIndex = mergedImages.findIndex((img) => img.id === selectedImage.id);
+    if (currentIndex < mergedImages.length - 1) {
+      setSelectedImage(mergedImages[currentIndex + 1]);
     }
   };
 
@@ -91,8 +109,8 @@ export const PhotoGallerySection: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [selectedImage]);
 
-  const currentIndex = selectedImage 
-    ? allImages.findIndex((img) => img.id === selectedImage.id) + 1 
+  const currentIndexInMerged = selectedImage 
+    ? mergedImages.findIndex((img) => img.id === selectedImage.id) + 1 
     : 0;
 
   return (
@@ -226,7 +244,7 @@ export const PhotoGallerySection: React.FC = () => {
             </IconButton>
 
             {/* Previous Button */}
-            {currentIndex > 1 && (
+            {currentIndexInMerged > 1 && (
               <IconButton
                 onClick={handlePreviousImage}
                 sx={{
@@ -246,7 +264,7 @@ export const PhotoGallerySection: React.FC = () => {
             )}
 
             {/* Next Button */}
-            {currentIndex < allImages.length && (
+            {currentIndexInMerged < mergedImages.length && (
               <IconButton
                 onClick={handleNextImage}
                 sx={{
@@ -280,7 +298,7 @@ export const PhotoGallerySection: React.FC = () => {
                 }}
               >
                 <Typography variant="body2" sx={{ fontWeight: 600, color: 'white' }}>
-                  {currentIndex} / {allImages.length}
+                  {currentIndexInMerged} / {mergedImages.length}
                 </Typography>
               </Paper>
             )}

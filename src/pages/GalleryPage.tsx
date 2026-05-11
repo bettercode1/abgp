@@ -19,7 +19,7 @@ import {
 import { Close, ZoomIn, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
-import { DirectorContentBlock } from '../components/DirectorContentBlock';
+import { useDirectorContent } from '../hooks/useDirectorContent';
 
 // Dynamic import of all images using Vite's import.meta.glob
 const imageModules = import.meta.glob('../assets/images/*.jpeg', { eager: true });
@@ -54,12 +54,33 @@ export const GalleryPage: React.FC = () => {
       .sort((a, b) => a.number - b.number);
   }, []);
 
+  const directorContent = useDirectorContent('gallery');
+  
   // Use all images (no filtering)
-  const filteredImages = allImages;
+  const filteredImages = useMemo(() => {
+    // Start with static images
+    const list = [...allImages];
+    
+    // Append director images
+    if (directorContent.images.length > 0) {
+      directorContent.images.forEach(img => {
+        // Map to GalleryImage shape
+        list.push({
+          id: img.id,
+          src: img.url,
+          filename: img.caption || 'Added Image',
+          number: 999, // New images go to the end
+        });
+      });
+    }
+    
+    return list;
+  }, [allImages, directorContent.images]);
 
-  // Pagination settings - Always 2 pages (divide images equally)
-  const totalPages = 2;
-  const imagesPerPage = Math.ceil(filteredImages.length / totalPages);
+  // Pagination settings - Keep 2 pages if possible, or standard 24 per page?
+  // Let's use 24 per page for better scaling as user adds more images.
+  const imagesPerPage = 24;
+  const totalPages = Math.ceil(filteredImages.length / imagesPerPage);
   
   // Get images for current page
   const currentImages = useMemo(() => {
@@ -123,7 +144,7 @@ export const GalleryPage: React.FC = () => {
           <Typography color="text.primary">{t('gallery.title')}</Typography>
         </Breadcrumbs>
 
-        <DirectorContentBlock section="gallery" showTitle />
+
 
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>

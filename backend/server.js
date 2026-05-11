@@ -30,8 +30,9 @@ app.post('/api/auth/login', (req, res) => {
 app.use('/api/auth', authRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
-app.use('/api/content', requireAuth, requireDirectorOrPrant, contentRouter);
-app.use('/api/members', requireAuth, requireDirector, membersRouter);
+app.get('/api/content', contentRouter); // Public GET
+app.use('/api/content', requireAuth, requireDirectorOrPrant, contentRouter); // Protected PUT/DELETE
+// app.use('/api/members', requireAuth, requireDirector, membersRouter); // DISABLED PER REQUEST
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 
 app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants' }));

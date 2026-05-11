@@ -64,4 +64,15 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM complaints WHERE id = $1', [id]);
+    res.status(204).end();
+  } catch (err) {
+    console.error('Complaint delete error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

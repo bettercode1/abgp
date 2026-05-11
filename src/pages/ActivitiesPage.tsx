@@ -29,6 +29,7 @@ import {
   CalendarMonth,
   HistoryEdu,
 } from '@mui/icons-material';
+import { useDirectorContent } from '../hooks/useDirectorContent';
 
 // Assets
 import submission from '../assets/abgp-2/activities/submission.jpg';
@@ -36,6 +37,7 @@ import submission from '../assets/abgp-2/activities/submission.jpg';
 export const ActivitiesPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const directorEvents = useDirectorContent('events');
 
   const activityCategories = [
     {
@@ -193,6 +195,13 @@ export const ActivitiesPage: React.FC = () => {
                     <Typography variant="subtitle2" fontWeight={700}>{t('activities.events.rallies')}</Typography>
                     <Typography variant="body2">{t('activities.events.ralliesDesc')}</Typography>
                   </Box>
+                  
+                  {directorEvents.texts.map((txt) => (
+                    <Box key={txt.id} sx={{ p: 2, borderRadius: 2, backgroundColor: theme.palette.primary.light, color: 'primary.contrastText' }}>
+                      <Typography variant="subtitle2" fontWeight={700}>{txt.title}</Typography>
+                      <Typography variant="body2">{txt.body}</Typography>
+                    </Box>
+                  ))}
                 </Stack>
               </Card>
             </Stack>

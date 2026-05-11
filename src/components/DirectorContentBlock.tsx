@@ -44,7 +44,7 @@ export const DirectorContentBlock: React.FC<DirectorContentBlockProps> = ({
         <Box sx={{ mb: 3 }}>
           <Grid container spacing={2}>
             {content.images.map((img) => (
-              <Grid item xs={12} sm={6} md={4} key={img.id}>
+              <Grid item xs={6} sm={4} md={3} key={img.id}>
                 <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', height: '100%' }}>
                   <CardMedia
                     component="img"

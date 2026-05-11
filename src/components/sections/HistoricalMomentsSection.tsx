@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { DirectorContentBlock } from '../DirectorContentBlock';
 
 // Historical Images
 import formation1975 from '../../assets/abgp-2/homepage/formation_1975.jpg';
@@ -183,6 +184,22 @@ const moments: Moment[] = [
   },
 ];
 
+const useMergedMoments = () => {
+  const directorContent = useDirectorContent('gallery');
+  const { t } = useTranslation();
+  
+  return useMemo(() => {
+    const directorMoments: Moment[] = directorContent.images.map(img => ({
+      year: t('common.recent', 'Recent'),
+      titleKey: img.caption || 'Added Moment',
+      descKey: '', // No desc for gallery images usually
+      image: img.url,
+      isDirector: true
+    }));
+    return [...moments, ...directorMoments];
+  }, [directorContent.images, t]);
+};
+
 const ParallaxYear: React.FC<{ year: string }> = ({ year }) => {
   const theme = useTheme();
   const ref = useRef(null);
@@ -219,8 +236,9 @@ const ParallaxYear: React.FC<{ year: string }> = ({ year }) => {
 export const HistoricalMomentsSection: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const mergedMoments = useMergedMoments();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [activeYear, setActiveYear] = useState(moments[0].year);
+  const [activeYear, setActiveYear] = useState(mergedMoments[0].year);
   const containerRef = useRef(null);
 
   const { scrollYProgress } = useScroll({
@@ -234,17 +252,17 @@ export const HistoricalMomentsSection: React.FC = () => {
     restDelta: 0.001
   });
 
-  const years = Array.from(new Set(moments.map(m => m.year))).sort();
+  const years = Array.from(new Set(mergedMoments.map(m => m.year)));
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 400;
-      const elements = moments.map((_, i) => document.getElementById(`moment-${i}`));
+      const elements = mergedMoments.map((_, i) => document.getElementById(`moment-${i}`));
       
       for (let i = elements.length - 1; i >= 0; i--) {
         const el = elements[i];
         if (el && el.offsetTop <= scrollPosition) {
-          setActiveYear(moments[i].year);
+          setActiveYear(mergedMoments[i].year);
           break;
         }
       }
@@ -255,7 +273,7 @@ export const HistoricalMomentsSection: React.FC = () => {
   }, []);
 
   const scrollToYear = (year: string) => {
-    const index = moments.findIndex(m => m.year === year);
+    const index = mergedMoments.findIndex(m => m.year === year);
     const element = document.getElementById(`moment-${index}`);
     if (element) {
       window.scrollTo({
@@ -385,7 +403,7 @@ export const HistoricalMomentsSection: React.FC = () => {
             </Box>
           )}
 
-          {moments.map((moment, index) => (
+          {mergedMoments.map((moment, index) => (
             <Box
               key={index}
               id={`moment-${index}`}
@@ -425,7 +443,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                     >
                       <motion.img
                         src={moment.image}
-                        alt={t(moment.titleKey)}
+                        alt={(moment as any).isDirector ? moment.titleKey : t(moment.titleKey)}
                         style={{
                           width: '100%',
                           height: isMobile ? 300 : 500,
@@ -463,7 +481,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                           mb: 3
                         }}
                       >
-                        {t(moment.titleKey)}
+                        {(moment as any).isDirector ? moment.titleKey : t(moment.titleKey)}
                       </Typography>
                       
                       <Box sx={{ 
@@ -485,7 +503,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                           opacity: 0.8
                         }}
                       >
-                        {t(moment.descKey)}
+                        {(moment as any).isDirector ? moment.descKey : t(moment.descKey)}
                       </Typography>
                     </Box>
                   </motion.div>
@@ -535,6 +553,8 @@ export const HistoricalMomentsSection: React.FC = () => {
             </Box>
           ))}
         </Box>
+
+        {/* Director content is now merged above */}
       </Container>
 
       {/* Floating Decorative Elements */}

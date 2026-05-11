@@ -6,7 +6,7 @@ const express = require('express');
 const { pool } = require('../db');
 
 const router = express.Router();
-const SECTIONS = ['history', 'blog', 'news', 'videos', 'gallery', 'home'];
+const SECTIONS = ['history', 'blog', 'news', 'events', 'videos', 'gallery', 'home', 'ads'];
 
 function toContent(row) {
   return {
@@ -61,6 +61,15 @@ router.put('/', async (req, res) => {
     const content = contentPayload && typeof contentPayload === 'object'
       ? contentPayload
       : { images: [], texts: [], videos: [] };
+    
+    console.log(`[DB] Attempting to save content for section: ${section}`);
+    console.log(`[DB] Does it contain images? Images count: ${content.images?.length || 0}`);
+    if (content.images?.length > 0) {
+      const firstImg = content.images[0];
+      const preview = typeof firstImg === 'string' ? firstImg.substring(0, 50) : JSON.stringify(firstImg).substring(0, 50);
+      console.log(`[DB] First image preview: ${preview}...`);
+    }
+
     const existing = await pool.query(
       'SELECT id FROM content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
       [section, ownerType, prantKey || null]
@@ -82,6 +91,28 @@ router.put('/', async (req, res) => {
     res.json(toContent(row));
   } catch (err) {
     console.error('Content put error:', err);
+    res.status(500).json({ error: err.message || 'Server error' });
+  }
+});
+
+router.delete('/', async (req, res) => {
+  try {
+    const { section } = req.query;
+    if (!section || !SECTIONS.includes(section)) {
+      return res.status(400).json({ error: 'Valid section required' });
+    }
+    const ownerType = req.user?.role === 'prant' ? 'prant' : 'director';
+    const prantKey = ownerType === 'prant' ? req.user?.prant : null;
+    if (ownerType === 'prant' && section !== 'news') {
+      return res.status(403).json({ error: 'Prant can only delete News section' });
+    }
+    await pool.query(
+      'DELETE FROM content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
+      [section, ownerType, prantKey || null]
+    );
+    res.status(204).end();
+  } catch (err) {
+    console.error('Content delete error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

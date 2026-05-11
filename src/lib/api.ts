@@ -185,6 +185,15 @@ export async function saveContentViaApi(
   }, true);
 }
 
+export async function deleteContentViaApi(
+  token: string,
+  section: string
+): Promise<void> {
+  await fetchJson<void>(`${API_BASE}/content?section=${section}`, token, {
+    method: 'DELETE',
+  }, true);
+}
+
 export interface ApiComplaint {
   id: string;
   memberEmail?: string;
@@ -217,4 +226,10 @@ export async function addComplaintViaApi(
     body: JSON.stringify(data),
   }, true);
   return res.complaint;
+}
+
+export async function deleteComplaintViaApi(token: string, id: string): Promise<void> {
+  await fetchJson<void>(`${API_BASE}/complaints/${id}`, token, {
+    method: 'DELETE',
+  }, true);
 }

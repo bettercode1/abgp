@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, Typography, Button, useTheme, Grid } from '@mui/material';
+import { Box, Container, Typography, Button, useTheme, Grid, Stack } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 import { useScrollReveal } from '../../hooks/useScrollReveal';
@@ -10,7 +10,6 @@ export const ProfilSection: React.FC = () => {
   const theme = useTheme();
   const { ref, inView } = useScrollReveal();
   const adsContent = useDirectorContent('ads');
-  const adImage = adsContent.images[0];
 
   return (
     <Box
@@ -91,42 +90,59 @@ export const ProfilSection: React.FC = () => {
               <Typography variant="subtitle2" fontWeight={700} color="primary" sx={{ mb: 1.5 }}>
                 {t('home.profil.ad')}
               </Typography>
-              <Box
-                sx={{
-                  height: { xs: 180, md: 320 },
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(30, 58, 138, 0.04)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'text.secondary',
-                  textAlign: 'center',
-                  p: 2,
-                  lineHeight: 1.5,
-                  fontSize: { xs: '0.85rem', md: '0.95rem' },
-                  overflow: 'hidden',
-                }}
-              >
-                {adImage ? (
-                  <Box
-                    component="img"
-                    src={adImage.url}
-                    alt={adImage.caption || 'Advertisement'}
-                    sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 1.5 }}
-                  />
+              <Stack spacing={2} sx={{ maxHeight: 600, overflowY: 'auto', pr: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 1 } }}>
+                {adsContent.images.length > 0 ? (
+                  adsContent.images.map((img) => (
+                    <Box key={img.id}>
+                      <Box
+                        sx={{
+                          height: { xs: 180, md: 240 },
+                          borderRadius: 2,
+                          backgroundColor: 'rgba(30, 58, 138, 0.04)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={img.url}
+                          alt={img.caption || 'Advertisement'}
+                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </Box>
+                      {img.caption && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                          {img.caption}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))
                 ) : (
-                  t('home.profil.adBanner')
+                  <Box
+                    sx={{
+                      height: { xs: 180, md: 320 },
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(30, 58, 138, 0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'text.secondary',
+                      textAlign: 'center',
+                      p: 2,
+                      fontSize: { xs: '0.85rem', md: '0.95rem' },
+                    }}
+                  >
+                    {t('home.profil.adBanner')}
+                  </Box>
                 )}
-              </Box>
-              {adImage?.caption ? (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                  {adImage.caption}
-                </Typography>
-              ) : (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                  {t('home.profil.adBlank')}
-                </Typography>
-              )}
+                {!adsContent.images.length && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                    {t('home.profil.adBlank')}
+                  </Typography>
+                )}
+              </Stack>
             </Box>
           </Grid>
         </Grid>

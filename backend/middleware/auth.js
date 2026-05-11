@@ -7,25 +7,33 @@ const { getUserRoleAndPrant } = require('../lib/supabaseAdmin');
 
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const token = auth.slice(7);
-  if (!SUPABASE_JWT_SECRET) {
+
+  const { getSupabaseAdmin } = require('../lib/supabaseAdmin');
+  const supabase = getSupabaseAdmin();
+  
+  if (!supabase) {
     return res.status(503).json({ error: 'Server auth not configured' });
   }
-  let payload;
-  try {
-    payload = jwt.verify(token, SUPABASE_JWT_SECRET);
-  } catch {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+
+  // Ask Supabase to verify the token natively (handles all new key formats automatically)
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data || !data.user) {
+    console.error('Supabase token verification failed:', error ? error.message : 'No user data returned');
+    return res.status(401).json({ 
+      error: 'Invalid or expired token', 
+      details: error ? error.message : 'No user data' 
+    });
   }
-  const userId = payload.sub;
-  if (!userId) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
+
+  const userId = data.user.id;
+  const payload = data.user;
   getUserRoleAndPrant(userId)
     .then(({ role, prant, email }) => {
       req.user = {

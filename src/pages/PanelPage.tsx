@@ -55,6 +55,7 @@ import {
   saveContentViaApi,
   addComplaintViaApi,
   fetchComplaintsFromApi,
+  deleteComplaintViaApi,
   type ApiMember,
   type ApiPrant,
   type ApiComplaint
@@ -232,6 +233,8 @@ export const PanelPage: React.FC = () => {
   }), []);
 
   const refetchMembersFromApi = useCallback(async () => {
+    // DISABLED: /api/members route is currently disabled on backend
+    /*
     if (!token || user?.role !== 'director') return;
     try {
       const list = await fetchMembersFromApi(token);
@@ -243,7 +246,9 @@ export const PanelPage: React.FC = () => {
       }
       setMembers(getMembers());
     }
-  }, [token, user?.role, apiMemberToMember, handleMissingAuthToken, isAuthTokenMissingError]);
+    */
+    setMembers(getMembers()); // Fallback to localStorage
+  }, [user?.role, getMembers]);
 
   // When Director has API token, fetch members from backend; otherwise use localStorage
   useEffect(() => {
@@ -283,6 +288,8 @@ export const PanelPage: React.FC = () => {
 
   // Ensure every complainant from stored complaints has a member row (localStorage or API)
   useEffect(() => {
+    // DISABLED: /api/members route is currently disabled on backend
+    /*
     if (user?.role !== 'director') return;
     if (token) {
       (async () => {
@@ -332,9 +339,11 @@ export const PanelPage: React.FC = () => {
         // ignore
       }
     }
-  }, [user?.role, token, apiMemberToMember, handleMissingAuthToken, isAuthTokenMissingError]);
+    */
+  }, [user?.role, token]);
 
   useEffect(() => {
+    /* DISABLED: /api/members is currently disabled on backend
     if (user?.role !== 'director') return;
     const onVisible = () => {
       if (token) refetchMembersFromApi();
@@ -342,6 +351,7 @@ export const PanelPage: React.FC = () => {
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
+    */
   }, [user?.role, token, refetchMembersFromApi]);
 
   // Fetch complaints from API when analytics view is opened
@@ -582,6 +592,33 @@ export const PanelPage: React.FC = () => {
       setMembers(getMembers());
     }
     setAnalyticsPage(0);
+  };
+  
+  const handleDeleteComplaint = async (id: string) => {
+    if (token && user?.role === 'director') {
+      try {
+        await deleteComplaintViaApi(token, id);
+        // Refresh complaints if they are stored in state somewhere, or just trigger a refresh
+        // For now, let's assume we need to refresh the members/complaints view
+        await refetchMembersFromApi(); 
+      } catch (error) {
+        console.error('Failed to delete complaint:', error);
+      }
+    } else {
+      // Local storage fallback (if any)
+      const raw = localStorage.getItem('abgp-complaints');
+      if (raw) {
+        const list = JSON.parse(raw);
+        const filtered = list.filter((c: any, i: number) => {
+          // If the item has an ID (API style), use it. Otherwise use index.
+          // In localStorage, we might not have unique IDs per complaint.
+          // For simplicity, we skip local delete if no ID.
+          return c.id !== id;
+        });
+        localStorage.setItem('abgp-complaints', JSON.stringify(filtered));
+        setMembers(getMembers());
+      }
+    }
   };
 
   const openComplaintsDialog = useCallback((member: Member) => {
@@ -1354,7 +1391,12 @@ export const PanelPage: React.FC = () => {
                                       <Typography variant="subtitle2" color="primary" fontWeight={600}>
                                         {t('panel.complaintForm')} #{i + 1}
                                       </Typography>
-                                      <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="primary" variant="outlined" sx={{ fontWeight: 500 }} />
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="primary" variant="outlined" sx={{ fontWeight: 500 }} />
+                                        <IconButton size="small" color="error" onClick={() => handleDeleteComplaint(c.id)} title={t('panel.deleteMember')}>
+                                          <Delete fontSize="small" />
+                                        </IconButton>
+                                      </Box>
                                     </Box>
                                     <Box sx={{ p: 2.5 }}>
                                       {c.message && (

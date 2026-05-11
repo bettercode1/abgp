@@ -256,7 +256,9 @@ export const MediaPage: React.FC = () => {
     },
   ];
 
-  const newsForDisplay = directorNewsForDisplay.length ? directorNewsForDisplay : newsData;
+  const newsForDisplay = useMemo(() => {
+    return [...directorNewsForDisplay, ...newsData];
+  }, [directorNewsForDisplay, newsData]);
 
   const eventsData = [
     {
@@ -303,21 +305,15 @@ export const MediaPage: React.FC = () => {
     },
   ];
 
-  const eventsForDisplay = directorEvents.texts.length
-    ? directorEvents.texts.map((txt, idx) => ({
-        title: txt.title,
-        date: directorEvents.images[idx]?.caption || '—',
-        category: t('media.events'),
-        description: txt.body,
-      }))
-    : directorEvents.images.length
-      ? directorEvents.images.slice(0, 7).map((img) => ({
-          title: img.caption || 'Event',
-          date: img.caption || '—',
-          category: t('media.events'),
-          description: '',
-        }))
-      : eventsData;
+  const eventsForDisplay = useMemo(() => {
+    const directorEventsMapped = directorEvents.texts.map((txt, idx) => ({
+      title: txt.title,
+      date: directorEvents.images[idx]?.caption || '—',
+      category: t('media.events'),
+      description: txt.body,
+    }));
+    return [...directorEventsMapped, ...eventsData];
+  }, [directorEvents, eventsData, t]);
 
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
@@ -349,11 +345,6 @@ export const MediaPage: React.FC = () => {
         </Box>
 
         <TabPanel value={tabValue} index={0}>
-          {directorNewsForDisplay.length > 0 && (
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-              {t('panel.directorAdded')}
-            </Typography>
-          )}
           <Grid container spacing={3}>
             {newsForDisplay.map((item, index) => (
               <Grid item xs={12} md={6} key={index}>
@@ -432,11 +423,6 @@ export const MediaPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          {directorEvents.texts.length > 0 && (
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-              {t('panel.directorAdded')}
-            </Typography>
-          )}
           <Grid container spacing={3}>
             {eventsForDisplay.map((item, index) => (
               <Grid item xs={12} md={6} key={index}>

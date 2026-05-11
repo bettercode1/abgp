@@ -5,6 +5,7 @@ import {
   type DirectorSectionKey,
   type DirectorSectionContent,
 } from '../lib/directorContent';
+import { fetchContentViaApi, isApiConfigured } from '../lib/api';
 
 /**
  * Returns Director-added content for a given section (history, blog, videos, gallery, home).
@@ -17,8 +18,23 @@ export function useDirectorContent(section: DirectorSectionKey): DirectorSection
   });
 
   useEffect(() => {
+    // Initial load from localStorage
     const all = loadDirectorContentBySection();
     setContent(getDirectorContentForSection(all, section));
+
+    // Try fetching from API if configured
+    if (isApiConfigured()) {
+      // Pass null as token since this is a public request (backend now allows public GET for content)
+      fetchContentViaApi('', section, 'director')
+        .then((data) => {
+          if (data && data.content) {
+            setContent(data.content);
+          }
+        })
+        .catch((err) => {
+          console.warn(`Failed to fetch director content for ${section}:`, err);
+        });
+    }
   }, [section]);
 
   useEffect(() => {
