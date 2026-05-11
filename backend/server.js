@@ -18,6 +18,15 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+app.use('/api/auth/test', (req, res) => res.json({ message: 'Auth route is working' }));
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  // For now, return a 410 to match the previous behavior, but ensure it's a JSON response
+  res.status(410).json({
+    error: 'Login is via Supabase. Use the app login page with your Supabase account.',
+  });
+});
+
 app.use('/api/auth', authRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);

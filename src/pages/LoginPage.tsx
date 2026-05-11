@@ -106,23 +106,32 @@ export const LoginPage: React.FC = () => {
       }
     }
 
-    if (loginMode === 'director' && emailVal && password && isApiConfigured()) {
-      try {
-        const res = await loginWithApi(emailVal, password);
-        login(
-          {
-            role: res.user.role as LoginRole,
-            email: res.user.email,
-            name: res.user.name,
-            prant: res.user.prant,
-          },
-          res.token
-        );
-        navigate('/panel');
-        return;
-      } catch (err) {
-        setLoginError(err instanceof Error ? err.message : 'Login failed');
-        return;
+    if (loginMode === 'director' && emailVal && password) {
+      const supabase = getSupabase();
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
+          if (error) {
+            setLoginError(error.message ?? 'Login failed');
+            return;
+          }
+          if (data?.session?.user) {
+            const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+            login(
+              {
+                role: (r === 'director' ? 'director' : 'member') as LoginRole,
+                email: data.session.user.email ?? emailVal,
+                prant: p ?? undefined,
+              },
+              data.session.access_token
+            );
+            navigate('/panel');
+            return;
+          }
+        } catch (err) {
+          setLoginError(err instanceof Error ? err.message : 'Login failed');
+          return;
+        }
       }
     }
     if (effectiveRole === 'member' || effectiveRole === 'prant') {
