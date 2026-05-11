@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -143,177 +143,175 @@ export const MediaPage: React.FC = () => {
     { title: 'April 2022', url: pdfApril2022 },
   ];
 
-  const newsData = [
-    {
-      title: t('media.news.item1.title'),
-      date: t('media.news.item1.date'),
-      summary: t('media.news.item1.summary'),
-      category: t('media.news.item1.category'),
-      image: mp_whatsapp_1,
-    },
-    {
-      title: t('media.news.item2.title'),
-      date: t('media.news.item2.date'),
-      summary: t('media.news.item2.summary'),
-      category: t('media.news.item2.category'),
-      image: rj_woman_safety,
-    },
-    {
-      title: t('media.news.item3.title'),
-      date: t('media.news.item3.date'),
-      summary: t('media.news.item3.summary'),
-      category: t('media.news.item3.category'),
-      image: mp_adulteration,
-    },
-    {
-      title: t('media.news.item4.title'),
-      date: t('media.news.item4.date'),
-      summary: t('media.news.item4.summary'),
-      category: t('media.news.item4.category'),
-      image: rj_bikaner,
-    },
-    {
-      title: t('media.news.item5.title'),
-      date: t('media.news.item5.date'),
-      summary: t('media.news.item5.summary'),
-      category: t('media.news.item5.category'),
-      image: rj_1,
-    },
-    {
-      title: t('media.news.item6.title'),
-      date: t('media.news.item6.date'),
-      summary: t('media.news.item6.summary'),
-      category: t('media.news.item6.category'),
-      image: mp_china,
-    },
-    {
-      title: t('media.news.item7.title'),
-      date: t('media.news.item7.date'),
-      summary: t('media.news.item7.summary'),
-      category: t('media.news.item7.category'),
-      image: mp_mobile,
-    },
-    {
-      title: t('media.news.item8.title'),
-      date: t('media.news.item8.date'),
-      summary: t('media.news.item8.summary'),
-      category: t('media.news.item8.category'),
-      image: mp_banana,
-    },
-    {
-      title: t('media.news.item9.title'),
-      date: t('media.news.item9.date'),
-      summary: t('media.news.item9.summary'),
-      category: t('media.news.item9.category'),
-      image: mp_call_drops,
-    },
-    {
-      title: t('media.news.item10.title'),
-      date: t('media.news.item10.date'),
-      summary: t('media.news.item10.summary'),
-      category: t('media.news.item10.category'),
-      image: mp_gwalior,
-    },
-    {
-      title: t('media.news.item11.title'),
-      date: t('media.news.item11.date'),
-      summary: t('media.news.item11.summary'),
-      category: t('media.news.item11.category'),
-      image: mp_gst,
-    },
-    {
-      title: t('media.news.item12.title'),
-      date: t('media.news.item12.date'),
-      summary: t('media.news.item12.summary'),
-      category: t('media.news.item12.category'),
-      image: rj_gst,
-    },
-    {
-      title: t('media.news.item13.title'),
-      date: t('media.news.item13.date'),
-      summary: t('media.news.item13.summary'),
-      category: t('media.news.item13.category'),
-      image: rj_4,
-    },
-    {
-      title: t('media.news.item14.title'),
-      date: t('media.news.item14.date'),
-      summary: t('media.news.item14.summary'),
-      category: t('media.news.item14.category'),
-      image: rj_aug_7,
-    },
-    {
-      title: t('media.news.item15.title'),
-      date: t('media.news.item15.date'),
-      summary: t('media.news.item15.summary'),
-      category: t('media.news.item15.category'),
-    },
-    {
-      title: t('media.news.item16.title'),
-      date: t('media.news.item16.date'),
-      summary: t('media.news.item16.summary'),
-      category: t('media.news.item16.category'),
-    },
-  ];
-
   const newsForDisplay = useMemo(() => {
+    const newsData = [
+      {
+        title: t('media.news.item1.title'),
+        date: t('media.news.item1.date'),
+        summary: t('media.news.item1.summary'),
+        category: t('media.news.item1.category'),
+        image: mp_whatsapp_1,
+      },
+      {
+        title: t('media.news.item2.title'),
+        date: t('media.news.item2.date'),
+        summary: t('media.news.item2.summary'),
+        category: t('media.news.item2.category'),
+        image: rj_woman_safety,
+      },
+      {
+        title: t('media.news.item3.title'),
+        date: t('media.news.item3.date'),
+        summary: t('media.news.item3.summary'),
+        category: t('media.news.item3.category'),
+        image: mp_adulteration,
+      },
+      {
+        title: t('media.news.item4.title'),
+        date: t('media.news.item4.date'),
+        summary: t('media.news.item4.summary'),
+        category: t('media.news.item4.category'),
+        image: rj_bikaner,
+      },
+      {
+        title: t('media.news.item5.title'),
+        date: t('media.news.item5.date'),
+        summary: t('media.news.item5.summary'),
+        category: t('media.news.item5.category'),
+        image: rj_1,
+      },
+      {
+        title: t('media.news.item6.title'),
+        date: t('media.news.item6.date'),
+        summary: t('media.news.item6.summary'),
+        category: t('media.news.item6.category'),
+        image: mp_china,
+      },
+      {
+        title: t('media.news.item7.title'),
+        date: t('media.news.item7.date'),
+        summary: t('media.news.item7.summary'),
+        category: t('media.news.item7.category'),
+        image: mp_mobile,
+      },
+      {
+        title: t('media.news.item8.title'),
+        date: t('media.news.item8.date'),
+        summary: t('media.news.item8.summary'),
+        category: t('media.news.item8.category'),
+        image: mp_banana,
+      },
+      {
+        title: t('media.news.item9.title'),
+        date: t('media.news.item9.date'),
+        summary: t('media.news.item9.summary'),
+        category: t('media.news.item9.category'),
+        image: mp_call_drops,
+      },
+      {
+        title: t('media.news.item10.title'),
+        date: t('media.news.item10.date'),
+        summary: t('media.news.item10.summary'),
+        category: t('media.news.item10.category'),
+        image: mp_gwalior,
+      },
+      {
+        title: t('media.news.item11.title'),
+        date: t('media.news.item11.date'),
+        summary: t('media.news.item11.summary'),
+        category: t('media.news.item11.category'),
+        image: mp_gst,
+      },
+      {
+        title: t('media.news.item12.title'),
+        date: t('media.news.item12.date'),
+        summary: t('media.news.item12.summary'),
+        category: t('media.news.item12.category'),
+        image: rj_gst,
+      },
+      {
+        title: t('media.news.item13.title'),
+        date: t('media.news.item13.date'),
+        summary: t('media.news.item13.summary'),
+        category: t('media.news.item13.category'),
+        image: rj_4,
+      },
+      {
+        title: t('media.event.item14.title'),
+        date: t('media.event.item14.date'),
+        summary: t('media.event.item14.summary'),
+        category: t('media.event.item14.category'),
+        image: rj_aug_7,
+      },
+      {
+        title: t('media.event.item15.title'),
+        date: t('media.event.item15.date'),
+        summary: t('media.event.item15.summary'),
+        category: t('media.event.item15.category'),
+      },
+      {
+        title: t('media.event.item16.title'),
+        date: t('media.event.item16.date'),
+        summary: t('media.event.item16.summary'),
+        category: t('media.event.item16.category'),
+      },
+    ];
     return [...directorNewsForDisplay, ...newsData];
-  }, [directorNewsForDisplay, newsData]);
-
-  const eventsData = [
-    {
-      title: t('media.event.item1.title'),
-      date: t('media.event.item1.date'),
-      category: t('media.event.item1.type'),
-      description: t('media.event.item1.description'),
-    },
-    {
-      title: t('media.event.item2.title'),
-      date: t('media.event.item2.date'),
-      category: t('media.event.item2.type'),
-      description: t('media.event.item2.description'),
-    },
-    {
-      title: t('media.event.item3.title'),
-      date: t('media.event.item3.date'),
-      category: t('media.event.item3.type'),
-      description: t('media.event.item3.description'),
-    },
-    {
-      title: t('media.event.item4.title'),
-      date: t('media.event.item4.date'),
-      category: t('media.event.item4.type'),
-      description: t('media.event.item4.description'),
-    },
-    {
-      title: t('media.event.item5.title'),
-      date: t('media.event.item5.date'),
-      category: t('media.event.item5.type'),
-      description: t('media.event.item5.description'),
-    },
-    {
-      title: t('media.event.item6.title'),
-      date: t('media.event.item6.date'),
-      category: t('media.event.item6.type'),
-      description: t('media.event.item6.description'),
-    },
-    {
-      title: t('media.event.item7.title'),
-      date: t('media.event.item7.date'),
-      category: t('media.event.item7.type'),
-      description: t('media.event.item7.description'),
-    },
-  ];
+  }, [directorNewsForDisplay, t]);
 
   const eventsForDisplay = useMemo(() => {
-    const directorEventsMapped = directorEvents.texts.map((txt, idx) => ({
+    const eventsData = [
+      {
+        title: t('media.event.item1.title'),
+        date: t('media.event.item1.date'),
+        category: t('media.event.item1.type'),
+        description: t('media.event.item1.description'),
+      },
+      {
+        title: t('media.event.item2.title'),
+        date: t('media.event.item2.date'),
+        category: t('media.event.item2.type'),
+        description: t('media.event.item2.description'),
+      },
+      {
+        title: t('media.event.item3.title'),
+        date: t('media.event.item3.date'),
+        category: t('media.event.item3.type'),
+        description: t('media.event.item3.description'),
+      },
+      {
+        title: t('media.event.item4.title'),
+        date: t('media.event.item4.date'),
+        category: t('media.event.item4.type'),
+        description: t('media.event.item4.description'),
+      },
+      {
+        title: t('media.event.item5.title'),
+        date: t('media.event.item5.date'),
+        category: t('media.event.item5.type'),
+        description: t('media.event.item5.description'),
+      },
+      {
+        title: t('media.event.item6.title'),
+        date: t('media.event.item6.date'),
+        category: t('media.event.item6.type'),
+        description: t('media.event.item6.description'),
+      },
+      {
+        title: t('media.event.item7.title'),
+        date: t('media.event.item7.date'),
+        category: t('media.event.item7.type'),
+        description: t('media.event.item7.description'),
+      },
+    ];
+    const directorEventsMapped = directorEvents.texts.map((txt: any, idx: number) => ({
       title: txt.title,
       date: directorEvents.images[idx]?.caption || '—',
       category: t('media.events'),
       description: txt.body,
     }));
     return [...directorEventsMapped, ...eventsData];
-  }, [directorEvents, eventsData, t]);
+  }, [directorEvents, t]);
 
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
@@ -346,7 +344,7 @@ export const MediaPage: React.FC = () => {
 
         <TabPanel value={tabValue} index={0}>
           <Grid container spacing={3}>
-            {newsForDisplay.map((item, index) => (
+            {newsForDisplay.map((item: any, index: number) => (
               <Grid item xs={12} md={6} key={index}>
                 <Card
                   id={directorNewsForDisplay.length > 0 ? `director-news-${index}` : undefined}
@@ -424,7 +422,7 @@ export const MediaPage: React.FC = () => {
 
         <TabPanel value={tabValue} index={1}>
           <Grid container spacing={3}>
-            {eventsForDisplay.map((item, index) => (
+            {eventsForDisplay.map((item: any, index: number) => (
               <Grid item xs={12} md={6} key={index}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
                   <CardContent sx={{ flexGrow: 1 }}>

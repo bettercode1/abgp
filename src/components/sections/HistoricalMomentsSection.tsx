@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { DirectorContentBlock } from '../DirectorContentBlock';
+import { useDirectorContent } from '../../hooks/useDirectorContent';
 
 // Historical Images
 import formation1975 from '../../assets/abgp-2/homepage/formation_1975.jpg';
@@ -41,6 +41,7 @@ interface Moment {
   titleKey: string;
   descKey: string;
   image: string;
+  isDirector?: boolean;
 }
 
 const moments: Moment[] = [
@@ -189,7 +190,7 @@ const useMergedMoments = () => {
   const { t } = useTranslation();
   
   return useMemo(() => {
-    const directorMoments: Moment[] = directorContent.images.map(img => ({
+    const directorMoments: Moment[] = (directorContent.images || []).map((img: any) => ({
       year: t('common.recent', 'Recent'),
       titleKey: img.caption || 'Added Moment',
       descKey: '', // No desc for gallery images usually
@@ -252,12 +253,12 @@ export const HistoricalMomentsSection: React.FC = () => {
     restDelta: 0.001
   });
 
-  const years = Array.from(new Set(mergedMoments.map(m => m.year)));
+  const years = Array.from(new Set(mergedMoments.map((m: Moment) => m.year)));
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 400;
-      const elements = mergedMoments.map((_, i) => document.getElementById(`moment-${i}`));
+      const elements = mergedMoments.map((_: any, i: number) => document.getElementById(`moment-${i}`));
       
       for (let i = elements.length - 1; i >= 0; i--) {
         const el = elements[i];
@@ -273,7 +274,7 @@ export const HistoricalMomentsSection: React.FC = () => {
   }, []);
 
   const scrollToYear = (year: string) => {
-    const index = mergedMoments.findIndex(m => m.year === year);
+    const index = mergedMoments.findIndex((m: Moment) => m.year === year);
     const element = document.getElementById(`moment-${index}`);
     if (element) {
       window.scrollTo({
@@ -403,7 +404,7 @@ export const HistoricalMomentsSection: React.FC = () => {
             </Box>
           )}
 
-          {mergedMoments.map((moment, index) => (
+          {mergedMoments.map((moment: Moment, index: number) => (
             <Box
               key={index}
               id={`moment-${index}`}
@@ -443,7 +444,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                     >
                       <motion.img
                         src={moment.image}
-                        alt={(moment as any).isDirector ? moment.titleKey : t(moment.titleKey)}
+                        alt={moment.isDirector ? moment.titleKey : t(moment.titleKey)}
                         style={{
                           width: '100%',
                           height: isMobile ? 300 : 500,
@@ -481,7 +482,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                           mb: 3
                         }}
                       >
-                        {(moment as any).isDirector ? moment.titleKey : t(moment.titleKey)}
+                        {moment.isDirector ? moment.titleKey : t(moment.titleKey)}
                       </Typography>
                       
                       <Box sx={{ 
@@ -503,7 +504,7 @@ export const HistoricalMomentsSection: React.FC = () => {
                           opacity: 0.8
                         }}
                       >
-                        {(moment as any).isDirector ? moment.descKey : t(moment.descKey)}
+                        {moment.isDirector ? moment.descKey : t(moment.descKey)}
                       </Typography>
                     </Box>
                   </motion.div>

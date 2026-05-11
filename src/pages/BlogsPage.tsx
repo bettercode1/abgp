@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Container,
@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarToday, Person } from '@mui/icons-material';
+import { CalendarToday } from '@mui/icons-material';
 import { useDirectorContent } from '../hooks/useDirectorContent';
 
 export const BlogsPage: React.FC = () => {
@@ -24,46 +24,46 @@ export const BlogsPage: React.FC = () => {
   const theme = useTheme();
   const [expandedDirectorBlog, setExpandedDirectorBlog] = React.useState<number | null>(null);
   const directorBlogs = useDirectorContent('blog');
-  const [expandedExistingBlog, setExpandedExistingBlog] = React.useState<number | null>(null);
 
-  const blogs = [
-    {
-      id: 1,
-      title: t('media.blog.item1.title'),
-      date: t('media.blog.item1.date'),
-      author: t('media.blog.item1.author'),
-      content: t('media.blog.item1.content'),
-      category: t('media.blog.category.realEstate'),
-    },
-    {
-      id: 2,
-      title: t('media.blog.item2.title'),
-      date: t('media.blog.item2.date'),
-      author: t('media.blog.item2.author'),
-      content: t('media.blog.item2.content'),
-      category: t('media.blog.category.consumerRights'),
-    },
-    {
-      id: 3,
-      title: t('media.blog.item3.title'),
-      date: t('media.blog.item3.date'),
-      author: t('media.blog.item3.author'),
-      content: t('media.blog.item3.content'),
-      category: t('media.blog.category.law'),
-    },
-    {
-      id: 4,
-      title: t('media.blog.item4.title'),
-      date: t('media.blog.item4.date'),
-      author: t('media.blog.item4.author'),
-      content: t('media.blog.item4.content'),
-      category: t('media.blog.category.policy'),
-    },
-  ];
 
   const mergedBlogs = useMemo(() => {
+    const blogsData = [
+      {
+        id: 1,
+        title: t('media.blog.item1.title'),
+        date: t('media.blog.item1.date'),
+        author: t('media.blog.item1.author'),
+        content: t('media.blog.item1.content'),
+        category: t('media.blog.category.realEstate'),
+      },
+      {
+        id: 2,
+        title: t('media.blog.item2.title'),
+        date: t('media.blog.item2.date'),
+        author: t('media.blog.item2.author'),
+        content: t('media.blog.item2.content'),
+        category: t('media.blog.category.consumerRights'),
+      },
+      {
+        id: 3,
+        title: t('media.blog.item3.title'),
+        date: t('media.blog.item3.date'),
+        author: t('media.blog.item3.author'),
+        content: t('media.blog.item3.content'),
+        category: t('media.blog.category.law'),
+      },
+      {
+        id: 4,
+        title: t('media.blog.item4.title'),
+        date: t('media.blog.item4.date'),
+        author: t('media.blog.item4.author'),
+        content: t('media.blog.item4.content'),
+        category: t('media.blog.category.policy'),
+      },
+    ];
+
     const directorList = directorBlogs.texts.length
-      ? directorBlogs.texts.map((txt, idx) => ({
+      ? directorBlogs.texts.map((txt: any, idx: number) => ({
           id: txt.id,
           title: txt.title || 'Blog',
           date: directorBlogs.images[idx]?.caption || directorBlogs.images[0]?.caption || '—',
@@ -71,7 +71,7 @@ export const BlogsPage: React.FC = () => {
           category: t('media.blogs'),
           image: directorBlogs.images[idx]?.url,
         }))
-      : directorBlogs.images.map((img) => ({
+      : directorBlogs.images.map((img: any) => ({
           id: img.id,
           title: img.caption || 'Blog',
           date: img.caption || '—',
@@ -80,8 +80,8 @@ export const BlogsPage: React.FC = () => {
           image: img.url,
         }));
     
-    return [...directorList, ...blogs];
-  }, [directorBlogs, blogs, t]);
+    return [...directorList, ...blogsData];
+  }, [directorBlogs, t]);
 
   return (
     <Box sx={{ py: { xs: 4, md: 8 }, backgroundColor: theme.palette.grey[50], minHeight: '100vh' }}>
@@ -98,7 +98,7 @@ export const BlogsPage: React.FC = () => {
         </Typography>
 
         <Grid container spacing={3}>
-          {mergedBlogs.map((blog, index) => (
+          {mergedBlogs.map((blog: any, index: number) => (
             <Grid item xs={12} md={6} key={blog.id}>
               <Card sx={{ borderRadius: 2, boxShadow: theme.shadows[2], height: '100%', display: 'flex', flexDirection: 'column' }}>
                 {(blog as any).image ? (

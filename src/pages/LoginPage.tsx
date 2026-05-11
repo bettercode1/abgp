@@ -16,7 +16,7 @@ import { useAuth, type LoginRole } from '../contexts/AuthContext';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { addMember } from '../lib/memberRegistry';
-import { isApiConfigured } from '../lib/api';
+
 import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 
 type MemberType = 'new' | 'existing';

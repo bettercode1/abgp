@@ -45,7 +45,6 @@ import {
 } from '../lib/directorContent';
 import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
 import {
-  fetchMembersFromApi,
   addMemberViaApi,
   deleteMemberViaApi,
   fetchPrantsFromApi,
@@ -221,15 +220,7 @@ export const PanelPage: React.FC = () => {
     if (user?.prant) setComplaintPrantKey(user.prant);
   }, [user?.prant]);
 
-  const apiMemberToMember = useCallback((a: ApiMember): Member => ({
-    id: a.id,
-    email: a.email,
-    name: a.name,
-    role: a.role as Member['role'],
-    prant: a.prant,
-    addedAt: typeof a.addedAt === 'string' ? a.addedAt : new Date(a.addedAt).toISOString(),
-    isNewMember: a.isNewMember,
-  }), []);
+
 
   const refetchMembersFromApi = useCallback(async () => {
     // DISABLED: /api/members route is currently disabled on backend
@@ -604,7 +595,7 @@ export const PanelPage: React.FC = () => {
       const raw = localStorage.getItem('abgp-complaints');
       if (raw) {
         const list = JSON.parse(raw);
-        const filtered = list.filter((c: any, i: number) => {
+        const filtered = list.filter((c: any) => {
           // If the item has an ID (API style), use it. Otherwise use index.
           // In localStorage, we might not have unique IDs per complaint.
           // For simplicity, we skip local delete if no ID.
@@ -637,6 +628,7 @@ export const PanelPage: React.FC = () => {
     at?: string;
     memberEmail?: string;
     assignedPrantKey?: string;
+    id?: string;
   };
 
   const normalizeEmail = (s: string) => (s || '').trim().toLowerCase();
