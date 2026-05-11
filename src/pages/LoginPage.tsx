@@ -59,158 +59,88 @@ export const LoginPage: React.FC = () => {
 
   const isDirectorOrPresident = loginMode === 'director' || role === 'prant';
   const isExistingMember = !isDirectorOrPresident && memberType === 'existing';
-  const formattedName = fullName.trim() ? `${nameTitle} ${fullName.trim()}` : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
     setLoginError('');
-    let shouldResetSubmitting = true;
-    try {
-      const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
-      const isNewMember = effectiveRole === 'member' && memberType === 'new';
-      const emailVal = (email || 'user@example.com').trim();
-      const normalizedEmail = emailVal.toLowerCase();
+    const effectiveRole: LoginRole = loginMode === 'director' ? 'director' : role;
+    const isNewMember = effectiveRole === 'member' && memberType === 'new';
+    const emailVal = (email || 'user@example.com').trim();
 
-      if (loginMode === 'director') {
-        if (!emailVal || !password) {
-          setLoginError(DIRECTOR_LOGIN_ERROR);
-          return;
-        }
-
-        if (normalizedEmail !== DIRECTOR_ALLOWED_EMAIL) {
-          setLoginError(DIRECTOR_LOGIN_ERROR);
-          return;
-        }
-
-        if (isSupabaseConfigured()) {
-          const supabase = getSupabase();
-          if (supabase) {
-            try {
-              const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
-              if (error) {
-                setLoginError(error.message ?? 'Login failed');
-                return;
-              }
-              if (data?.session?.user) {
-                const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
-                const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
-                const sessionEmail = (data.session.user.email ?? '').toLowerCase();
-                if (authRole !== 'director' || sessionEmail !== DIRECTOR_ALLOWED_EMAIL) {
-                  await supabase.auth.signOut();
-                  setLoginError(DIRECTOR_LOGIN_ERROR);
-                  return;
-                }
-                login(
-                  {
-                    role: authRole,
-                    email: data.session.user.email ?? emailVal,
-                    prant: p ?? undefined,
-                  },
-                  data.session.access_token
-                );
-                shouldResetSubmitting = false;
-                navigate('/panel');
-                return;
-              }
-              setLoginError('Login failed');
-              return;
-            } catch (_err) {
-              setLoginError(DIRECTOR_LOGIN_ERROR);
-              return;
-            }
+    const useSupabaseAuth =
+      isSupabaseConfigured() &&
+      emailVal &&
+      password &&
+      loginMode === 'member' &&
+      role === 'prant';
+    if (useSupabaseAuth) {
+      const supabase = getSupabase();
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
+          if (error) {
+            setLoginError(error.message ?? 'Login failed');
+            return;
           }
-        }
-
-        if (isApiConfigured()) {
-          try {
-            const res = await loginWithApi(emailVal, password);
-            if ((res.user.email ?? '').toLowerCase() !== DIRECTOR_ALLOWED_EMAIL || res.user.role !== 'director') {
-              setLoginError(DIRECTOR_LOGIN_ERROR);
-              return;
-            }
+          if (data?.session?.user) {
+            const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
+            const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
             login(
               {
-                role: 'director',
-                email: res.user.email,
-                name: res.user.name,
-                prant: res.user.prant,
+                role: authRole,
+                email: data.session.user.email ?? emailVal,
+                prant: p ?? undefined,
               },
-              res.token
+              data.session.access_token
             );
             shouldResetSubmitting = false;
             navigate('/panel');
             return;
-          } catch (_err) {
-            setLoginError(DIRECTOR_LOGIN_ERROR);
-            return;
           }
+        } catch (err) {
+          setLoginError(err instanceof Error ? err.message : 'Login failed');
+          return;
         }
-
-        setLoginError(DIRECTOR_LOGIN_ERROR);
-        return;
-      }
-
-      const useSupabaseAuth =
-        isSupabaseConfigured() &&
-        emailVal &&
-        password &&
-        loginMode === 'member' &&
-        role === 'prant';
-      if (useSupabaseAuth) {
-        const supabase = getSupabase();
-        if (supabase) {
-          try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email: emailVal, password });
-            if (error) {
-              setLoginError(error.message ?? 'Login failed');
-              return;
-            }
-            if (data?.session?.user) {
-              const { role: r, prant: p } = await getUserRoleAndPrant(data.session.user.id);
-              const authRole = (r === 'director' || r === 'prant' ? r : 'member') as LoginRole;
-              login(
-                {
-                  role: authRole,
-                  email: data.session.user.email ?? emailVal,
-                  prant: p ?? undefined,
-                },
-                data.session.access_token
-              );
-              shouldResetSubmitting = false;
-              navigate('/panel');
-              return;
-            }
-          } catch (err) {
-            setLoginError(err instanceof Error ? err.message : 'Login failed');
-            return;
-          }
-        }
-      }
-
-      if (effectiveRole === 'member' || effectiveRole === 'prant') {
-        addMember({
-          email: emailVal,
-          name: formattedName || undefined,
-          role: effectiveRole,
-          prant: effectiveRole === 'prant' ? prant || undefined : undefined,
-          isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
-        });
-      }
-      login({
-        role: effectiveRole,
-        email: emailVal,
-        name: formattedName || undefined,
-        isNewMember,
-      });
-      shouldResetSubmitting = false;
-      navigate('/panel');
-    } finally {
-      if (shouldResetSubmitting) {
-        setIsSubmitting(false);
       }
     }
+
+    if (loginMode === 'director' && emailVal && password && isApiConfigured()) {
+      try {
+        const res = await loginWithApi(emailVal, password);
+        login(
+          {
+            role: res.user.role as LoginRole,
+            email: res.user.email,
+            name: res.user.name,
+            prant: res.user.prant,
+          },
+          res.token
+        );
+        navigate('/panel');
+        return;
+      } catch (err) {
+        setLoginError(err instanceof Error ? err.message : 'Login failed');
+        return;
+      }
+    }
+    if (effectiveRole === 'member' || effectiveRole === 'prant') {
+      addMember({
+        email: emailVal,
+        name: formattedName || undefined,
+        role: effectiveRole,
+        prant: effectiveRole === 'prant' ? prant || undefined : undefined,
+        isNewMember: effectiveRole === 'member' ? isNewMember : undefined,
+      });
+    }
+    login({
+      role: effectiveRole,
+      email: emailVal,
+      name: formattedName || undefined,
+      isNewMember,
+    });
+    navigate('/panel');
   };
 
   const textFieldStyles = {
@@ -280,10 +210,10 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             {loginMode === 'director' && (
-              <Button 
-                variant="text" 
-                size="small" 
-                onClick={() => setLoginMode('member')} 
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => setLoginMode('member')}
                 sx={{ mb: 3, textTransform: 'none', fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'primary.main', backgroundColor: 'transparent' } }}
               >
                 ← {t('login.back')}
@@ -326,13 +256,8 @@ export const LoginPage: React.FC = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    error={Boolean(loginError)}
-                    helperText={loginError}
                     sx={textFieldStyles}
                   />
-                  {loginError && (
-                    <Typography variant="body2" color="error" sx={{ mt: -1 }}>{loginError}</Typography>
-                  )}
                 </>
               )}
 
@@ -499,6 +424,11 @@ export const LoginPage: React.FC = () => {
               )}
 
               <Box sx={{ mt: 2 }}>
+                {loginError && (
+                  <Typography variant="body2" color="error" sx={{ mb: 1.5, textAlign: 'center' }}>
+                    {loginError}
+                  </Typography>
+                )}
                 <Button
                   type="submit"
                   variant="contained"
