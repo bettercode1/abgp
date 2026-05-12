@@ -4,6 +4,7 @@
  */
 const express = require('express');
 const { pool } = require('../db');
+const { requireAuth, requireDirectorOrPrant } = require('../middleware/auth');
 
 const router = express.Router();
 const SECTIONS = ['history', 'blog', 'news', 'events', 'videos', 'gallery', 'home', 'ads'];
@@ -47,7 +48,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/', async (req, res) => {
+router.put('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
   try {
     const { section, content: contentPayload } = req.body || {};
     if (!section || !SECTIONS.includes(section)) {
@@ -95,7 +96,7 @@ router.put('/', async (req, res) => {
   }
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
   try {
     const { section } = req.query;
     if (!section || !SECTIONS.includes(section)) {

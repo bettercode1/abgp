@@ -388,8 +388,9 @@ export const PanelPage: React.FC = () => {
     if (token && isApiConfigured()) {
       try {
         await saveContentViaApi(token, section, next);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to save content to API:', err);
+        alert('Failed to save to database. Please check your connection or try again. Error: ' + (err.message || 'Unknown error'));
       }
     }
     
@@ -398,7 +399,7 @@ export const PanelPage: React.FC = () => {
     saveDirectorContentBySection(allContent);
   }, [token, directorContentBySection]);
 
-  const MAX_IMAGE_SIZE_MB = 2;
+  const MAX_IMAGE_SIZE_MB = 5;
   const MAX_IMAGE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
   const readFileAsDataUrl = (file: File): Promise<string> =>

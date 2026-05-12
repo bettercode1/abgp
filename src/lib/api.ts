@@ -171,7 +171,7 @@ export async function fetchContentViaApi(
   let url = `${API_BASE}/content?section=${section}`;
   if (ownerType) url += `&owner_type=${ownerType}`;
   if (prantKey) url += `&prant_key=${prantKey}`;
-  return fetchJson<ApiContent>(url, token, {}, true);
+  return fetchJson<ApiContent>(url, token, {}, false);
 }
 
 export async function saveContentViaApi(

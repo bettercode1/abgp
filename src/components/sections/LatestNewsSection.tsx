@@ -172,11 +172,22 @@ export const LatestNewsSection: React.FC = () => {
         excerpt: '',
       };
 
-  const newsList = directorNewsItems.length ? directorNewsItems.slice(1, 6) : newsItems.slice(1, 6).map((it) => ({
+  const fallbackNewsList: PanelItem[] = newsItems.map((it) => ({
     title: t(it.titleKey),
     dateLabel: t(it.dateKey),
     excerpt: undefined,
+    imageUrl: it.image,
   }));
+
+  const newsListFull: PanelItem[] = directorNewsItems.length
+    ? [...directorNewsItems, ...fallbackNewsList]
+    : fallbackNewsList;
+
+  // If we have a featured item from director, we skip the first director item. 
+  // Otherwise we skip the first static item (handled below).
+  const newsList = directorNewsItems[0] 
+    ? newsListFull.slice(1, 6) 
+    : fallbackNewsList.slice(1, 6);
 
   const fallbackBlogItems: PanelItem[] = blogKeys.map((it, idx) => ({
     title: t(it.titleKey),

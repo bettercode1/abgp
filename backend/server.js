@@ -30,8 +30,7 @@ app.post('/api/auth/login', (req, res) => {
 app.use('/api/auth', authRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
-app.get('/api/content', contentRouter); // Public GET
-app.use('/api/content', requireAuth, requireDirectorOrPrant, contentRouter); // Protected PUT/DELETE
+app.use('/api/content', contentRouter);
 // app.use('/api/members', requireAuth, requireDirector, membersRouter); // DISABLED PER REQUEST
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 
