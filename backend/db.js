@@ -12,7 +12,14 @@ const pool = new Pool({
 });
 
 pool.on('connect', (client) => {
-  client.query('SET search_path TO abgp').catch((err) => console.error('search_path SET failed:', err));
+  client.query('SET search_path TO abgp').catch((err) => {
+    console.error('CRITICAL: search_path SET failed. This usually means the connection is unstable or the schema "abgp" does not exist.', err);
+  });
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
 });
 
 module.exports = { pool };

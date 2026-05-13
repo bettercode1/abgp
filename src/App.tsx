@@ -189,6 +189,7 @@ function App() {
                     <Route path="/events" element={<Navigate to="/media?tab=events" replace />} />
                     <Route path="/videos" element={<VideosPage />} />
                     <Route path="/petitions" element={<PetitionPage />} />
+                    <Route path="/petitions/:id" element={<PetitionPage />} />
                     <Route path="/petition" element={<Navigate to="/petitions" replace />} />
                     <Route path="/activities" element={<ActivitiesPage />} />
                     <Route path="/gyandeep" element={<GrahakGyanDeepPage />} />

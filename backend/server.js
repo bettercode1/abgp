@@ -1,7 +1,7 @@
 /**
  * ABGP API server – auth, complaints, content, prants (director/prant focus; no members table).
  */
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
 const { requireAuth, requireDirector, requireDirectorOrPrant } = require('./middleware/auth');
@@ -10,6 +10,7 @@ const complaintsRouter = require('./routes/complaints');
 const contentRouter = require('./routes/content');
 const membersRouter = require('./routes/members');
 const prantsRouter = require('./routes/prants');
+const petitionsRouter = require('./routes/petitions');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,8 +32,9 @@ app.use('/api/auth', authRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
 app.use('/api/content', contentRouter);
-// app.use('/api/members', requireAuth, requireDirector, membersRouter); // DISABLED PER REQUEST
+app.use('/api/members', membersRouter); 
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
+app.use('/api/petitions', petitionsRouter);
 
 app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants' }));
 app.get('/health', (req, res) => res.json({ ok: true }));

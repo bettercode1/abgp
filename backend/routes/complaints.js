@@ -26,13 +26,13 @@ router.get('/', async (req, res) => {
       const email = String(memberEmail).trim().toLowerCase();
       result = await pool.query(
         `SELECT id, member_email, contact, category, form_data, message, created_at
-         FROM complaints WHERE LOWER(member_email) = $1 ORDER BY created_at DESC`,
+         FROM abgp.complaints WHERE LOWER(member_email) = $1 ORDER BY created_at DESC`,
         [email]
       );
     } else {
       result = await pool.query(
         `SELECT id, member_email, contact, category, form_data, message, created_at
-         FROM complaints ORDER BY created_at DESC LIMIT 500`
+         FROM abgp.complaints ORDER BY created_at DESC LIMIT 500`
       );
     }
     res.json({ complaints: result.rows.map(toComplaint) });
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
   try {
     const { memberEmail, contact, category, formData, message } = req.body || {};
     const result = await pool.query(
-      `INSERT INTO complaints (member_email, contact, category, form_data, message)
+      `INSERT INTO abgp.complaints (member_email, contact, category, form_data, message)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, member_email, contact, category, form_data, message, created_at`,
       [
@@ -67,7 +67,7 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM complaints WHERE id = $1', [id]);
+    await pool.query('DELETE FROM abgp.complaints WHERE id = $1', [id]);
     res.status(204).end();
   } catch (err) {
     console.error('Complaint delete error:', err);

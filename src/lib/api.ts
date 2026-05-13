@@ -22,6 +22,19 @@ export interface ApiMember {
   addedAt: string;
 }
 
+export interface ApiPetition {
+  petition_id: string;
+  recipient_email: string;
+  subject: string;
+  email_body: string;
+  created_at: string;
+  cc_emails?: string;
+  bcc_emails?: string;
+  duration_from?: string;
+  duration_to?: string;
+  attachments?: { name: string; url: string }[];
+}
+
 export interface LoginResponse {
   user: { id: string; email: string; role: string; prant?: string; name?: string; contactNumber?: string };
   token: string;
@@ -232,4 +245,45 @@ export async function deleteComplaintViaApi(token: string, id: string): Promise<
   await fetchJson<void>(`${API_BASE}/complaints/${id}`, token, {
     method: 'DELETE',
   }, true);
+}
+
+export async function fetchPetitionsFromApi(): Promise<ApiPetition[]> {
+  return fetchJson<ApiPetition[]>(`${API_BASE}/petitions`, null, {}, false);
+}
+
+export async function fetchPetitionDetailFromApi(id: string): Promise<ApiPetition> {
+  return fetchJson<ApiPetition>(`${API_BASE}/petitions/${id}`, null, {}, false);
+}
+
+export async function createPetitionViaApi(
+  token: string,
+  data: { 
+    recipientEmail: string; 
+    subject: string; 
+    emailBody: string;
+    ccEmails?: string;
+    bccEmails?: string;
+    durationFrom?: string;
+    durationTo?: string;
+    attachments?: { name: string; url: string }[];
+  }
+): Promise<ApiPetition> {
+  return fetchJson<ApiPetition>(`${API_BASE}/petitions`, token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }, true);
+}
+
+export async function addPetitionSupportViaApi(
+  petitionId: string,
+  data: { fullName: string; phoneNo: string }
+): Promise<any> {
+  return fetchJson<any>(`${API_BASE}/petitions/${petitionId}/support`, null, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }, false);
+}
+
+export async function deletePetitionViaApi(token: string, id: string): Promise<void> {
+  await fetchJson<void>(`${API_BASE}/petitions/${id}`, token, { method: 'DELETE' }, true);
 }

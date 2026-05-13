@@ -29,6 +29,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Snackbar,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -55,8 +56,12 @@ import {
   addComplaintViaApi,
   fetchComplaintsFromApi,
   deleteComplaintViaApi,
+  fetchPetitionsFromApi,
+  createPetitionViaApi,
+  deletePetitionViaApi,
   type ApiPrant,
-  type ApiComplaint
+  type ApiComplaint,
+  type ApiPetition
 } from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
@@ -72,6 +77,11 @@ type Petition = {
   description: string;
   targetEmail: string;
   createdAt: string;
+  ccEmails?: string;
+  bccEmails?: string;
+  durationFrom?: string;
+  durationTo?: string;
+  attachments?: { name: string; url: string }[];
 };
 
 export interface PrantProfile {
@@ -179,9 +189,16 @@ export const PanelPage: React.FC = () => {
   const [petitionTitle, setPetitionTitle] = useState('');
   const [petitionDescription, setPetitionDescription] = useState('');
   const [petitionTargetEmail, setPetitionTargetEmail] = useState('');
-  const [petitionSavedMessage, setPetitionSavedMessage] = useState('');
+  const [petitionCcEmails, setPetitionCcEmails] = useState('');
+  const [petitionBccEmails, setPetitionBccEmails] = useState('');
+  const [petitionDurationFrom, setPetitionDurationFrom] = useState('');
+  const [petitionDurationTo, setPetitionDurationTo] = useState('');
+  const [petitionAttachments, setPetitionAttachments] = useState<{ name: string; url: string }[]>([]);
   const [petitions, setPetitions] = useState<Petition[]>([]);
   const [apiComplaints, setApiComplaints] = useState<ApiComplaint[]>([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
 
   const handleMissingAuthToken = useCallback(() => {
     setPrantsFetchError('Your session has expired. Please log in again.');
@@ -725,38 +742,113 @@ export const PanelPage: React.FC = () => {
     }
   }, []);
 
-  const refreshPetitionData = useCallback(() => {
+  const refreshPetitionData = useCallback(async () => {
+    if (token && isApiConfigured()) {
+      try {
+        const data = await fetchPetitionsFromApi();
+        // Convert API shape to local shape for compatibility
+        const mapped: Petition[] = data.map(p => ({
+          id: p.petition_id,
+          title: p.subject,
+          description: p.email_body,
+          targetEmail: p.recipient_email,
+          createdAt: p.created_at,
+          ccEmails: p.cc_emails,
+          bccEmails: p.bcc_emails,
+          durationFrom: p.duration_from,
+          durationTo: p.duration_to,
+          attachments: p.attachments
+        }));
+        setPetitions(mapped);
+        return;
+      } catch (err) {
+        console.error('Failed to fetch petitions from API:', err);
+      }
+    }
     setPetitions(loadPetitionsFromStorage());
-  }, [loadPetitionsFromStorage]);
+  }, [loadPetitionsFromStorage, token]);
 
   useEffect(() => {
     if (user?.role !== 'director') return;
     refreshPetitionData();
   }, [user?.role, refreshPetitionData]);
 
-  const handleCreatePetition = (event: React.FormEvent) => {
+  const handleCreatePetition = async (event: React.FormEvent) => {
     event.preventDefault();
+    const petitionData = {
+      title: petitionTitle.trim(),
+      description: petitionDescription.trim(),
+      targetEmail: petitionTargetEmail.trim(),
+    };
+
+    if (token && isApiConfigured()) {
+      try {
+        await createPetitionViaApi(token, {
+          recipientEmail: petitionData.targetEmail,
+          subject: petitionData.title,
+          emailBody: petitionData.description,
+          ccEmails: petitionCcEmails.trim(),
+          bccEmails: petitionBccEmails.trim(),
+          durationFrom: petitionDurationFrom || undefined,
+          durationTo: petitionDurationTo || undefined,
+          attachments: petitionAttachments
+        });
+        setSnackbarMessage('Petition created successfully and saved to database!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        setPetitionTitle('');
+        setPetitionDescription('');
+        setPetitionTargetEmail('');
+        setPetitionCcEmails('');
+        setPetitionBccEmails('');
+        setPetitionDurationFrom('');
+        setPetitionDurationTo('');
+        setPetitionAttachments([]);
+        refreshPetitionData();
+        return;
+      } catch (err: any) {
+        console.error('Failed to create petition via API:', err);
+        setSnackbarMessage('Error: ' + (err.message || 'Failed to save to database.'));
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        return;
+      }
+    }
+
+    // Fallback to localStorage
     try {
       const nextPetition: Petition = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title: petitionTitle.trim(),
-        description: petitionDescription.trim(),
-        targetEmail: petitionTargetEmail.trim(),
+        ...petitionData,
         createdAt: new Date().toISOString(),
       };
       const nextPetitions = [...loadPetitionsFromStorage(), nextPetition];
       localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(nextPetitions));
-      setPetitionSavedMessage('Petition created successfully.');
+      setSnackbarMessage('Petition created successfully (Local Storage).');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
       setPetitionTitle('');
       setPetitionDescription('');
       setPetitionTargetEmail('');
       refreshPetitionData();
     } catch {
-      setPetitionSavedMessage('Unable to create petition. Please try again.');
+      setSnackbarMessage('Unable to create petition. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
-  const handleDeletePetition = (id: string) => {
+  const handleDeletePetition = async (id: string) => {
+    if (token && isApiConfigured()) {
+      try {
+        await deletePetitionViaApi(token, id);
+        refreshPetitionData();
+        return;
+      } catch (err) {
+        console.error('Failed to delete petition from API:', err);
+      }
+    }
+
     try {
       const current = loadPetitionsFromStorage();
       const nextPetitions = current.filter(p => p.id !== id);
@@ -1011,14 +1103,55 @@ export const PanelPage: React.FC = () => {
                     <Box component="form" onSubmit={handleCreatePetition} sx={{ p: { xs: 2, md: 3 } }}>
                       <Stack spacing={2}>
                         <TextField
-                          label="Recipient Email (Target Email)"
-                          type="email"
-                          placeholder="example@domain.com"
+                          label="Recipient Email(s)"
+                          type="text"
+                          placeholder="example@domain.com, another@domain.com"
                           value={petitionTargetEmail}
                           onChange={(e) => setPetitionTargetEmail(e.target.value)}
                           required
                           fullWidth
+                          helperText="Multiple emails separated by comma"
                         />
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                          <TextField
+                            label="Cc"
+                            type="text"
+                            placeholder="cc@domain.com"
+                            value={petitionCcEmails}
+                            onChange={(e) => setPetitionCcEmails(e.target.value)}
+                            fullWidth
+                          />
+                          <TextField
+                            label="Bcc"
+                            type="text"
+                            placeholder="bcc@domain.com"
+                            value={petitionBccEmails}
+                            onChange={(e) => setPetitionBccEmails(e.target.value)}
+                            fullWidth
+                          />
+                        </Stack>
+
+                        <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 1 }}>
+                          Petition Duration
+                        </Typography>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                          <TextField
+                            label="From Date & Time"
+                            type="datetime-local"
+                            value={petitionDurationFrom}
+                            onChange={(e) => setPetitionDurationFrom(e.target.value)}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                          />
+                          <TextField
+                            label="To Date & Time"
+                            type="datetime-local"
+                            value={petitionDurationTo}
+                            onChange={(e) => setPetitionDurationTo(e.target.value)}
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        </Stack>
                         <TextField
                           label="Subject (Petition Title)"
                           placeholder="Example: Request for consumer refund resolution"
@@ -1034,15 +1167,53 @@ export const PanelPage: React.FC = () => {
                           onChange={(e) => setPetitionDescription(e.target.value)}
                           required
                           multiline
-                          minRows={20}
+                          minRows={10}
                           maxRows={50}
                           fullWidth
                         />
-                        {petitionSavedMessage && (
-                          <Alert severity={petitionSavedMessage.includes('successfully') ? 'success' : 'error'}>
-                            {petitionSavedMessage}
-                          </Alert>
-                        )}
+
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            Attachments
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<Email />}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            Add Attachment
+                            <input
+                              type="file"
+                              hidden
+                              multiple
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                if (!files) return;
+                                const newAttachments = [...petitionAttachments];
+                                for (let i = 0; i < files.length; i++) {
+                                  const file = files[i];
+                                  const base64 = await readFileAsDataUrl(file);
+                                  newAttachments.push({ name: file.name, url: base64 });
+                                }
+                                setPetitionAttachments(newAttachments);
+                              }}
+                            />
+                          </Button>
+                          {petitionAttachments.length > 0 && (
+                            <Stack spacing={1} sx={{ mt: 1.5 }}>
+                              {petitionAttachments.map((att, idx) => (
+                                <Paper key={idx} variant="outlined" sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 2 }}>
+                                  <Typography variant="caption" noWrap sx={{ maxWidth: '80%' }}>{att.name}</Typography>
+                                  <IconButton size="small" color="error" onClick={() => setPetitionAttachments(prev => prev.filter((_, i) => i !== idx))}>
+                                    <Close fontSize="small" />
+                                  </IconButton>
+                                </Paper>
+                              ))}
+                            </Stack>
+                          )}
+                        </Box>
+
 
 
 
@@ -2256,6 +2427,22 @@ export const PanelPage: React.FC = () => {
         </Stack>
       </Container>
       <PaymentDialog open={paymentOpen} onClose={handlePaymentClose} />
+      
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity} 
+          variant="filled"
+          sx={{ width: '100%', boxShadow: theme.shadows[6], borderRadius: 2 }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

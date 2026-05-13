@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
     const pk = ot === 'prant' ? (prantKey || req.user?.prant) : null;
     const result = await pool.query(
       `SELECT id, section, owner_type, prant_key, content, updated_at
-       FROM content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)`,
+       FROM abgp.content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)`,
       [section, ot, pk]
     );
     if (result.rows.length === 0) {
@@ -44,7 +44,12 @@ router.get('/', async (req, res) => {
     res.json(toContent(result.rows[0]));
   } catch (err) {
     console.error('Content get error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: err.message, 
+      code: err.code,
+      hint: err.code === 'ECONNREFUSED' ? 'Database connection refused. Check if PostgreSQL or SSH Tunnel is running on port 5432.' : undefined
+    });
   }
 });
 
@@ -72,19 +77,19 @@ router.put('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
     }
 
     const existing = await pool.query(
-      'SELECT id FROM content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
+      'SELECT id FROM abgp.content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
       [section, ownerType, prantKey || null]
     );
     let row;
     if (existing.rows.length > 0) {
       const up = await pool.query(
-        'UPDATE content SET content = $1::jsonb, updated_at = NOW() WHERE id = $2 RETURNING id, section, owner_type, prant_key, content, updated_at',
+        'UPDATE abgp.content SET content = $1::jsonb, updated_at = NOW() WHERE id = $2 RETURNING id, section, owner_type, prant_key, content, updated_at',
         [JSON.stringify(content), existing.rows[0].id]
       );
       row = up.rows[0];
     } else {
       const ins = await pool.query(
-        'INSERT INTO content (section, owner_type, prant_key, content) VALUES ($1, $2, $3, $4::jsonb) RETURNING id, section, owner_type, prant_key, content, updated_at',
+        'INSERT INTO abgp.content (section, owner_type, prant_key, content) VALUES ($1, $2, $3, $4::jsonb) RETURNING id, section, owner_type, prant_key, content, updated_at',
         [section, ownerType, prantKey || null, JSON.stringify(content)]
       );
       row = ins.rows[0];
@@ -92,7 +97,12 @@ router.put('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
     res.json(toContent(row));
   } catch (err) {
     console.error('Content put error:', err);
-    res.status(500).json({ error: err.message || 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: err.message, 
+      code: err.code,
+      hint: err.code === 'ECONNREFUSED' ? 'Database connection refused. Check if PostgreSQL or SSH Tunnel is running on port 5432.' : undefined
+    });
   }
 });
 
@@ -108,7 +118,7 @@ router.delete('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
       return res.status(403).json({ error: 'Prant can only delete News section' });
     }
     await pool.query(
-      'DELETE FROM content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
+      'DELETE FROM abgp.content WHERE section = $1 AND owner_type = $2 AND (($3::text IS NULL AND prant_key IS NULL) OR prant_key = $3)',
       [section, ownerType, prantKey || null]
     );
     res.status(204).end();

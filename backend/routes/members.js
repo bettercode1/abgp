@@ -21,7 +21,7 @@ function toMember(row) {
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, prant, is_new_member, added_at FROM members ORDER BY added_at DESC'
+      'SELECT id, email, name, role, prant, is_new_member, added_at FROM abgp.members ORDER BY added_at DESC'
     );
     res.json({ members: result.rows.map(toMember) });
   } catch (err) {
@@ -40,12 +40,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Email required' });
     }
     const normalized = String(email).trim().toLowerCase();
-    const existing = await pool.query('SELECT id FROM members WHERE LOWER(email) = $1', [normalized]);
+    const existing = await pool.query('SELECT id FROM abgp.members WHERE LOWER(email) = $1', [normalized]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'Member already exists' });
     }
     const result = await pool.query(
-      `INSERT INTO members (email, name, role, prant, is_new_member, added_at)
+      `INSERT INTO abgp.members (email, name, role, prant, is_new_member, added_at)
        VALUES ($1, $2, $3, $4, true, NOW())
        RETURNING id, email, name, role, prant, is_new_member, added_at`,
       [normalized, name ? String(name).trim() : null, role, prant || null]
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM members WHERE id = $1 RETURNING id', [id]);
+    const result = await pool.query('DELETE FROM abgp.members WHERE id = $1 RETURNING id', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Member not found' });
     }
