@@ -12,14 +12,12 @@ import {
   CardContent,
   CardActions,
   TextField,
-  IconButton,
   Grid,
 } from '@mui/material';
 import { Email, Dashboard, ArrowBack, Share } from '@mui/icons-material';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { 
   fetchPetitionsFromApi, 
-  fetchPetitionDetailFromApi, 
   addPetitionSupportViaApi,
   ApiPetition 
 } from '../lib/api';
@@ -329,7 +327,7 @@ export const PetitionPage: React.FC = () => {
             }}
           >
             {petitions.map((petition) => (
-              <Card key={petition.id} elevation={2} sx={{ borderRadius: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <Card key={petition.petition_id} elevation={2} sx={{ borderRadius: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardContent sx={{ pb: 1, flex: 1 }}>
                   <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
                     {petition.subject}

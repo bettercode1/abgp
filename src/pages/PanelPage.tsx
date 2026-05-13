@@ -60,8 +60,7 @@ import {
   createPetitionViaApi,
   deletePetitionViaApi,
   type ApiPrant,
-  type ApiComplaint,
-  type ApiPetition
+  type ApiComplaint
 } from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
