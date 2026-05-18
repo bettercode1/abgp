@@ -11,57 +11,32 @@ import {
   Card,
   CardContent,
   CardActions,
-  TextField,
   Grid,
 } from '@mui/material';
 import { Email, Dashboard, ArrowBack, Share } from '@mui/icons-material';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { 
-  fetchPetitionsFromApi, 
-  addPetitionSupportViaApi,
-  ApiPetition 
-} from '../lib/api';
+import { fetchPetitionsFromApi, ApiPetition } from '../lib/api';
 
 // Petition types are now imported from api.ts
 
 const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }> = ({ petition, onBack }) => {
-  const [userName, setUserName] = useState('');
-  const [userPhone, setUserPhone] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const supportTotal = Number(petition.support_count ?? 0);
 
-  const isFormValid = userName.trim().length > 0 && userPhone.trim().length === 10;
+  const handleSendEmail = () => {
+    const subject = encodeURIComponent(petition.subject);
+    const body = encodeURIComponent(petition.email_body);
 
-  const handleSendEmail = async () => {
-    if (!isFormValid || isSubmitting) return;
-    
-    setIsSubmitting(true);
-    try {
-      // 1. Record support in DB
-      await addPetitionSupportViaApi(petition.petition_id, {
-        fullName: userName.trim(),
-        phoneNo: userPhone.trim(),
-      });
-
-      // 2. Open mail client
-      const subject = encodeURIComponent(petition.subject);
-      const bodyTemplate = `${petition.email_body}\n\nName: ${userName}\nPhone No.: ${userPhone}\nMessage:`;
-      const body = encodeURIComponent(bodyTemplate);
-      
-      let mailto = `mailto:${petition.recipient_email}?subject=${subject}&body=${body}`;
-      if (petition.cc_emails) {
-        mailto += `&cc=${encodeURIComponent(petition.cc_emails)}`;
-      }
-      if (petition.bcc_emails) {
-        mailto += `&bcc=${encodeURIComponent(petition.bcc_emails)}`;
-      }
-      
-      window.location.href = mailto;
-    } catch (err) {
-      console.error('Failed to record support:', err);
-      alert('Failed to record support. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    let mailto = `mailto:${petition.recipient_email}?subject=${subject}&body=${body}`;
+    const cc = petition.cc_emails?.trim();
+    const bcc = petition.bcc_emails?.trim();
+    if (cc) {
+      mailto += `&cc=${encodeURIComponent(cc)}`;
     }
+    if (bcc) {
+      mailto += `&bcc=${encodeURIComponent(bcc)}`;
+    }
+
+    window.location.href = mailto;
   };
 
   const handleShare = () => {
@@ -94,6 +69,19 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
         {/* Content - Left */}
         <Grid item xs={12} md={8}>
           <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography
+              component="p"
+              variant="h3"
+              sx={{
+                fontWeight: 900,
+                lineHeight: 1.1,
+                color: 'primary.main',
+                mb: 1.5,
+                letterSpacing: 0.02,
+              }}
+            >
+              {supportTotal}+
+            </Typography>
             <Typography variant="h4" fontWeight={800} gutterBottom sx={{ mb: 3 }}>
               {petition.subject}
             </Typography>
@@ -101,28 +89,6 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
               {petition.email_body}
             </Typography>
 
-            {petition.attachments && petition.attachments.length > 0 && (
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="h6" fontWeight={700} gutterBottom>
-                  Attachments
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {petition.attachments.map((att, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outlined"
-                      size="small"
-                      href={att.url}
-                      download={att.name}
-                      target="_blank"
-                      sx={{ textTransform: 'none', mb: 1 }}
-                    >
-                      {att.name}
-                    </Button>
-                  ))}
-                </Stack>
-              </Box>
-            )}
           </Paper>
         </Grid>
 
@@ -133,7 +99,7 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
               Support this Petition
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your details to generate the email complaint.
+              Opens your email app with the petition subject, body, and any Cc/Bcc saved by the director.
             </Typography>
             
             <Stack spacing={2.5}>
@@ -161,38 +127,17 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
                 }
 
                 return (
-                  <>
-                    <TextField
-                      fullWidth
-                      label="Your Name"
-                      variant="outlined"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Phone No. (10 digits)"
-                      variant="outlined"
-                      value={userPhone}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setUserPhone(val);
-                      }}
-                      inputProps={{ maxLength: 10 }}
-                    />
-                    <Button
-                      fullWidth
-                      size="large"
-                      variant="contained"
-                      color="primary"
-                      disabled={!isFormValid || isSubmitting}
-                      startIcon={<Email />}
-                      onClick={handleSendEmail}
-                      sx={{ textTransform: 'none', fontWeight: 700, py: 1.5 }}
-                    >
-                      {isSubmitting ? 'Recording...' : 'Send Email'}
-                    </Button>
-                  </>
+                  <Button
+                    fullWidth
+                    size="large"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Email />}
+                    onClick={handleSendEmail}
+                    sx={{ textTransform: 'none', fontWeight: 700, py: 1.5 }}
+                  >
+                    Send Mail
+                  </Button>
                 );
               })()}
             </Stack>

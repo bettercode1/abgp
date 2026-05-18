@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -43,6 +43,8 @@ import {
   type DirectorImage,
   type DirectorText,
   type DirectorVideo,
+  type DirectorPdfArticle,
+  type DirectorSectionContent,
 } from '../lib/directorContent';
 import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
 import {
@@ -60,7 +62,10 @@ import {
   createPetitionViaApi,
   deletePetitionViaApi,
   type ApiPrant,
-  type ApiComplaint
+  type ApiComplaint,
+  fetchPrantAnnualReportsViaApi,
+  submitPrantAnnualReportViaApi,
+  type ApiPrantAnnualReport,
 } from '../lib/api';
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
@@ -69,6 +74,16 @@ import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar
 const PRANT_PASSWORDS_KEY = 'abgp-prant-passwords';
 const PRANT_PROFILES_KEY = 'abgp-prant-profiles';
 const PETITIONS_STORAGE_KEY = 'abgp-petitions';
+const PRANT_PDFS_STORAGE_KEY = 'abgp-prant-pdfs-content';
+
+function emptyDirectorSection(): DirectorSectionContent {
+  return { images: [], texts: [], videos: [], pdfArticles: [] };
+}
+
+function slugifyPdfFilename(title: string): string {
+  const base = title.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 80);
+  return base || 'document';
+}
 
 type Petition = {
   id: string;
@@ -80,7 +95,6 @@ type Petition = {
   bccEmails?: string;
   durationFrom?: string;
   durationTo?: string;
-  attachments?: { name: string; url: string }[];
 };
 
 export interface PrantProfile {
@@ -192,12 +206,37 @@ export const PanelPage: React.FC = () => {
   const [petitionBccEmails, setPetitionBccEmails] = useState('');
   const [petitionDurationFrom, setPetitionDurationFrom] = useState('');
   const [petitionDurationTo, setPetitionDurationTo] = useState('');
-  const [petitionAttachments, setPetitionAttachments] = useState<{ name: string; url: string }[]>([]);
   const [petitions, setPetitions] = useState<Petition[]>([]);
   const [apiComplaints, setApiComplaints] = useState<ApiComplaint[]>([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
+  const [articalTitle, setArticalTitle] = useState('');
+  const articalPdfInputRef = React.useRef<HTMLInputElement>(null);
+  const [prantPdfContent, setPrantPdfContent] = useState<DirectorSectionContent>(() => {
+    try {
+      const raw = localStorage.getItem(PRANT_PDFS_STORAGE_KEY);
+      if (raw) {
+        const p = JSON.parse(raw) as Partial<DirectorSectionContent>;
+        return {
+          ...emptyDirectorSection(),
+          ...p,
+          pdfArticles: Array.isArray(p.pdfArticles) ? p.pdfArticles : [],
+        };
+      }
+    } catch {
+      // ignore
+    }
+    return emptyDirectorSection();
+  });
+  const [prantPdfTitle, setPrantPdfTitle] = useState('');
+  const prantPdfInputRef = React.useRef<HTMLInputElement>(null);
+  const [annualReports, setAnnualReports] = useState<ApiPrantAnnualReport[]>([]);
+  const [annualReportsLoading, setAnnualReportsLoading] = useState(false);
+  const [annualReportTitle, setAnnualReportTitle] = useState('');
+  const [annualReportNotes, setAnnualReportNotes] = useState('');
+  const [annualReportSubmitting, setAnnualReportSubmitting] = useState(false);
+  const annualReportPdfInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleMissingAuthToken = useCallback(() => {
     setPrantsFetchError('Your session has expired. Please log in again.');
@@ -367,6 +406,17 @@ export const PanelPage: React.FC = () => {
       .catch((err) => console.error('Failed to fetch complaints:', err));
   }, [panelView, token]);
 
+  // Prant annual reports (director inbox + prant submit view)
+  useEffect(() => {
+    if (!token || !isApiConfigured()) return;
+    if (panelView !== 'prant-annual-reports' && panelView !== 'prant-annual-report') return;
+    setAnnualReportsLoading(true);
+    fetchPrantAnnualReportsViaApi(token)
+      .then((list) => setAnnualReports(list))
+      .catch((err) => console.error('Failed to fetch annual reports:', err))
+      .finally(() => setAnnualReportsLoading(false));
+  }, [panelView, token, isApiConfigured]);
+
   // Fetch content from API when section or role changes
   useEffect(() => {
     if (!token || !isApiConfigured()) return;
@@ -386,16 +436,58 @@ export const PanelPage: React.FC = () => {
       .catch((err) => console.error('Failed to fetch content:', err));
   }, [token, selectedSection, user?.role, user?.prant]);
 
+  // PDFs for prants (director uploads; prants read from API or shared localStorage fallback)
+  useEffect(() => {
+    if (user?.role !== 'director' && user?.role !== 'prant') return;
+
+    const loadPrantPdfsFromLocalStorage = () => {
+      try {
+        const raw = localStorage.getItem(PRANT_PDFS_STORAGE_KEY);
+        if (!raw) return;
+        const p = JSON.parse(raw) as Partial<DirectorSectionContent>;
+        setPrantPdfContent({
+          ...emptyDirectorSection(),
+          ...p,
+          pdfArticles: Array.isArray(p.pdfArticles) ? p.pdfArticles : [],
+        });
+      } catch {
+        // ignore
+      }
+    };
+
+    if (!isApiConfigured()) {
+      loadPrantPdfsFromLocalStorage();
+      return;
+    }
+
+    fetchContentViaApi(token || '', 'prant_pdfs', 'director')
+      .then((data) => {
+        if (data?.content) {
+          const c = data.content as Record<string, unknown>;
+          setPrantPdfContent({
+            images: Array.isArray(c.images) ? c.images : [],
+            texts: Array.isArray(c.texts) ? c.texts : [],
+            videos: Array.isArray(c.videos) ? c.videos : [],
+            pdfArticles: Array.isArray(c.pdfArticles) ? c.pdfArticles : [],
+          });
+        }
+      })
+      .catch(() => {
+        loadPrantPdfsFromLocalStorage();
+      });
+  }, [user?.role, token, isApiConfigured]);
+
   const isPrant = user?.role === 'prant';
   const effectiveSection: DirectorSectionKey = isPrant ? 'news' : selectedSection;
   const isSinglePostSection = effectiveSection === 'news' || effectiveSection === 'blog' || effectiveSection === 'events';
   const isVideosSection = effectiveSection === 'videos';
   const isGallerySection = effectiveSection === 'gallery';
   const isAdsSection = effectiveSection === 'ads';
-  const sectionContent = directorContentBySection[effectiveSection] ?? { images: [], texts: [], videos: [] };
+  const isArticalsSection = effectiveSection === 'articals';
+  const sectionContent = directorContentBySection[effectiveSection] ?? { images: [], texts: [], videos: [], pdfArticles: [] };
 
   const saveContent = useCallback(async (section: DirectorSectionKey, updates: Partial<typeof sectionContent>) => {
-    const current = directorContentBySection[section] ?? { images: [], texts: [], videos: [] };
+    const current = directorContentBySection[section] ?? { images: [], texts: [], videos: [], pdfArticles: [] };
     const next = { ...current, ...updates };
 
     // Update local state immediately
@@ -417,6 +509,10 @@ export const PanelPage: React.FC = () => {
 
   const MAX_IMAGE_SIZE_MB = 5;
   const MAX_IMAGE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+  const MAX_ARTICAL_PDF_MB = 8;
+  const MAX_ARTICAL_PDF_BYTES = MAX_ARTICAL_PDF_MB * 1024 * 1024;
+  const MAX_ANNUAL_REPORT_PDF_MB = 10;
+  const MAX_ANNUAL_REPORT_PDF_BYTES = MAX_ANNUAL_REPORT_PDF_MB * 1024 * 1024;
 
   const readFileAsDataUrl = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -544,6 +640,140 @@ export const PanelPage: React.FC = () => {
     saveContent(effectiveSection, { videos: sectionContent.videos.filter((v) => v.id !== id) });
   };
 
+  const handleAddArticalPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!articalTitle.trim()) {
+      alert('Please enter a title for this PDF.');
+      return;
+    }
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please choose a PDF file.');
+      return;
+    }
+    if (file.size > MAX_ARTICAL_PDF_BYTES) {
+      alert(`PDF must be at most ${MAX_ARTICAL_PDF_MB} MB.`);
+      return;
+    }
+    try {
+      const pdfUrl = await readFileAsDataUrl(file);
+      const newItem: DirectorPdfArticle = {
+        id: `pdf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title: articalTitle.trim(),
+        pdfUrl,
+        uploadedAt: new Date().toISOString(),
+      };
+      const existing = sectionContent.pdfArticles ?? [];
+      saveContent(effectiveSection, { pdfArticles: [...existing, newItem] });
+      setArticalTitle('');
+    } catch {
+      alert('Could not read the PDF file.');
+    }
+  };
+
+  const handleRemoveArticalPdf = (id: string) => {
+    const existing = sectionContent.pdfArticles ?? [];
+    saveContent(effectiveSection, { pdfArticles: existing.filter((p) => p.id !== id) });
+  };
+
+  const persistPrantPdfContent = useCallback(async (next: DirectorSectionContent) => {
+    if (token && isApiConfigured()) {
+      try {
+        await saveContentViaApi(token, 'prant_pdfs', next);
+      } catch (err) {
+        console.error('Failed to save prant PDFs:', err);
+        alert('Failed to save to server. ' + (err instanceof Error ? err.message : ''));
+      }
+    }
+    try {
+      localStorage.setItem(PRANT_PDFS_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  }, [token]);
+
+  const handleAddPrantPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!prantPdfTitle.trim()) {
+      alert('Please enter a title for this PDF.');
+      return;
+    }
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please choose a PDF file.');
+      return;
+    }
+    if (file.size > MAX_ARTICAL_PDF_BYTES) {
+      alert(`PDF must be at most ${MAX_ARTICAL_PDF_MB} MB.`);
+      return;
+    }
+    try {
+      const pdfUrl = await readFileAsDataUrl(file);
+      const newItem: DirectorPdfArticle = {
+        id: `prant-pdf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title: prantPdfTitle.trim(),
+        pdfUrl,
+        uploadedAt: new Date().toISOString(),
+      };
+      setPrantPdfContent((prev) => {
+        const next = { ...prev, pdfArticles: [...(prev.pdfArticles ?? []), newItem] };
+        void persistPrantPdfContent(next);
+        return next;
+      });
+      setPrantPdfTitle('');
+    } catch {
+      alert('Could not read the PDF file.');
+    }
+  };
+
+  const handleRemovePrantPdf = (id: string) => {
+    setPrantPdfContent((prev) => {
+      const next = { ...prev, pdfArticles: (prev.pdfArticles ?? []).filter((p) => p.id !== id) };
+      void persistPrantPdfContent(next);
+      return next;
+    });
+  };
+
+  const handleSubmitAnnualReportPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !token) return;
+    if (!annualReportTitle.trim()) {
+      alert(t('panel.annualReportTitleRequired'));
+      return;
+    }
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please choose a PDF file.');
+      return;
+    }
+    if (file.size > MAX_ANNUAL_REPORT_PDF_BYTES) {
+      alert(`PDF must be at most ${MAX_ANNUAL_REPORT_PDF_MB} MB.`);
+      return;
+    }
+    setAnnualReportSubmitting(true);
+    try {
+      const pdfData = await readFileAsDataUrl(file);
+      await submitPrantAnnualReportViaApi(token, {
+        title: annualReportTitle.trim(),
+        notes: annualReportNotes.trim() || undefined,
+        pdfData,
+      });
+      setAnnualReportTitle('');
+      setAnnualReportNotes('');
+      setSnackbarMessage(t('panel.annualReportSubmitted'));
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      const list = await fetchPrantAnnualReportsViaApi(token);
+      setAnnualReports(list);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Submit failed');
+    } finally {
+      setAnnualReportSubmitting(false);
+    }
+  };
+
   const sectionLabels: Record<DirectorSectionKey, string> = {
     blog: t('panel.sectionBlog'),
     news: t('panel.sectionNews'),
@@ -551,6 +781,7 @@ export const PanelPage: React.FC = () => {
     videos: t('panel.sectionVideos'),
     gallery: t('panel.sectionGallery'),
     ads: t('panel.sectionAds'),
+    articals: t('panel.sectionArticals'),
   };
 
   useEffect(() => {
@@ -756,7 +987,6 @@ export const PanelPage: React.FC = () => {
           bccEmails: p.bcc_emails,
           durationFrom: p.duration_from,
           durationTo: p.duration_to,
-          attachments: p.attachments
         }));
         setPetitions(mapped);
         return;
@@ -790,7 +1020,6 @@ export const PanelPage: React.FC = () => {
           bccEmails: petitionBccEmails.trim(),
           durationFrom: petitionDurationFrom || undefined,
           durationTo: petitionDurationTo || undefined,
-          attachments: petitionAttachments
         });
         setSnackbarMessage('Petition created successfully and saved to database!');
         setSnackbarSeverity('success');
@@ -802,7 +1031,6 @@ export const PanelPage: React.FC = () => {
         setPetitionBccEmails('');
         setPetitionDurationFrom('');
         setPetitionDurationTo('');
-        setPetitionAttachments([]);
         refreshPetitionData();
         return;
       } catch (err: any) {
@@ -1043,6 +1271,10 @@ export const PanelPage: React.FC = () => {
               {panelView === 'analytics' && t('panel.analytics')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
+              {panelView === 'prant-pdfs' && t('panel.prantPdfsPageTitle')}
+              {panelView === 'prant-director-docs' && t('panel.prantDirectorDocsPageTitle')}
+              {panelView === 'prant-annual-reports' && t('panel.prantAnnualReportsPageTitle')}
+              {panelView === 'prant-annual-report' && t('panel.prantAnnualReportPageTitle')}
             </Typography>
           </Box>
           <Box sx={{ flex: 1, py: 3, px: 2, overflow: 'auto' }}>
@@ -1063,6 +1295,59 @@ export const PanelPage: React.FC = () => {
                 <Email color="primary" />
                 <Typography variant="body2">{user.email}</Typography>
               </Box>
+              {isPrant && (prantPdfContent.pdfArticles ?? []).length === 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {t('panel.prantDirectorDocsHintOnProfile')}
+                </Typography>
+              )}
+              {isPrant && (prantPdfContent.pdfArticles ?? []).length > 0 && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1" fontWeight={700} color="primary" gutterBottom>
+                    {t('panel.prantDocsForYou')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('panel.prantDocsForYouSubtitle')}
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {(prantPdfContent.pdfArticles ?? []).map((doc) => (
+                      <Paper key={doc.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {new Date(doc.uploadedAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </Typography>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 0.5, mb: 1.5 }}>
+                          {doc.title}
+                        </Typography>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                          <Button
+                            component="a"
+                            href={doc.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="contained"
+                            size="small"
+                            startIcon={<Visibility />}
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                          >
+                            {t('articals.viewMemo')}
+                          </Button>
+                          <Button
+                            component="a"
+                            href={doc.pdfUrl}
+                            download={`${slugifyPdfFilename(doc.title)}.pdf`}
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Download />}
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                          >
+                            {t('articals.download')}
+                          </Button>
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Stack>
+                </>
+              )}
               <Button variant="contained" color="primary" startIcon={<Logout />} onClick={handleLogout} fullWidth sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', py: 1.5 }}>
                 {t('panel.logout')}
               </Button>
@@ -1170,51 +1455,6 @@ export const PanelPage: React.FC = () => {
                           maxRows={50}
                           fullWidth
                         />
-
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                            Attachments
-                          </Typography>
-                          <Button
-                            variant="outlined"
-                            component="label"
-                            startIcon={<Email />}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            Add Attachment
-                            <input
-                              type="file"
-                              hidden
-                              multiple
-                              onChange={async (e) => {
-                                const files = e.target.files;
-                                if (!files) return;
-                                const newAttachments = [...petitionAttachments];
-                                for (let i = 0; i < files.length; i++) {
-                                  const file = files[i];
-                                  const base64 = await readFileAsDataUrl(file);
-                                  newAttachments.push({ name: file.name, url: base64 });
-                                }
-                                setPetitionAttachments(newAttachments);
-                              }}
-                            />
-                          </Button>
-                          {petitionAttachments.length > 0 && (
-                            <Stack spacing={1} sx={{ mt: 1.5 }}>
-                              {petitionAttachments.map((att, idx) => (
-                                <Paper key={idx} variant="outlined" sx={{ px: 1.5, py: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 2 }}>
-                                  <Typography variant="caption" noWrap sx={{ maxWidth: '80%' }}>{att.name}</Typography>
-                                  <IconButton size="small" color="error" onClick={() => setPetitionAttachments(prev => prev.filter((_, i) => i !== idx))}>
-                                    <Close fontSize="small" />
-                                  </IconButton>
-                                </Paper>
-                              ))}
-                            </Stack>
-                          )}
-                        </Box>
-
-
-
 
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                           <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
@@ -1790,6 +2030,259 @@ export const PanelPage: React.FC = () => {
               </Paper>
             )}
 
+            {panelView === 'prant-director-docs' && isPrant && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
+                  {t('panel.prantDirectorDocsPageTitle')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {t('panel.prantDirectorDocsPageSubtitle')}
+                </Typography>
+                {(prantPdfContent.pdfArticles ?? []).length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('panel.prantDirectorDocsEmpty')}
+                  </Typography>
+                ) : (
+                  <Stack spacing={1.5}>
+                    {(prantPdfContent.pdfArticles ?? []).map((doc) => (
+                      <Paper key={doc.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {new Date(doc.uploadedAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </Typography>
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 0.5, mb: 1.5 }}>
+                          {doc.title}
+                        </Typography>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                          <Button
+                            component="a"
+                            href={doc.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="contained"
+                            size="small"
+                            startIcon={<Visibility />}
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                          >
+                            {t('articals.viewMemo')}
+                          </Button>
+                          <Button
+                            component="a"
+                            href={doc.pdfUrl}
+                            download={`${slugifyPdfFilename(doc.title)}.pdf`}
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Download />}
+                            sx={{ textTransform: 'none', fontWeight: 600 }}
+                          >
+                            {t('articals.download')}
+                          </Button>
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            )}
+
+            {panelView === 'prant-pdfs' && isDirector && (
+              <>
+                <input
+                  ref={prantPdfInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleAddPrantPdf}
+                  aria-hidden
+                />
+                <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <PictureAsPdf color="primary" sx={{ fontSize: 32 }} />
+                    <Box>
+                      <Typography variant="h6" fontWeight={700} color="primary">
+                        {t('panel.prantPdfsPageTitle')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('panel.prantPdfsSubtitle')}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Stack spacing={2} sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      label={t('panel.prantPdfsTitleLabel')}
+                      value={prantPdfTitle}
+                      onChange={(e) => setPrantPdfTitle(e.target.value)}
+                      variant="outlined"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                    <Button
+                      variant="outlined"
+                      startIcon={<AttachFile />}
+                      onClick={() => prantPdfInputRef.current?.click()}
+                      sx={{ textTransform: 'none', alignSelf: 'flex-start', borderRadius: 2 }}
+                    >
+                      {t('panel.articalsChoosePdf')}
+                    </Button>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    {t('panel.prantPdfsListHeading')}
+                  </Typography>
+                  {(prantPdfContent.pdfArticles ?? []).length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('panel.prantPdfsEmpty')}
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.5} sx={{ mt: 1 }}>
+                      {(prantPdfContent.pdfArticles ?? []).map((doc) => (
+                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2 }}>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle2" fontWeight={600} noWrap>
+                              {doc.title}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(doc.uploadedAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                          <IconButton size="small" color="error" onClick={() => handleRemovePrantPdf(doc.id)} aria-label={t('panel.remove')}>
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  )}
+                </Paper>
+              </>
+            )}
+
+            {panelView === 'prant-annual-reports' && isDirector && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
+                  {t('panel.prantAnnualReportsPageTitle')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {t('panel.prantAnnualReportsDirectorSubtitle')}
+                </Typography>
+                {!isApiConfigured() && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    {t('panel.annualReportsApiRequired')}
+                  </Alert>
+                )}
+                {annualReportsLoading ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('panel.loading')}
+                  </Typography>
+                ) : annualReports.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('panel.prantAnnualReportsEmpty')}
+                  </Typography>
+                ) : (
+                  <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, maxHeight: 520 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700 }}>{t('panel.annualReportColDate')}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{t('panel.annualReportColPrant')}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{t('panel.annualReportColEmail')}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{t('panel.annualReportColTitle')}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{t('panel.annualReportColPdf')}</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {annualReports.map((r) => (
+                          <TableRow key={r.reportId}>
+                            <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
+                            <TableCell>{t(`prant.${r.prantKey}`, { defaultValue: r.prantKey })}</TableCell>
+                            <TableCell>{r.submittedByEmail ?? '—'}</TableCell>
+                            <TableCell sx={{ maxWidth: 220 }}>{r.title}</TableCell>
+                            <TableCell>
+                              <Button component="a" href={r.pdfUrl} target="_blank" rel="noopener noreferrer" size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                                {t('articals.viewMemo')}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+            )}
+
+            {panelView === 'prant-annual-report' && isPrant && (
+              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
+                  {t('panel.prantAnnualReportPageTitle')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {t('panel.prantAnnualReportPrantSubtitle')}
+                </Typography>
+                <input
+                  ref={annualReportPdfInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleSubmitAnnualReportPdf}
+                  aria-hidden
+                />
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  <TextField
+                    fullWidth
+                    label={t('panel.annualReportTitleLabel')}
+                    value={annualReportTitle}
+                    onChange={(e) => setAnnualReportTitle(e.target.value)}
+                    required
+                    variant="outlined"
+                  />
+                  <TextField
+                    fullWidth
+                    label={t('panel.annualReportNotesLabel')}
+                    value={annualReportNotes}
+                    onChange={(e) => setAnnualReportNotes(e.target.value)}
+                    multiline
+                    minRows={2}
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<AttachFile />}
+                    disabled={annualReportSubmitting || !token || !isApiConfigured()}
+                    onClick={() => annualReportPdfInputRef.current?.click()}
+                    sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
+                  >
+                    {t('panel.annualReportChoosePdfSubmit')}
+                  </Button>
+                </Stack>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                  {t('panel.annualReportYourSubmissions')}
+                </Typography>
+                {annualReportsLoading ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('panel.loading')}
+                  </Typography>
+                ) : annualReports.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('panel.annualReportYourSubmissionsEmpty')}
+                  </Typography>
+                ) : (
+                  <Stack spacing={1}>
+                    {annualReports.map((r) => (
+                      <Paper key={r.reportId} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(r.createdAt).toLocaleString()}
+                        </Typography>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          {r.title}
+                        </Typography>
+                        <Button component="a" href={r.pdfUrl} target="_blank" rel="noopener noreferrer" size="small" sx={{ textTransform: 'none', mt: 0.5 }}>
+                          {t('articals.viewMemo')}
+                        </Button>
+                      </Paper>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            )}
+
             {/* Content: section selector + Add Image / Text / Video */}
             {panelView === 'content' && (
               <>
@@ -1812,6 +2305,7 @@ export const PanelPage: React.FC = () => {
                   <MenuItem value="videos">{sectionLabels.videos}</MenuItem>
                   <MenuItem value="gallery">{sectionLabels.gallery}</MenuItem>
                   <MenuItem value="ads">{sectionLabels.ads}</MenuItem>
+                  <MenuItem value="articals">{sectionLabels.articals}</MenuItem>
                 </TextField>
                 <Chip label={sectionLabels[selectedSection]} color="primary" size="small" sx={{ mt: 2 }} />
               </Paper>
@@ -1834,6 +2328,74 @@ export const PanelPage: React.FC = () => {
               style={{ display: 'none' }}
               aria-hidden
             />
+
+            {isArticalsSection && (
+              <>
+                <input
+                  ref={articalPdfInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleAddArticalPdf}
+                  aria-hidden
+                />
+                <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                    <PictureAsPdf color="primary" sx={{ fontSize: 32 }} />
+                    <Typography variant="h6" fontWeight={700} color="primary">
+                      {t('panel.articalsUploadTitle')}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('panel.articalsUploadHint', { maxMb: MAX_ARTICAL_PDF_MB })}
+                  </Typography>
+                  <Stack spacing={2} sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      label={t('panel.articalsTitleLabel')}
+                      value={articalTitle}
+                      onChange={(e) => setArticalTitle(e.target.value)}
+                      variant="outlined"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                    <Button
+                      variant="outlined"
+                      startIcon={<AttachFile />}
+                      onClick={() => articalPdfInputRef.current?.click()}
+                      sx={{ textTransform: 'none', alignSelf: 'flex-start', borderRadius: 2 }}
+                    >
+                      {t('panel.articalsChoosePdf')}
+                    </Button>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    {t('panel.articalsSavedList')}
+                  </Typography>
+                  {(sectionContent.pdfArticles ?? []).length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('panel.articalsEmpty')}
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.5} sx={{ mt: 1 }}>
+                      {(sectionContent.pdfArticles ?? []).map((doc) => (
+                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2 }}>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle2" fontWeight={600} noWrap>
+                              {doc.title}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(doc.uploadedAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                          <IconButton size="small" color="error" onClick={() => handleRemoveArticalPdf(doc.id)} aria-label={t('panel.remove')}>
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  )}
+                </Paper>
+              </>
+            )}
 
             {isSinglePostSection && (
               <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
@@ -1969,7 +2531,7 @@ export const PanelPage: React.FC = () => {
             )}
 
             {/* Add Image (to selected section) */}
-            {!isSinglePostSection && !isVideosSection && (
+            {!isSinglePostSection && !isVideosSection && !isArticalsSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <AddPhotoAlternate color="primary" sx={{ fontSize: 32 }} />
@@ -2067,7 +2629,7 @@ export const PanelPage: React.FC = () => {
             )}
 
             {/* Add Text (to selected section) */}
-            {!isSinglePostSection && !isVideosSection && !isGallerySection && !isAdsSection && (
+            {!isSinglePostSection && !isVideosSection && !isGallerySection && !isAdsSection && !isArticalsSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.light}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <TextFields color="primary" sx={{ fontSize: 32 }} />
@@ -2114,7 +2676,7 @@ export const PanelPage: React.FC = () => {
             )}
 
             {/* Add Video (to selected section) */}
-            {!isSinglePostSection && !isGallerySection && !isAdsSection && (
+            {!isSinglePostSection && !isGallerySection && !isAdsSection && !isArticalsSection && (
             <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.info?.main || theme.palette.primary.main}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <VideoLibrary color="primary" sx={{ fontSize: 32 }} />

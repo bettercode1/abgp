@@ -11,6 +11,8 @@ const contentRouter = require('./routes/content');
 const membersRouter = require('./routes/members');
 const prantsRouter = require('./routes/prants');
 const petitionsRouter = require('./routes/petitions');
+const prantAnnualReportsRouter = require('./routes/prantAnnualReports');
+const paymentRouter = require('./payment/paymentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,8 +37,10 @@ app.use('/api/content', contentRouter);
 app.use('/api/members', membersRouter); 
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 app.use('/api/petitions', petitionsRouter);
+app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
+app.use('/api/payment', paymentRouter);
 
-app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants' }));
+app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports' }));
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.use((err, req, res, next) => {

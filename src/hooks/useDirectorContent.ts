@@ -28,7 +28,13 @@ export function useDirectorContent(section: DirectorSectionKey): DirectorSection
       fetchContentViaApi('', section, 'director')
         .then((data) => {
           if (data && data.content) {
-            setContent(data.content);
+            const c = data.content as Record<string, unknown>;
+            setContent({
+              images: Array.isArray(c.images) ? c.images : [],
+              texts: Array.isArray(c.texts) ? c.texts : [],
+              videos: Array.isArray(c.videos) ? c.videos : [],
+              pdfArticles: Array.isArray(c.pdfArticles) ? c.pdfArticles : [],
+            });
           }
         })
         .catch((err) => {

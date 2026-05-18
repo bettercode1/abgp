@@ -3,12 +3,56 @@ const router = express.Router();
 const { pool } = require('../db');
 const { requireAuth, requireDirector } = require('../middleware/auth');
 
+const petitionSelectColumns = `p.petition_id, p.recipient_email, p.subject, p.email_body, p.cc_emails, p.bcc_emails,
+              p.duration_from, p.duration_to, p.attachments, p.created_at`;
+
+/** Prefer view abgp.v_petition_support_counts; fallback subquery if view not deployed yet. */
+const supportCountFromView = `COALESCE(v.support_count, 0) AS support_count`;
+
+const supportCountInline = `(COALESCE((SELECT COUNT(*)::int FROM abgp.petition_supports ps WHERE ps.petition_id = p.petition_id), 0)) AS support_count`;
+
+async function queryAllPetitionsWithSupportCount() {
+  try {
+    return await pool.query(
+      `SELECT ${petitionSelectColumns}, ${supportCountFromView}
+       FROM abgp.petitions p
+       LEFT JOIN abgp.v_petition_support_counts v ON v.petition_id = p.petition_id
+       ORDER BY p.created_at DESC`
+    );
+  } catch (err) {
+    if (err.code === '42P01') {
+      return await pool.query(
+        `SELECT ${petitionSelectColumns}, ${supportCountInline} FROM abgp.petitions p ORDER BY p.created_at DESC`
+      );
+    }
+    throw err;
+  }
+}
+
+async function queryPetitionByIdWithSupportCount(id) {
+  try {
+    return await pool.query(
+      `SELECT ${petitionSelectColumns}, ${supportCountFromView}
+       FROM abgp.petitions p
+       LEFT JOIN abgp.v_petition_support_counts v ON v.petition_id = p.petition_id
+       WHERE p.petition_id = $1`,
+      [id]
+    );
+  } catch (err) {
+    if (err.code === '42P01') {
+      return await pool.query(
+        `SELECT ${petitionSelectColumns}, ${supportCountInline} FROM abgp.petitions p WHERE p.petition_id = $1`,
+        [id]
+      );
+    }
+    throw err;
+  }
+}
+
 // GET /api/petitions - List all petitions (Public)
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT petition_id, recipient_email, subject, email_body, created_at FROM abgp.petitions ORDER BY created_at DESC'
-    );
+    const result = await queryAllPetitionsWithSupportCount();
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching petitions:', err);
@@ -20,10 +64,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(
-      'SELECT petition_id, recipient_email, subject, email_body, created_at FROM abgp.petitions WHERE petition_id = $1',
-      [id]
-    );
+    const result = await queryPetitionByIdWithSupportCount(id);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Petition not found' });
     }

@@ -97,6 +97,7 @@ const navigationItems: NavItem[] = [
   { key: 'nav.gallery', path: '/gallery' },
   { key: 'nav.membership', path: '/membership' },
   { key: 'nav.quickMemos', path: '/quickmemos' },
+  { key: 'nav.articals', path: '/articals' },
   { key: 'nav.faq', path: '/faq' },
   { key: 'nav.activities', path: '/activities' },
   { key: 'nav.petition', path: '/petition' },
@@ -364,25 +365,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   <WhatsApp fontSize="medium" />
                 </IconButton>
               </Box>
-              {!isAuthenticated && (
-                <Button
-                  component={RouterLink}
-                  to="/login?mode=director"
-                  variant="outlined"
-                  color="primary"
-                  size="medium"
-                  sx={{
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    borderWidth: 2,
-                    px: 2.5,
-                    '&:hover': { borderWidth: 2 },
-                  }}
-                >
-                  {t('header.director')}
-                </Button>
-              )}
               <Button
                 component={RouterLink}
                 to={isAuthenticated ? '/panel' : '/login'}

@@ -7,15 +7,22 @@ const { pool } = require('../db');
 const { requireAuth, requireDirectorOrPrant } = require('../middleware/auth');
 
 const router = express.Router();
-const SECTIONS = ['history', 'blog', 'news', 'events', 'videos', 'gallery', 'home', 'ads'];
+const SECTIONS = ['history', 'blog', 'news', 'events', 'videos', 'gallery', 'home', 'ads', 'articals', 'prant_pdfs'];
 
 function toContent(row) {
+  const raw = row.content && typeof row.content === 'object' ? row.content : {};
   return {
     id: row.id,
     section: row.section,
     ownerType: row.owner_type,
     prantKey: row.prant_key ?? undefined,
-    content: row.content ?? { images: [], texts: [], videos: [] },
+    content: {
+      images: [],
+      texts: [],
+      videos: [],
+      pdfArticles: [],
+      ...raw,
+    },
     updatedAt: row.updated_at,
   };
 }
@@ -38,7 +45,7 @@ router.get('/', async (req, res) => {
         section,
         ownerType: ot,
         prantKey: pk ?? undefined,
-        content: { images: [], texts: [], videos: [] },
+        content: { images: [], texts: [], videos: [], pdfArticles: [] },
       });
     }
     res.json(toContent(result.rows[0]));
@@ -66,7 +73,7 @@ router.put('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
     }
     const content = contentPayload && typeof contentPayload === 'object'
       ? contentPayload
-      : { images: [], texts: [], videos: [] };
+      : { images: [], texts: [], videos: [], pdfArticles: [] };
     
     console.log(`[DB] Attempting to save content for section: ${section}`);
     console.log(`[DB] Does it contain images? Images count: ${content.images?.length || 0}`);

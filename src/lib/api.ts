@@ -33,6 +33,8 @@ export interface ApiPetition {
   duration_from?: string;
   duration_to?: string;
   attachments?: { name: string; url: string }[];
+  /** COUNT(*) from petition_supports (exposed via v_petition_support_counts or inline subquery). */
+  support_count?: number;
 }
 
 export interface LoginResponse {
@@ -286,4 +288,78 @@ export async function addPetitionSupportViaApi(
 
 export async function deletePetitionViaApi(token: string, id: string): Promise<void> {
   await fetchJson<void>(`${API_BASE}/petitions/${id}`, token, { method: 'DELETE' }, true);
+}
+
+export interface ApiPrantAnnualReport {
+  reportId: string;
+  prantKey: string;
+  submittedByEmail?: string;
+  title: string;
+  notes?: string;
+  pdfUrl: string;
+  createdAt: string;
+}
+
+export async function fetchPrantAnnualReportsViaApi(token: string): Promise<ApiPrantAnnualReport[]> {
+  const data = await fetchJson<{ reports: ApiPrantAnnualReport[] }>(`${API_BASE}/prant-annual-reports`, token, {}, true);
+  return Array.isArray(data.reports) ? data.reports : [];
+}
+
+export async function submitPrantAnnualReportViaApi(
+  token: string,
+  body: { title: string; notes?: string; pdfData: string }
+): Promise<ApiPrantAnnualReport> {
+  const data = await fetchJson<{ report: ApiPrantAnnualReport }>(`${API_BASE}/prant-annual-reports`, token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }, true);
+  return data.report;
+}
+
+// ─── Payment APIs ──────────────────────────────────────────────────────────────
+
+export interface CreateOrderPayload {
+  full_name: string;
+  gender: string;
+  enrollment_remark?: string;
+  state: string;
+  district: string;
+  prant: string;
+  location_details: string;
+  phone_no: string;
+  email: string;
+}
+
+export interface CreateOrderResponse {
+  order_id: string;
+  amount: number;
+  currency: string;
+}
+
+export async function createPaymentOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+  return fetchJson<CreateOrderResponse>(`${API_BASE}/payment/create-order`, null, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function verifyPayment(data: {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`${API_BASE}/payment/verify-payment`, null, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function recordPaymentFailed(data: {
+  razorpay_order_id: string;
+  razorpay_payment_id?: string;
+}): Promise<{ recorded: boolean }> {
+  return fetchJson<{ recorded: boolean }>(`${API_BASE}/payment/payment-failed`, null, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

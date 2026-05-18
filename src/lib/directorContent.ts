@@ -5,7 +5,7 @@
 
 export const DIRECTOR_CONTENT_KEY = 'abgp-director-content';
 
-export type DirectorSectionKey = 'blog' | 'news' | 'events' | 'videos' | 'gallery' | 'ads';
+export type DirectorSectionKey = 'blog' | 'news' | 'events' | 'videos' | 'gallery' | 'ads' | 'articals';
 
 export interface DirectorImage {
   id: string;
@@ -26,10 +26,20 @@ export interface DirectorVideo {
   caption?: string;
 }
 
+/** PDF memo/article uploaded by director (Articals section). */
+export interface DirectorPdfArticle {
+  id: string;
+  title: string;
+  /** data:application/pdf;base64,... or hosted URL */
+  pdfUrl: string;
+  uploadedAt: string;
+}
+
 export interface DirectorSectionContent {
   images: DirectorImage[];
   texts: DirectorText[];
   videos: DirectorVideo[];
+  pdfArticles: DirectorPdfArticle[];
 }
 
 export type DirectorContentBySection = Record<DirectorSectionKey, DirectorSectionContent>;
@@ -38,9 +48,10 @@ const DEFAULT_SECTION: DirectorSectionContent = {
   images: [],
   texts: [],
   videos: [],
+  pdfArticles: [],
 };
 
-const SECTION_KEYS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads'];
+const SECTION_KEYS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads', 'articals'];
 
 function getDefaultContent(): DirectorContentBySection {
   return SECTION_KEYS.reduce<DirectorContentBySection>(
@@ -64,6 +75,7 @@ export function loadDirectorContentBySection(): DirectorContentBySection {
             images: Array.isArray(parsed[key].images) ? parsed[key].images : [],
             texts: Array.isArray(parsed[key].texts) ? parsed[key].texts : [],
             videos: Array.isArray(parsed[key].videos) ? parsed[key].videos : [],
+            pdfArticles: Array.isArray(parsed[key].pdfArticles) ? parsed[key].pdfArticles : [],
           };
         }
       });

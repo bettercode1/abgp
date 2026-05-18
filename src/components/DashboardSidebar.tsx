@@ -17,6 +17,8 @@ import {
   BarChart,
   Folder,
   Lock,
+  PictureAsPdf,
+  AssignmentTurnedIn,
   ChevronRight,
   Menu as MenuIcon,
 } from '@mui/icons-material';
@@ -25,7 +27,15 @@ import type { DirectorSectionKey } from '../lib/directorContent';
 
 const DRAWER_WIDTH = 260;
 
-export type PanelView = 'profile' | 'analytics' | 'content' | 'prant-logins';
+export type PanelView =
+  | 'profile'
+  | 'analytics'
+  | 'content'
+  | 'prant-logins'
+  | 'prant-pdfs'
+  | 'prant-director-docs'
+  | 'prant-annual-report'
+  | 'prant-annual-reports';
 
 export interface DashboardSidebarProps {
   activeView: PanelView;
@@ -37,13 +47,14 @@ export interface DashboardSidebarProps {
   onSidebarToggle: () => void;
 }
 
-const CONTENT_SECTIONS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads'];
+const CONTENT_SECTIONS: DirectorSectionKey[] = ['blog', 'news', 'events', 'videos', 'gallery', 'ads', 'articals'];
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeView,
   contentSection,
   onNavigate,
   isDirector,
+  isPrant,
   sidebarOpen,
   onSidebarToggle,
 }) => {
@@ -231,6 +242,65 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </List>
         </Collapse>
 
+        {/* Prant: director PDFs + annual report (below Content) */}
+        {isPrant && (
+          <>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                px: 2,
+                py: 1,
+                mt: 1,
+                color: 'text.secondary',
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {t('panel.sidebarCategoryPrant')}
+            </Typography>
+            <ListItemButton
+              selected={activeView === 'prant-director-docs'}
+              onClick={() => onNavigate('prant-director-docs')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.prantDirectorDocsNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'prant-annual-report'}
+              onClick={() => onNavigate('prant-annual-report')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <AssignmentTurnedIn fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.prantAnnualReportNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+          </>
+        )}
+
         {/* DIRECTOR (Prant logins - Director only) */}
         {isDirector && (
           <>
@@ -267,6 +337,44 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <Lock fontSize="small" />
               </ListItemIcon>
               <ListItemText primary={t('panel.prantListTitle')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'prant-pdfs'}
+              onClick={() => onNavigate('prant-pdfs')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <PictureAsPdf fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.prantPdfsNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'prant-annual-reports'}
+              onClick={() => onNavigate('prant-annual-reports')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <AssignmentTurnedIn fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.prantAnnualReportsNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
             </ListItemButton>
           </>
         )}

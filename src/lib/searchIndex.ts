@@ -26,6 +26,7 @@ export const searchIndex: SearchEntry[] = [
   { path: '/gallery', titleKey: 'nav.gallery' },
   { path: '/kshetra-mantri', titleKey: 'nav.kshetraMantri' },
   { path: '/quickmemos', titleKey: 'nav.quickMemos' },
+  { path: '/articals', titleKey: 'nav.articals' },
   { path: '/faq', titleKey: 'nav.faq' },
   { path: '/petition', titleKey: 'nav.petition' },
   { path: '/contact', titleKey: 'nav.contact' },

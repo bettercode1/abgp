@@ -23,9 +23,15 @@ import { ContactPage } from './pages/ContactPage';
 import { PrantContactsPage } from './pages/PrantContactsPage';
 import { KshetraMantriPage } from './pages/KshetraMantriPage';
 import { QuickMemosPage } from './pages/QuickMemosPage';
+import { ArticalsPage } from './pages/ArticalsPage';
 import { SearchPage } from './pages/SearchPage';
 import { LoginPage } from './pages/LoginPage';
+import { MemberLoginPage } from './pages/MemberLoginPage';
+import { NewMemberRegisterPage } from './pages/NewMemberRegisterPage';
+import { PrantLoginPage } from './pages/PrantLoginPage';
 import { PanelPage } from './pages/PanelPage';
+import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
+import { PaymentFailurePage } from './pages/PaymentFailurePage';
 import { AuthProvider } from './contexts/AuthContext';
 import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
@@ -201,10 +207,16 @@ function App() {
                     <Route path="/prant-contacts" element={<PrantContactsPage />} />
                     <Route path="/kshetra-mantri" element={<KshetraMantriPage />} />
                     <Route path="/quickmemos" element={<QuickMemosPage />} />
+                    <Route path="/articals" element={<ArticalsPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/director-login" element={<Navigate to="/login?mode=director" replace />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/login/member" element={<MemberLoginPage />} />
+            <Route path="/login/member/new" element={<NewMemberRegisterPage />} />
+            <Route path="/login/prant" element={<PrantLoginPage />} />
             <Route path="/panel" element={<PanelPage />} />
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+            <Route path="/payment/failure" element={<PaymentFailurePage />} />
           </Routes>
         </MainLayout>
         </AuthProvider>
