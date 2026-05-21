@@ -330,10 +330,23 @@ export interface CreateOrderPayload {
   email: string;
 }
 
+export interface MembershipFeeResponse {
+  amount_paise: number;
+  amount_inr: number;
+  currency: string;
+}
+
 export interface CreateOrderResponse {
+  /** Razorpay Key ID (public) — same key used to create the order on the server */
+  key_id: string;
   order_id: string;
   amount: number;
   currency: string;
+  amount_inr: number;
+}
+
+export async function getMembershipFee(): Promise<MembershipFeeResponse> {
+  return fetchJson<MembershipFeeResponse>(`${API_BASE}/payment/membership-fee`, null);
 }
 
 export async function createPaymentOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
@@ -362,4 +375,48 @@ export async function recordPaymentFailed(data: {
     method: 'POST',
     body: JSON.stringify(data),
   });
+}
+
+export interface DbMembershipPayment {
+  id: number;
+  full_name: string;
+  gender?: string;
+  state: string;
+  district: string;
+  prant: string;
+  location_details: string;
+  phone_no: string;
+  email: string;
+  razorpay_order_id: string | null;
+  razorpay_payment_id: string | null;
+  amount: number;
+  currency: string;
+  payment_status: string;
+  payment_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RazorpayPaymentSummary {
+  payment_id: string;
+  order_id: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  method: string | null;
+  email: string | null;
+  contact: string | null;
+  created_at: number;
+}
+
+export interface MembershipPaymentsOverview {
+  database: DbMembershipPayment[];
+  razorpay: RazorpayPaymentSummary[];
+  dashboard_url: string;
+}
+
+export async function fetchMembershipPaymentsOverview(
+  token: string
+): Promise<MembershipPaymentsOverview> {
+  return fetchJson<MembershipPaymentsOverview>(`${API_BASE}/payment/admin/overview`, token);
 }

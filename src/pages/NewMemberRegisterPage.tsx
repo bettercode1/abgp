@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -26,7 +26,7 @@ import {
   useLoginTextFieldStyles,
   loginGradientButtonSx,
 } from '../components/login/LoginPageLayout';
-import { createPaymentOrder, verifyPayment, recordPaymentFailed } from '../lib/api';
+import { createPaymentOrder, verifyPayment, recordPaymentFailed, getMembershipFee } from '../lib/api';
 import {
   GENDER_OPTIONS,
   sanitizeFullNameInput,
@@ -83,6 +83,39 @@ interface RazorpayErrorResponse {
   };
 }
 
+/** Dev-friendly payment error logging (no secrets). */
+function logPaymentError(context: string, detail: unknown) {
+  console.error(`[ABGP Payment] ${context}`, detail);
+}
+
+/** Key ID from create-order (preferred) or VITE_RAZORPAY_KEY_ID fallback. */
+function resolveCheckoutKey(orderKeyId?: string): string | null {
+  const candidates = [
+    orderKeyId?.trim(),
+    (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined)?.trim(),
+  ];
+  for (const key of candidates) {
+    if (key && /^rzp_(test|live)_[A-Za-z0-9]+$/.test(key)) return key;
+  }
+  return null;
+}
+
+/** Razorpay prefill contact: +{country}{number} — https://razorpay.com/docs/.../integration-steps */
+function formatRazorpayContact(phone: string): string {
+  const digits = phone.replace(/\D/g, '').slice(-10);
+  return digits.length === 10 ? `+91${digits}` : phone.trim();
+}
+
+function parseApiErrorMessage(err: unknown): string {
+  if (!(err instanceof Error)) return 'Could not initiate payment. Please try again.';
+  try {
+    const parsed = JSON.parse(err.message) as { error?: string };
+    return parsed.error || err.message;
+  } catch {
+    return err.message;
+  }
+}
+
 export const NewMemberRegisterPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -99,10 +132,17 @@ export const NewMemberRegisterPage: React.FC = () => {
   const [address, setAddress] = useState('');
   const [formError, setFormError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [membershipInr, setMembershipInr] = useState<number | null>(null);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
 
   const razorpayOpenRef = useRef(false);
+
+  useEffect(() => {
+    getMembershipFee()
+      .then((fee) => setMembershipInr(fee.amount_inr))
+      .catch(() => setMembershipInr(null));
+  }, []);
 
   const allDistrictsForState = state ? getDistrictsForState(state) : [];
   const districtOptions = allDistrictsForState;
@@ -173,11 +213,13 @@ export const NewMemberRegisterPage: React.FC = () => {
     try {
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
+        logPaymentError('checkout.js failed to load', null);
         setFormError(t('login.razorpayLoadError'));
         setIsProcessing(false);
         return;
       }
 
+      // Step 1.1 — create order on server (Orders API)
       const order = await createPaymentOrder({
         full_name: fullName.trim(),
         gender,
@@ -189,9 +231,14 @@ export const NewMemberRegisterPage: React.FC = () => {
         email: email.trim(),
       });
 
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID as string;
+      // Step 1.2 — Checkout options: key, amount, currency, order_id from server
+      const razorpayKey = resolveCheckoutKey(order.key_id);
       if (!razorpayKey) {
-        setFormError('Payment configuration error. Please contact support.');
+        logPaymentError('Checkout Key ID missing after create-order', {
+          hasOrderKeyId: Boolean(order.key_id),
+          hasViteKey: Boolean(import.meta.env.VITE_RAZORPAY_KEY_ID),
+        });
+        setFormError(t('login.razorpayConfigError'));
         setIsProcessing(false);
         return;
       }
@@ -201,17 +248,18 @@ export const NewMemberRegisterPage: React.FC = () => {
       const rzp = new window.Razorpay({
         key: razorpayKey,
         amount: order.amount,
-        currency: order.currency,
-        name: 'ABGP Membership',
-        description: 'New Member Registration',
+        currency: order.currency || 'INR',
+        name: 'ABGP',
+        description: 'Membership Registration',
         order_id: order.order_id,
         prefill: {
           name: fullName.trim(),
           email: email.trim(),
-          contact: phoneNo.trim(),
+          contact: formatRazorpayContact(phoneNo),
         },
         theme: { color: '#FF6600' },
 
+        // Step 1.2.1 — handler: verify signature on server (Step 1.3)
         handler: async (response: RazorpaySuccessResponse) => {
           razorpayOpenRef.current = false;
           try {
@@ -224,7 +272,8 @@ export const NewMemberRegisterPage: React.FC = () => {
               state: { orderId: response.razorpay_order_id, name: fullName.trim() },
               replace: true,
             });
-          } catch {
+          } catch (verifyErr) {
+            logPaymentError('verify-payment failed', verifyErr);
             navigate('/payment/failure', {
               state: { orderId: order.order_id, reason: 'Verification failed' },
               replace: true,
@@ -240,8 +289,8 @@ export const NewMemberRegisterPage: React.FC = () => {
             setIsProcessing(false);
             try {
               await recordPaymentFailed({ razorpay_order_id: order.order_id });
-            } catch {
-              // ignore
+            } catch (dismissErr) {
+              logPaymentError('record failed on dismiss', dismissErr);
             }
           },
         },
@@ -250,14 +299,15 @@ export const NewMemberRegisterPage: React.FC = () => {
       rzp.on('payment.failed', async (response: RazorpayErrorResponse) => {
         razorpayOpenRef.current = false;
         setIsProcessing(false);
+        logPaymentError('payment.failed event', response.error);
         const meta = response.error?.metadata;
         try {
           await recordPaymentFailed({
             razorpay_order_id: meta?.order_id || order.order_id,
             razorpay_payment_id: meta?.payment_id,
           });
-        } catch {
-          // ignore
+        } catch (recordErr) {
+          logPaymentError('record failed after payment.failed', recordErr);
         }
         navigate('/payment/failure', {
           state: {
@@ -270,16 +320,8 @@ export const NewMemberRegisterPage: React.FC = () => {
 
       rzp.open();
     } catch (err: unknown) {
-      let message = 'Could not initiate payment. Please try again.';
-      if (err instanceof Error) {
-        try {
-          const parsed = JSON.parse(err.message) as { error?: string };
-          message = parsed.error || err.message;
-        } catch {
-          message = err.message;
-        }
-      }
-      setFormError(message);
+      logPaymentError('create-order or checkout setup failed', err);
+      setFormError(parseApiErrorMessage(err));
       setIsProcessing(false);
       razorpayOpenRef.current = false;
     }
@@ -498,7 +540,11 @@ export const NewMemberRegisterPage: React.FC = () => {
             }
             sx={loginGradientButtonSx(theme)}
           >
-            {isProcessing ? t('login.pleaseWait') : t('login.proceedToPayment')}
+            {isProcessing
+              ? t('login.pleaseWait')
+              : membershipInr != null
+                ? t('login.proceedToPaymentWithAmount', { amount: membershipInr })
+                : t('login.proceedToPayment')}
           </Button>
 
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>

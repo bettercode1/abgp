@@ -98,9 +98,46 @@ async function getPaymentByOrderId(razorpay_order_id) {
   return result.rows[0] || null;
 }
 
+async function listPayments(limit = 100) {
+  const safeLimit = Math.min(Math.max(parseInt(String(limit), 10) || 100, 1), 200);
+  const result = await pool.query(
+    `SELECT id, full_name, gender, state, district, prant, location_details,
+            phone_no, email, razorpay_order_id, razorpay_payment_id,
+            amount, currency, payment_status, payment_date, created_at, updated_at
+     FROM abgp.payments
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [safeLimit]
+  );
+  return result.rows;
+}
+
+/** Recover a row from Razorpay order notes when create-order DB insert was missed. */
+async function createPaymentRecordFromOrderNotes(orderId, rzOrder, amountFallback) {
+  const notes = rzOrder?.notes || {};
+  const amount =
+    typeof rzOrder?.amount === 'number' ? rzOrder.amount : amountFallback || 0;
+  return createPaymentRecord({
+    full_name: notes.full_name || 'Unknown',
+    gender: notes.gender || 'Other',
+    enrollment_remark: notes.enrollment_remark || null,
+    state: notes.state || 'Unknown',
+    district: notes.district || 'Unknown',
+    prant: notes.prant || 'unknown',
+    location_details: notes.location_details || '',
+    phone_no: String(notes.phone_no || '').replace(/\D/g, '').slice(-10) || '0000000000',
+    email: notes.email || 'unknown@unknown.com',
+    razorpay_order_id: orderId,
+    amount,
+    currency: rzOrder?.currency || 'INR',
+  });
+}
+
 module.exports = {
   createPaymentRecord,
   updatePaymentSuccess,
   updatePaymentFailed,
   getPaymentByOrderId,
+  listPayments,
+  createPaymentRecordFromOrderNotes,
 };

@@ -70,6 +70,7 @@ import {
 import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
+import { MembershipPaymentsSection } from '../components/panel/MembershipPaymentsSection';
 
 const PRANT_PASSWORDS_KEY = 'abgp-prant-passwords';
 const PRANT_PROFILES_KEY = 'abgp-prant-profiles';
@@ -1269,6 +1270,7 @@ export const PanelPage: React.FC = () => {
             <Typography variant="h6" fontWeight={600} color="text.primary">
               {panelView === 'profile' && (isPrant ? t('panel.prantTitle') : t('panel.directorTitle'))}
               {panelView === 'analytics' && t('panel.analytics')}
+              {panelView === 'membership-payments' && t('panel.membershipPayments')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
               {panelView === 'prant-pdfs' && t('panel.prantPdfsPageTitle')}
@@ -2281,6 +2283,10 @@ export const PanelPage: React.FC = () => {
                   </Stack>
                 )}
               </Paper>
+            )}
+
+            {panelView === 'membership-payments' && isDirector && (
+              <MembershipPaymentsSection token={token} />
             )}
 
             {/* Content: section selector + Add Image / Text / Video */}

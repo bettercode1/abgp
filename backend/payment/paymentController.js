@@ -5,15 +5,29 @@ const {
   createRazorpayOrder,
   verifyRazorpaySignature,
   getMembershipAmountPaise,
+  getRazorpayKeyId,
+  fetchRazorpayOrder,
+  fetchRecentRazorpayPayments,
+  getRazorpayDashboardPaymentsUrl,
 } = require('./paymentService');
 const {
   createPaymentRecord,
   updatePaymentSuccess,
   updatePaymentFailed,
   getPaymentByOrderId,
+  listPayments,
+  createPaymentRecordFromOrderNotes,
 } = require('./paymentQueries');
 
 const { validatePaymentForm } = require('./validators');
+const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
+
+/** Razorpay receipt max length is 40 characters. */
+function buildReceipt(phoneNo) {
+  const digits = String(phoneNo).replace(/\D/g, '').slice(-10);
+  const receipt = `mbr${digits}${Date.now()}`.slice(0, 40);
+  return receipt;
+}
 
 /**
  * POST /api/payment/create-order
@@ -39,11 +53,9 @@ async function createOrder(req, res) {
     } = req.body;
 
     const amountPaise = getMembershipAmountPaise();
-    const receipt = `mbr_${String(phone_no).trim()}_${Date.now()}`;
+    const receipt = buildReceipt(phone_no);
 
-    const order = await createRazorpayOrder(receipt);
-
-    await createPaymentRecord({
+    const trimmed = {
       full_name: String(full_name).trim(),
       gender: String(gender).trim(),
       enrollment_remark: enrollment_remark ? String(enrollment_remark).trim().slice(0, 50) : null,
@@ -53,19 +65,57 @@ async function createOrder(req, res) {
       location_details: String(location_details).trim(),
       phone_no: String(phone_no).trim(),
       email: String(email).trim().toLowerCase(),
+    };
+
+    const orderNotes = {
+      full_name: trimmed.full_name.slice(0, 256),
+      gender: trimmed.gender.slice(0, 20),
+      state: trimmed.state.slice(0, 256),
+      district: trimmed.district.slice(0, 256),
+      prant: trimmed.prant.slice(0, 256),
+      location_details: trimmed.location_details.slice(0, 256),
+      phone_no: trimmed.phone_no.slice(0, 256),
+      email: trimmed.email.slice(0, 256),
+    };
+
+    const order = await createRazorpayOrder(receipt, orderNotes);
+
+    const inserted = await createPaymentRecord({
+      ...trimmed,
       razorpay_order_id: order.id,
       amount: amountPaise,
       currency: 'INR',
     });
+    console.log('[payment/create-order] saved pending record id=%s order=%s', inserted.id, order.id);
 
     return res.status(201).json({
+      key_id: getRazorpayKeyId(),
       order_id: order.id,
       amount: order.amount,
-      currency: order.currency,
+      currency: order.currency || 'INR',
+      amount_inr: amountPaise / 100,
     });
   } catch (err) {
+    console.error('[payment/create-order]', err);
+    if (isRazorpayError(err)) {
+      const message = formatRazorpayError(err);
+      const status = isRazorpayAuthError(err) ? 503 : 502;
+      return res.status(status).json({
+        error: isRazorpayAuthError(err)
+          ? 'Razorpay authentication failed. Regenerate the secret in the Razorpay Dashboard and paste the new Key Secret into backend/.env (Key ID and Secret must be from the same account and mode: test or live).'
+          : message,
+      });
+    }
+    if (err && typeof err === 'object' && err.code === '42P01') {
+      return res.status(503).json({
+        error: 'Payments table is missing. Run backend/migrations/005_payments_table.sql on the database.',
+      });
+    }
     const message = err instanceof Error ? err.message : 'Failed to create payment order';
-    const isConfig = message.includes('not configured') || message.includes('key_id');
+    const isConfig =
+      message.includes('not configured') ||
+      message.includes('key_id') ||
+      message.includes('Razorpay keys');
     return res.status(isConfig ? 503 : 500).json({ error: message });
   }
 }
@@ -82,11 +132,25 @@ async function verifyPayment(req, res) {
       return res.status(400).json({ error: 'Missing payment verification fields' });
     }
 
-    // Idempotency: reject if already processed
-    const existing = await getPaymentByOrderId(String(razorpay_order_id));
+    const orderId = String(razorpay_order_id);
+    let existing = await getPaymentByOrderId(orderId);
+
     if (!existing) {
-      return res.status(404).json({ error: 'Payment record not found' });
+      try {
+        const rzOrder = await fetchRazorpayOrder(orderId);
+        const recovered = await createPaymentRecordFromOrderNotes(
+          orderId,
+          rzOrder,
+          getMembershipAmountPaise()
+        );
+        console.log('[payment/verify-payment] recovered missing DB row id=%s order=%s', recovered.id, orderId);
+        existing = await getPaymentByOrderId(orderId);
+      } catch (recoverErr) {
+        console.error('[payment/verify-payment] could not recover record for order', orderId, recoverErr);
+        return res.status(404).json({ error: 'Payment record not found for this order' });
+      }
     }
+
     if (existing.payment_status === 'SUCCESS') {
       return res.status(200).json({ success: true, message: 'Already verified' });
     }
@@ -98,17 +162,25 @@ async function verifyPayment(req, res) {
     );
 
     if (!isValid) {
+      console.error('[payment/verify-payment] Invalid signature for order', razorpay_order_id);
       return res.status(400).json({ error: 'Payment signature verification failed' });
     }
 
-    await updatePaymentSuccess({
-      razorpay_order_id: String(razorpay_order_id),
+    const updated = await updatePaymentSuccess({
+      razorpay_order_id: orderId,
       razorpay_payment_id: String(razorpay_payment_id),
       razorpay_signature: String(razorpay_signature),
     });
 
+    if (!updated) {
+      console.error('[payment/verify-payment] update affected 0 rows for order', orderId);
+      return res.status(500).json({ error: 'Could not update payment record' });
+    }
+
+    console.log('[payment/verify-payment] SUCCESS id=%s order=%s', updated.id, orderId);
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error('[payment/verify-payment]', err);
     return res.status(500).json({ error: 'Payment verification failed' });
   }
 }
@@ -138,8 +210,74 @@ async function paymentFailed(req, res) {
 
     return res.status(200).json({ recorded: true });
   } catch (err) {
+    console.error('[payment/payment-failed]', err);
     return res.status(500).json({ error: 'Failed to record payment failure' });
   }
 }
 
-module.exports = { createOrder, verifyPayment, paymentFailed };
+/**
+ * GET /api/payment/membership-fee
+ * Public fee for UI display only; charge amount always comes from create-order.
+ */
+function getMembershipFee(req, res) {
+  try {
+    const amountPaise = getMembershipAmountPaise();
+    return res.json({
+      amount_paise: amountPaise,
+      amount_inr: amountPaise / 100,
+      currency: 'INR',
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to read membership fee';
+    return res.status(500).json({ error: message });
+  }
+}
+
+/**
+ * GET /api/payment/admin/overview — Director: DB rows + recent Razorpay payments.
+ */
+async function getPaymentsOverview(req, res) {
+  try {
+    const [database, razorpayItems] = await Promise.all([
+      listPayments(100),
+      fetchRecentRazorpayPayments(50),
+    ]);
+
+    const razorpay = razorpayItems.map((p) => ({
+      payment_id: p.id,
+      order_id: p.order_id,
+      amount: p.amount,
+      currency: p.currency,
+      status: p.status,
+      method: p.method,
+      email: p.email,
+      contact: p.contact,
+      created_at: p.created_at,
+    }));
+
+    return res.json({
+      database,
+      razorpay,
+      dashboard_url: getRazorpayDashboardPaymentsUrl(),
+    });
+  } catch (err) {
+    console.error('[payment/admin/overview]', err);
+    if (isRazorpayError(err)) {
+      return res.status(502).json({ error: formatRazorpayError(err) });
+    }
+    if (err && err.code === '42P01') {
+      return res.status(503).json({
+        error: 'Payments table missing on this database. Run backend/migrations/005_payments_table.sql',
+      });
+    }
+    return res.status(500).json({ error: 'Failed to load payment overview' });
+  }
+}
+
+module.exports = {
+  createOrder,
+  verifyPayment,
+  paymentFailed,
+  getMembershipFee,
+  getPaymentsOverview,
+};

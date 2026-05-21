@@ -1,7 +1,9 @@
 /**
  * ABGP API server – auth, complaints, content, prants (director/prant focus; no members table).
  */
-require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: true });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
 const { requireAuth, requireDirector, requireDirectorOrPrant } = require('./middleware/auth');
@@ -41,7 +43,40 @@ app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
 app.use('/api/payment', paymentRouter);
 
 app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports' }));
-app.get('/health', (req, res) => res.json({ ok: true }));
+app.get('/health', async (req, res) => {
+  try {
+    const { pool } = require('./db');
+    await pool.query('SELECT 1');
+    return res.json({ ok: true, database: 'connected' });
+  } catch (err) {
+    return res.status(503).json({
+      ok: false,
+      database: 'disconnected',
+      error: err.code || err.message,
+    });
+  }
+});
+
+function getDatabaseHostHint() {
+  try {
+    const u = new URL(process.env.DATABASE_URL);
+    return `${u.hostname}:${u.port || 5432}`;
+  } catch {
+    return 'see DATABASE_URL in backend/.env';
+  }
+}
+
+async function logDatabaseStatus() {
+  try {
+    const { pool } = require('./db');
+    await pool.query('SELECT 1');
+    console.log(`Database: connected (${getDatabaseHostHint()})`);
+  } catch (err) {
+    console.error(`Database: NOT CONNECTED (${getDatabaseHostHint()}) — ${err.message}`);
+    console.error('  → Start local PostgreSQL, or run an SSH tunnel if you use the VPS database.');
+    console.error('  → Example tunnel: ssh -L 5432:127.0.0.1:5432 user@your-vps-ip');
+  }
+}
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -49,5 +84,13 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+  const keyMode = keyId.startsWith('rzp_live_')
+    ? 'live'
+    : keyId.startsWith('rzp_test_')
+      ? 'test'
+      : 'not configured';
   console.log(`ABGP API listening on http://0.0.0.0:${PORT}`);
+  console.log(`Razorpay: ${keyMode} key loaded (${keyId ? keyId.slice(0, 12) + '…' : 'missing'})`);
+  logDatabaseStatus();
 });
