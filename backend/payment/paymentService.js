@@ -2,6 +2,9 @@
  * Razorpay service layer.
  * All secret operations stay server-side only.
  */
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
@@ -35,7 +38,7 @@ function getMembershipAmountPaise() {
  * Lazy so the server starts even before keys are configured.
  */
 function normalizeEnvValue(value) {
-  let v = String(value || '').trim();
+  let v = String(value || '').trim().replace(/\r$/, '');
   if (
     (v.startsWith('"') && v.endsWith('"')) ||
     (v.startsWith("'") && v.endsWith("'"))
@@ -59,19 +62,55 @@ function isInvalidRazorpayKeySecret(keySecret) {
   return /^(REPLACE_ME|your_key_secret|changeme)$/i.test(v);
 }
 
+/** If backend/.env has placeholders, use valid keys from project root .env when present. */
+function mergeRazorpayFromRootEnv(keyId, keySecret) {
+  const rootEnvPath = path.join(__dirname, '..', '..', '.env');
+  if (!fs.existsSync(rootEnvPath)) {
+    return { keyId, keySecret };
+  }
+  try {
+    const parsed = dotenv.parse(fs.readFileSync(rootEnvPath));
+    const rootId = normalizeEnvValue(parsed.RAZORPAY_KEY_ID);
+    const rootSecret = normalizeEnvValue(parsed.RAZORPAY_KEY_SECRET);
+    return {
+      keyId: isInvalidRazorpayKeyId(keyId) && !isInvalidRazorpayKeyId(rootId) ? rootId : keyId,
+      keySecret:
+        isInvalidRazorpayKeySecret(keySecret) && !isInvalidRazorpayKeySecret(rootSecret)
+          ? rootSecret
+          : keySecret,
+    };
+  } catch {
+    return { keyId, keySecret };
+  }
+}
+
 function getRazorpayCredentials() {
-  return {
-    keyId: normalizeEnvValue(process.env.RAZORPAY_KEY_ID),
-    keySecret: normalizeEnvValue(process.env.RAZORPAY_KEY_SECRET),
-  };
+  let keyId = normalizeEnvValue(process.env.RAZORPAY_KEY_ID);
+  let keySecret = normalizeEnvValue(process.env.RAZORPAY_KEY_SECRET);
+  ({ keyId, keySecret } = mergeRazorpayFromRootEnv(keyId, keySecret));
+  return { keyId, keySecret };
+}
+
+function razorpayConfigError(keyId, keySecret) {
+  if (isInvalidRazorpayKeyId(keyId)) {
+    return (
+      'RAZORPAY_KEY_ID is missing or invalid. Set it in backend/.env (e.g. rzp_live_xxx or rzp_test_xxx). ' +
+      'Remove any REPLACE_ME placeholder lines.'
+    );
+  }
+  if (isInvalidRazorpayKeySecret(keySecret)) {
+    return (
+      'RAZORPAY_KEY_SECRET is missing or invalid. Set it in backend/.env (from Razorpay Dashboard → Regenerate Key). ' +
+      'No quotes or spaces around the value unless the whole value is quoted.'
+    );
+  }
+  return 'Razorpay keys are not configured.';
 }
 
 function getRazorpay() {
   const { keyId, keySecret } = getRazorpayCredentials();
   if (isInvalidRazorpayKeyId(keyId) || isInvalidRazorpayKeySecret(keySecret)) {
-    throw new Error(
-      'Razorpay keys are missing or still set to template values in backend/.env. Save the file, restart the backend, and use matching Key ID + Secret from the same Razorpay mode (test or live).'
-    );
+    throw new Error(razorpayConfigError(keyId, keySecret));
   }
   return new Razorpay({
     key_id: keyId,

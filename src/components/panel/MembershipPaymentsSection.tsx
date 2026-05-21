@@ -128,6 +128,7 @@ export const MembershipPaymentsSection: React.FC<MembershipPaymentsSectionProps>
             <TableHead>
               <TableRow>
                 <TableCell>{t('panel.membershipColName')}</TableCell>
+                <TableCell>{t('panel.membershipColType')}</TableCell>
                 <TableCell>{t('panel.membershipColEmail')}</TableCell>
                 <TableCell>{t('panel.membershipColPhone')}</TableCell>
                 <TableCell>{t('panel.membershipColPrant')}</TableCell>
@@ -140,7 +141,7 @@ export const MembershipPaymentsSection: React.FC<MembershipPaymentsSectionProps>
             <TableBody>
               {(data?.database.length ?? 0) === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                       {t('panel.membershipPaymentsDbEmpty')}
                     </Typography>
@@ -150,6 +151,13 @@ export const MembershipPaymentsSection: React.FC<MembershipPaymentsSectionProps>
                 data?.database.map((row) => (
                   <TableRow key={row.id} hover>
                     <TableCell>{row.full_name}</TableCell>
+                    <TableCell>
+                      {row.member_type === 'EXISTING' || row.enrollment_remark === 'RENEWAL' ? (
+                        <Chip size="small" label={t('panel.membershipTypeExisting')} color="info" />
+                      ) : (
+                        <Chip size="small" label={t('panel.membershipTypeNew')} variant="outlined" />
+                      )}
+                    </TableCell>
                     <TableCell>{row.email}</TableCell>
                     <TableCell>{row.phone_no}</TableCell>
                     <TableCell>{row.prant}</TableCell>

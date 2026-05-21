@@ -356,12 +356,51 @@ export async function createPaymentOrder(payload: CreateOrderPayload): Promise<C
   });
 }
 
+export interface MembershipStatus {
+  active: boolean;
+  renewRequired: boolean;
+  payment_date: string | null;
+  expires_at: string | null;
+  days_remaining: number;
+}
+
+export interface MemberLoginResponse {
+  ok: boolean;
+  member: {
+    full_name: string;
+    email: string;
+    phone_no: string;
+    source: string;
+    state: string;
+    district: string;
+    prant: string;
+    found_in_payments?: boolean;
+    found_in_existing_members?: boolean;
+  };
+  membership: MembershipStatus;
+  renew_required: boolean;
+}
+
+export async function memberLoginApi(email: string, phone: string): Promise<MemberLoginResponse> {
+  return fetchJson<MemberLoginResponse>(`${API_BASE}/auth/member/login`, null, {
+    method: 'POST',
+    body: JSON.stringify({ email: email.trim().toLowerCase(), phone }),
+  });
+}
+
+export async function createRenewalOrder(email: string, phone: string): Promise<CreateOrderResponse> {
+  return fetchJson<CreateOrderResponse>(`${API_BASE}/payment/create-renewal-order`, null, {
+    method: 'POST',
+    body: JSON.stringify({ email: email.trim().toLowerCase(), phone }),
+  });
+}
+
 export async function verifyPayment(data: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
-}): Promise<{ success: boolean }> {
-  return fetchJson<{ success: boolean }>(`${API_BASE}/payment/verify-payment`, null, {
+}): Promise<{ success: boolean; membership?: MembershipStatus }> {
+  return fetchJson<{ success: boolean; membership?: MembershipStatus }>(`${API_BASE}/payment/verify-payment`, null, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -381,6 +420,8 @@ export interface DbMembershipPayment {
   id: number;
   full_name: string;
   gender?: string;
+  enrollment_remark?: string | null;
+  member_type?: 'NEW' | 'EXISTING' | string;
   state: string;
   district: string;
   prant: string;

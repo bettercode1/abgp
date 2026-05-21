@@ -312,10 +312,39 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 sx={{
                   height: { xs: 56, sm: 64, md: 68 },
                   width: 'auto',
+                  flexShrink: 0,
                   objectFit: 'contain',
                   maxWidth: { xs: '160px', sm: '200px', md: '220px' },
                 }}
               />
+              <Box sx={{ minWidth: 0, textAlign: { xs: 'center', md: 'left' } }}>
+                <Typography
+                  component="h1"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: { xs: '1.125rem', sm: '1.35rem', md: '1.65rem', lg: '1.85rem' },
+                    lineHeight: 1.15,
+                    letterSpacing: '-0.02em',
+                    color: theme.palette.primary.main,
+                    fontFamily: '"Roboto", "Noto Sans Devanagari", "Arial", sans-serif',
+                  }}
+                >
+                  {t('header.orgTitle')}
+                </Typography>
+                <Typography
+                  component="p"
+                  sx={{
+                    mt: 0.35,
+                    fontWeight: 600,
+                    fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.95rem' },
+                    lineHeight: 1.25,
+                    color: theme.palette.secondary.dark,
+                    fontFamily: '"Noto Sans Devanagari", "Roboto", sans-serif',
+                  }}
+                >
+                  {t('header.orgTitleAlt')}
+                </Typography>
+              </Box>
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-end' } }}>

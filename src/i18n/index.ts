@@ -12,6 +12,8 @@ const resources = {
       'home.profil.adBlank': '(Right-side blank space filled)',
       // Header & Navigation
       'header.fullName': 'Akhil Bhartiya Grahak Panchayat (ABGP)',
+      'header.orgTitle': 'Akhil Bhartiya Grahak Panchayat',
+      'header.orgTitleAlt': 'अखिल भारतीय ग्राहक पंचायत',
       'header.shortDescription': 'National-level consumer movement',
       'header.subtitle': 'Serving Grahaks for Samaaj Hith and Rashtra Hith',
       'nav.home': 'Home',
@@ -97,6 +99,15 @@ const resources = {
       'login.razorpayLoadError': 'Could not load payment gateway. Please check your internet connection and try again.',
       'login.razorpayConfigError': 'Payment could not be started. Restart the backend server and try again.',
       'login.paymentSecuredByRazorpay': 'Payments are secured and processed by Razorpay.',
+      'login.membershipRenewTitle': 'Renew membership',
+      'login.membershipRenewMessage':
+        'Your membership has expired. Last payment was on {{date}} (valid for 1 year). Renew now to continue.',
+      'login.membershipRenewCancel': 'Not now',
+      'login.membershipRenewConfirm': 'Renew with Razorpay',
+      'login.membershipRenewDescription': 'Membership renewal',
+      'login.membershipNotFound':
+        'No membership found for this email and phone. Please register as a new member.',
+      'login.membershipActiveDays': '{{days}} days of membership remaining',
       'payment.successTitle': 'Payment Successful',
       'payment.successSubtitle': 'Your membership registration is complete.',
       'payment.paymentSuccessful': 'Payment Successful!',
@@ -338,7 +349,7 @@ const resources = {
       'panel.analytics': 'Analytics',
       'panel.membershipPayments': 'Membership payments',
       'panel.membershipPaymentsTitle': 'New member payments',
-      'panel.membershipPaymentsHint': 'Registered members from your database and live payment status from Razorpay (same account as backend keys).',
+      'panel.membershipPaymentsHint': 'All membership payments (new registration and renewals) are stored in abgp.payments. Razorpay tab shows live API data.',
       'panel.membershipPaymentsDbTab': 'Saved registrations',
       'panel.membershipPaymentsRazorpayTab': 'Razorpay (live)',
       'panel.membershipPaymentsDbEmpty': 'No rows in abgp.payments yet. Complete a test payment or run the migration on this database.',
@@ -348,6 +359,9 @@ const resources = {
       'panel.openRazorpayDashboard': 'Open Razorpay Dashboard',
       'panel.membershipPaymentsDashboardLink': 'View all transactions in Razorpay Dashboard',
       'panel.membershipColName': 'Name',
+      'panel.membershipColType': 'Type',
+      'panel.membershipTypeNew': 'New member',
+      'panel.membershipTypeExisting': 'Existing member',
       'panel.membershipColEmail': 'Email',
       'panel.membershipColPhone': 'Phone',
       'panel.membershipColPrant': 'Prant',
@@ -1315,6 +1329,8 @@ const resources = {
       'home.profil.adBlank': '(दाईं ओर का खाली स्थान भर गया)',
       // Header & Navigation
       'header.fullName': 'अखिल भारतीय ग्राहक पंचायत (ABGP)',
+      'header.orgTitle': 'अखिल भारतीय ग्राहक पंचायत',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'राष्ट्रीय स्तर का उपभोक्ता आंदोलन',
       'header.subtitle': 'समाज हित और राष्ट्र हित के लिए ग्राहकों की सेवा',
       'nav.home': 'होम',
@@ -2053,6 +2069,8 @@ const resources = {
       'home.profil.adBlank': '(उजव्या बाजूची रिकामी जागा भरली)',
       // Header & Navigation
       'header.fullName': 'अखिल भारतीय ग्राहक पंचायत (ABGP)',
+      'header.orgTitle': 'अखिल भारतीय ग्राहक पंचायत',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'राष्ट्रीय स्तरावरील ग्राहक चळवळ',
       'header.subtitle': 'समाज हित आणि राष्ट्र हित साठी ग्राहकांची सेवा',
       'nav.home': 'मुख्यपृष्ठ',
@@ -2869,6 +2887,8 @@ const resources = {
       'home.profil.adBanner': 'તમારું જાહેરાત બેનર અહીં ઉમેરો',
       'home.profil.adBlank': '(જમણી બાજુની ખાલી જગ્યા ભરાઈ ગઈ)',
       'header.fullName': 'અખિલ ભારતીય ગ્રાહક પંચાયત (ABGP)',
+      'header.orgTitle': 'અખિલ ભારતીય ગ્રાહક પંચાયત',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'રાષ્ટ્રીય સ્તરની ગ્રાહક ચળવળ',
       'header.subtitle': 'સમાજ હિત અને રાષ્ટ્ર હિત માટે ગ્રાહકોની સેવા',
       'nav.home': 'હોમ',
@@ -3011,6 +3031,8 @@ const resources = {
       'home.profil.adBanner': 'ನಿಮ್ಮ ಜಾಹೀರಾತು ಬ್ಯಾನರ್ ಅನ್ನು ಇಲ್ಲಿ ಸೇರಿಸಿ',
       'home.profil.adBlank': '(ಬಲಬದಿಯ ಖಾಲಿ ಜಾಗ ತುಂಬಿದೆ)',
       'header.fullName': 'ಅಖಿಲ ಭಾರತೀಯ ಗ್ರಾಹಕ ಪಂಚಾಯತ (ABGP)',
+      'header.orgTitle': 'ಅಖಿಲ ಭಾರತೀಯ ಗ್ರಾಹಕ ಪಂಚಾಯತ',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'ರಾಷ್ಟ್ರೀಯ ಮಟ್ಟದ ಗ್ರಾಹಕ ಚಳುವಳಿ',
       'header.subtitle': 'ಸಮಾಜ ಹಿತ ಮತ್ತು ರಾಷ್ಟ್ರ ಹಿತಕ್ಕಾಗಿ ಗ್ರಾಹಕರ ಸೇವೆ',
       'nav.home': 'ಮುಖಪುಟ',
@@ -3147,6 +3169,8 @@ const resources = {
   te: {
     translation: {
       'header.fullName': 'అఖిల్ భారతీయ గ్రాహక పంచాయత్ (ABGP)',
+      'header.orgTitle': 'అఖిల్ భారతీయ గ్రాహక పంచాయత్',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'జాతీయ స్థాయి వినియోగదారుల ఉద్యమం',
       'header.subtitle': 'సమాజ హిత మరియు రాష్ట్ర హిత కోసం గ్రాహకుల సేవ',
       'nav.home': 'హోమ్',
@@ -3278,6 +3302,8 @@ const resources = {
   ta: {
     translation: {
       'header.fullName': 'அகில பாரதிய கிராஹக பஞ்சாயத் (ABGP)',
+      'header.orgTitle': 'அகில பாரதிய கிராஹக பஞ்சாயத்',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'தேசிய அளவிலான நுகர்வோர் இயக்கம்',
       'header.subtitle': 'சமாஜ் ஹித் மற்றும் ராஷ்ட்ர ஹித்துக்காக கிராஹக்களுக்கு சேவை',
       'nav.home': 'முகப்பு',
@@ -3409,6 +3435,8 @@ const resources = {
   bn: {
     translation: {
       'header.fullName': 'অখিল ভারতীয় গ্রাহক পঞ্চায়েত (ABGP)',
+      'header.orgTitle': 'অখিল ভারতীয় গ্রাহক পঞ্চায়েত',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'জাতীয় স্তরের ভোক্তা আন্দোলন',
       'header.subtitle': 'সমাজ হিত এবং রাষ্ট্র হিতের জন্য গ্রাহকদের সেবা',
       'nav.home': 'হোম',
@@ -3540,6 +3568,8 @@ const resources = {
   or: {
     translation: {
       'header.fullName': 'ଅଖିଲ ଭାରତୀୟ ଗ୍ରାହକ ପଞ୍ଚାୟତ (ABGP)',
+      'header.orgTitle': 'ଅଖିଲ ଭାରତୀୟ ଗ୍ରାହକ ପଞ୍ଚାୟତ',
+      'header.orgTitleAlt': 'Akhil Bhartiya Grahak Panchayat',
       'header.shortDescription': 'ଜାତୀୟ ସ୍ତରର ଗ୍ରାହକ ଆନ୍ଦୋଳନ',
       'header.subtitle': 'ସମାଜ ହିତ ଏବଂ ରାଷ୍ଟ୍ର ହିତ ପାଇଁ ଗ୍ରାହକଙ୍କ ସେବା',
       'nav.home': 'ହୋମ',

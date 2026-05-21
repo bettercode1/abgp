@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS abgp.payments (
   full_name TEXT NOT NULL,
   gender VARCHAR(20),
   enrollment_remark VARCHAR(50),
+  member_type VARCHAR(20) NOT NULL DEFAULT 'NEW',
   state VARCHAR(50) NOT NULL,
   district VARCHAR(50) NOT NULL,
   prant VARCHAR(50) NOT NULL,

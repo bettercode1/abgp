@@ -15,9 +15,13 @@ const {
   updatePaymentSuccess,
   updatePaymentFailed,
   getPaymentByOrderId,
+  getPaymentDetailsByOrderId,
+  setPaymentRazorpayOrderId,
   listPayments,
   createPaymentRecordFromOrderNotes,
 } = require('./paymentQueries');
+const { findMemberForLogin, normalizePhone, updateExistingMemberPaymentDate } = require('../member/memberAuthQueries');
+const { computeMembershipStatus } = require('../member/memberAuthService');
 
 const { validatePaymentForm } = require('./validators');
 const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
@@ -70,6 +74,7 @@ async function createOrder(req, res) {
     const orderNotes = {
       full_name: trimmed.full_name.slice(0, 256),
       gender: trimmed.gender.slice(0, 20),
+      member_type: 'NEW',
       state: trimmed.state.slice(0, 256),
       district: trimmed.district.slice(0, 256),
       prant: trimmed.prant.slice(0, 256),
@@ -78,15 +83,19 @@ async function createOrder(req, res) {
       email: trimmed.email.slice(0, 256),
     };
 
-    const order = await createRazorpayOrder(receipt, orderNotes);
-
+    // Save member details first so a row always exists even if Razorpay fails later
     const inserted = await createPaymentRecord({
       ...trimmed,
-      razorpay_order_id: order.id,
+      member_type: 'NEW',
+      razorpay_order_id: null,
       amount: amountPaise,
       currency: 'INR',
     });
-    console.log('[payment/create-order] saved pending record id=%s order=%s', inserted.id, order.id);
+    console.log('[payment/create-order] saved pending record id=%s (before Razorpay)', inserted.id);
+
+    const order = await createRazorpayOrder(receipt, orderNotes);
+    await setPaymentRazorpayOrderId(inserted.id, order.id);
+    console.log('[payment/create-order] linked order=%s to payment id=%s', order.id, inserted.id);
 
     return res.status(201).json({
       key_id: getRazorpayKeyId(),
@@ -111,12 +120,92 @@ async function createOrder(req, res) {
         error: 'Payments table is missing. Run backend/migrations/005_payments_table.sql on the database.',
       });
     }
+    if (err && typeof err === 'object' && err.code === '23505') {
+      return res.status(409).json({ error: 'Duplicate payment order. Please try again.' });
+    }
     const message = err instanceof Error ? err.message : 'Failed to create payment order';
+    if (err && typeof err === 'object' && err.detail) {
+      return res.status(500).json({ error: message, detail: err.detail });
+    }
     const isConfig =
       message.includes('not configured') ||
       message.includes('key_id') ||
       message.includes('Razorpay keys');
     return res.status(isConfig ? 503 : 500).json({ error: message });
+  }
+}
+
+/**
+ * POST /api/payment/create-renewal-order
+ * Membership renewal for existing member (email + phone).
+ */
+async function createRenewalOrder(req, res) {
+  try {
+    const email = req.body?.email ? String(req.body.email).trim().toLowerCase() : '';
+    const phone = normalizePhone(req.body?.phone);
+
+    if (!email || phone.length !== 10) {
+      return res.status(400).json({ error: 'Valid email and 10-digit phone are required' });
+    }
+
+    const member = await findMemberForLogin(email, phone);
+    if (!member) {
+      return res.status(404).json({
+        error: 'No membership found for this email and phone.',
+      });
+    }
+
+    const amountPaise = getMembershipAmountPaise();
+    const receipt = buildReceipt(phone);
+
+    const orderNotes = {
+      full_name: String(member.full_name).slice(0, 256),
+      gender: String(member.gender || 'Other').slice(0, 20),
+      enrollment_remark: 'RENEWAL',
+      member_type: 'EXISTING',
+      state: String(member.state).slice(0, 256),
+      district: String(member.district).slice(0, 256),
+      prant: String(member.prant).slice(0, 256),
+      location_details: String(member.location_details || '').slice(0, 256),
+      phone_no: phone,
+      email,
+      renewal: 'true',
+    };
+
+    // Always save renewal in abgp.payments (PENDING → SUCCESS/FAILED after checkout)
+    const inserted = await createPaymentRecord({
+      full_name: member.full_name,
+      gender: member.gender || 'Other',
+      enrollment_remark: 'RENEWAL',
+      member_type: 'EXISTING',
+      state: member.state,
+      district: member.district,
+      prant: member.prant,
+      location_details: member.location_details || '',
+      phone_no: phone,
+      email,
+      razorpay_order_id: null,
+      amount: amountPaise,
+      currency: 'INR',
+    });
+    console.log('[payment/create-renewal-order] saved PENDING in abgp.payments id=%s', inserted.id);
+
+    const order = await createRazorpayOrder(receipt, orderNotes);
+    await setPaymentRazorpayOrderId(inserted.id, order.id);
+    console.log('[payment/create-renewal-order] linked order=%s to payment id=%s', order.id, inserted.id);
+
+    return res.status(201).json({
+      key_id: getRazorpayKeyId(),
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency || 'INR',
+      amount_inr: amountPaise / 100,
+      renewal: true,
+    });
+  } catch (err) {
+    console.error('[payment/create-renewal-order]', err);
+    const message = err instanceof Error ? err.message : 'Failed to create renewal order';
+    return res.status(500).json({ error: message });
   }
 }
 
@@ -177,8 +266,27 @@ async function verifyPayment(req, res) {
       return res.status(500).json({ error: 'Could not update payment record' });
     }
 
-    console.log('[payment/verify-payment] SUCCESS id=%s order=%s', updated.id, orderId);
-    return res.status(200).json({ success: true });
+    const details = await getPaymentDetailsByOrderId(orderId);
+    if (details?.email && details?.phone_no) {
+      await updateExistingMemberPaymentDate(
+        String(details.email).trim().toLowerCase(),
+        String(details.phone_no).trim(),
+        new Date()
+      );
+    }
+
+    console.log(
+      '[payment/verify-payment] SUCCESS id=%s order=%s remark=%s',
+      updated.id,
+      orderId,
+      details?.enrollment_remark || '—'
+    );
+    return res.status(200).json({
+      success: true,
+      payment_id: updated.id,
+      enrollment_remark: details?.enrollment_remark || null,
+      membership: computeMembershipStatus(new Date()),
+    });
   } catch (err) {
     console.error('[payment/verify-payment]', err);
     return res.status(500).json({ error: 'Payment verification failed' });
@@ -276,6 +384,7 @@ async function getPaymentsOverview(req, res) {
 
 module.exports = {
   createOrder,
+  createRenewalOrder,
   verifyPayment,
   paymentFailed,
   getMembershipFee,

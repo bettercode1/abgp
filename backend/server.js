@@ -2,8 +2,9 @@
  * ABGP API server – auth, complaints, content, prants (director/prant focus; no members table).
  */
 const path = require('path');
+// backend/.env first; root .env fills only variables not already set (no override)
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
-require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
 const { requireAuth, requireDirector, requireDirectorOrPrant } = require('./middleware/auth');
@@ -15,6 +16,7 @@ const prantsRouter = require('./routes/prants');
 const petitionsRouter = require('./routes/petitions');
 const prantAnnualReportsRouter = require('./routes/prantAnnualReports');
 const paymentRouter = require('./payment/paymentRoutes');
+const memberAuthRouter = require('./member/memberAuthRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +35,7 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/auth', memberAuthRouter);
 
 app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
 app.use('/api/content', contentRouter);
@@ -43,15 +46,32 @@ app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
 app.use('/api/payment', paymentRouter);
 
 app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports' }));
+function getDatabaseLabel() {
+  try {
+    const u = new URL(process.env.DATABASE_URL || '');
+    return `${u.hostname}:${u.port || 5432}/${(u.pathname || '').replace(/^\//, '')}`;
+  } catch {
+    return 'unknown';
+  }
+}
+
 app.get('/health', async (req, res) => {
   try {
     const { pool } = require('./db');
-    await pool.query('SELECT 1');
-    return res.json({ ok: true, database: 'connected' });
+    const dbCheck = await pool.query('SELECT current_database() AS db, COUNT(*)::int AS payments FROM abgp.payments');
+    const row = dbCheck.rows[0] || {};
+    return res.json({
+      ok: true,
+      database: 'connected',
+      database_name: row.db,
+      database_target: getDatabaseLabel(),
+      payments_row_count: row.payments,
+    });
   } catch (err) {
     return res.status(503).json({
       ok: false,
       database: 'disconnected',
+      database_target: getDatabaseLabel(),
       error: err.code || err.message,
     });
   }

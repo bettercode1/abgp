@@ -4,7 +4,12 @@
  */
 const { Pool } = require('pg');
 
-console.log("Using DB URL:", process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@'));
+const dbUrl = process.env.DATABASE_URL || '';
+if (dbUrl) {
+  console.log('Using DB URL:', dbUrl.replace(/:[^:@]*@/, ':***@'));
+} else {
+  console.error('DATABASE_URL is not set in backend/.env');
+}
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,

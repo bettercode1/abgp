@@ -12,6 +12,7 @@ async function createPaymentRecord(data) {
     full_name,
     gender,
     enrollment_remark,
+    member_type,
     state,
     district,
     prant,
@@ -23,17 +24,20 @@ async function createPaymentRecord(data) {
     currency,
   } = data;
 
+  const type = member_type === 'EXISTING' ? 'EXISTING' : 'NEW';
+
   const result = await pool.query(
     `INSERT INTO abgp.payments
-       (full_name, gender, enrollment_remark, state, district, prant,
+       (full_name, gender, enrollment_remark, member_type, state, district, prant,
         location_details, phone_no, email,
         razorpay_order_id, amount, currency, payment_status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'PENDING')
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'PENDING')
      RETURNING id`,
     [
       full_name,
       gender,
       enrollment_remark || null,
+      type,
       state,
       district,
       prant,
@@ -98,10 +102,31 @@ async function getPaymentByOrderId(razorpay_order_id) {
   return result.rows[0] || null;
 }
 
+async function getPaymentDetailsByOrderId(razorpay_order_id) {
+  const result = await pool.query(
+    `SELECT id, full_name, gender, state, district, prant, location_details,
+            email, phone_no, enrollment_remark, member_type, payment_status
+     FROM abgp.payments WHERE razorpay_order_id = $1`,
+    [razorpay_order_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function setPaymentRazorpayOrderId(paymentId, razorpay_order_id) {
+  const result = await pool.query(
+    `UPDATE abgp.payments
+     SET razorpay_order_id = $1, updated_at = NOW()
+     WHERE id = $2
+     RETURNING id, razorpay_order_id`,
+    [razorpay_order_id, paymentId]
+  );
+  return result.rows[0] || null;
+}
+
 async function listPayments(limit = 100) {
   const safeLimit = Math.min(Math.max(parseInt(String(limit), 10) || 100, 1), 200);
   const result = await pool.query(
-    `SELECT id, full_name, gender, state, district, prant, location_details,
+    `SELECT id, full_name, gender, enrollment_remark, member_type, state, district, prant, location_details,
             phone_no, email, razorpay_order_id, razorpay_payment_id,
             amount, currency, payment_status, payment_date, created_at, updated_at
      FROM abgp.payments
@@ -117,10 +142,16 @@ async function createPaymentRecordFromOrderNotes(orderId, rzOrder, amountFallbac
   const notes = rzOrder?.notes || {};
   const amount =
     typeof rzOrder?.amount === 'number' ? rzOrder.amount : amountFallback || 0;
+  const isRenewal = notes.renewal === 'true' || notes.renewal === true;
+  const enrollmentRemark = notes.enrollment_remark || (isRenewal ? 'RENEWAL' : null);
+  const memberType =
+    notes.member_type === 'EXISTING' || isRenewal ? 'EXISTING' : 'NEW';
+
   return createPaymentRecord({
     full_name: notes.full_name || 'Unknown',
     gender: notes.gender || 'Other',
-    enrollment_remark: notes.enrollment_remark || null,
+    enrollment_remark: enrollmentRemark,
+    member_type: memberType,
     state: notes.state || 'Unknown',
     district: notes.district || 'Unknown',
     prant: notes.prant || 'unknown',
@@ -138,6 +169,8 @@ module.exports = {
   updatePaymentSuccess,
   updatePaymentFailed,
   getPaymentByOrderId,
+  getPaymentDetailsByOrderId,
+  setPaymentRazorpayOrderId,
   listPayments,
   createPaymentRecordFromOrderNotes,
 };
