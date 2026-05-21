@@ -41,80 +41,15 @@ import {
   shouldShowPhoneFieldError,
   shouldShowEmailFieldError,
 } from '../lib/memberFormValidation';
-
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  prefill: { name: string; email: string; contact: string };
-  theme: { color: string };
-  handler: (response: RazorpaySuccessResponse) => void;
-  modal: { ondismiss: () => void };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-  on: (event: string, handler: (response: RazorpayErrorResponse) => void) => void;
-}
-
-interface RazorpaySuccessResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-}
-
-interface RazorpayErrorResponse {
-  error: {
-    code: string;
-    description: string;
-    reason: string;
-    source: string;
-    step: string;
-    metadata: { order_id: string; payment_id?: string };
-  };
-}
-
-/** Dev-friendly payment error logging (no secrets). */
-function logPaymentError(context: string, detail: unknown) {
-  console.error(`[ABGP Payment] ${context}`, detail);
-}
-
-/** Key ID from create-order (preferred) or VITE_RAZORPAY_KEY_ID fallback. */
-function resolveCheckoutKey(orderKeyId?: string): string | null {
-  const candidates = [
-    orderKeyId?.trim(),
-    (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined)?.trim(),
-  ];
-  for (const key of candidates) {
-    if (key && /^rzp_(test|live)_[A-Za-z0-9]+$/.test(key)) return key;
-  }
-  return null;
-}
-
-/** Razorpay prefill contact: +{country}{number} — https://razorpay.com/docs/.../integration-steps */
-function formatRazorpayContact(phone: string): string {
-  const digits = phone.replace(/\D/g, '').slice(-10);
-  return digits.length === 10 ? `+91${digits}` : phone.trim();
-}
-
-function parseApiErrorMessage(err: unknown): string {
-  if (!(err instanceof Error)) return 'Could not initiate payment. Please try again.';
-  try {
-    const parsed = JSON.parse(err.message) as { error?: string };
-    return parsed.error || err.message;
-  } catch {
-    return err.message;
-  }
-}
+import {
+  formatRazorpayContact,
+  loadRazorpayScript,
+  logPaymentError,
+  parsePaymentApiErrorMessage,
+  resolveCheckoutKey,
+  type RazorpayErrorResponse,
+  type RazorpaySuccessResponse,
+} from '../lib/razorpayCheckout';
 
 export const NewMemberRegisterPage: React.FC = () => {
   const { t } = useTranslation();
@@ -187,19 +122,6 @@ export const NewMemberRegisterPage: React.FC = () => {
     }
     return true;
   };
-
-  const loadRazorpayScript = (): Promise<boolean> =>
-    new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
 
   const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -321,7 +243,7 @@ export const NewMemberRegisterPage: React.FC = () => {
       rzp.open();
     } catch (err: unknown) {
       logPaymentError('create-order or checkout setup failed', err);
-      setFormError(parseApiErrorMessage(err));
+      setFormError(parsePaymentApiErrorMessage(err));
       setIsProcessing(false);
       razorpayOpenRef.current = false;
     }

@@ -28,70 +28,22 @@ import {
   recordPaymentFailed,
   type MemberLoginResponse,
 } from '../lib/api';
+import {
+  formatRazorpayContact,
+  loadRazorpayScript,
+  parsePaymentApiErrorMessage,
+  resolveCheckoutKey,
+  type RazorpayErrorResponse,
+  type RazorpaySuccessResponse,
+} from '../lib/razorpayCheckout';
 
 const PHONE_PATTERN = /^\d{10}$/;
 
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  prefill: { name: string; email: string; contact: string };
-  theme: { color: string };
-  handler: (response: RazorpaySuccessResponse) => void;
-  modal: { ondismiss: () => void };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-  on: (event: string, handler: (response: RazorpayErrorResponse) => void) => void;
-}
-
-interface RazorpaySuccessResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-}
-
-interface RazorpayErrorResponse {
-  error: {
-    description: string;
-    metadata: { order_id: string; payment_id?: string };
-  };
-}
-
-function resolveCheckoutKey(orderKeyId?: string): string | null {
-  const candidates = [
-    orderKeyId?.trim(),
-    (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined)?.trim(),
-  ];
-  for (const key of candidates) {
-    if (key && /^rzp_(test|live)_[A-Za-z0-9]+$/.test(key)) return key;
-  }
-  return null;
-}
-
-function formatRazorpayContact(phone: string): string {
-  const digits = phone.replace(/\D/g, '').slice(-10);
-  return digits.length === 10 ? `+91${digits}` : phone.trim();
-}
-
 function parseApiErrorMessage(err: unknown): string {
-  if (!(err instanceof Error)) return 'Request failed. Please try again.';
-  try {
-    const parsed = JSON.parse(err.message) as { error?: string };
-    return parsed.error || err.message;
-  } catch {
-    return err.message;
-  }
+  const msg = parsePaymentApiErrorMessage(err);
+  return msg === 'Could not initiate payment. Please try again.'
+    ? 'Request failed. Please try again.'
+    : msg;
 }
 
 function formatMembershipDate(iso: string | null | undefined): string {
@@ -170,19 +122,6 @@ export const MemberLoginPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  const loadRazorpayScript = (): Promise<boolean> =>
-    new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
 
   const handleRenewMembership = async () => {
     if (!pendingLogin || isRenewing) return;
