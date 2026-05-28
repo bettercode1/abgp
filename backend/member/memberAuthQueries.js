@@ -128,7 +128,9 @@ async function updateExistingMemberPaymentDate(email, phone, paymentDate) {
       [email, phone, paymentDate]
     );
   } catch (err) {
-    if (err.code !== '42P01') throw err;
+    // Some deployments still run older schema variants for existing_members.
+    // Keep this sync step non-fatal for the payment verification response.
+    if (err.code !== '42P01' && err.code !== '42703') throw err;
   }
 }
 

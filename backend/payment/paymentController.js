@@ -268,11 +268,20 @@ async function verifyPayment(req, res) {
 
     const details = await getPaymentDetailsByOrderId(orderId);
     if (details?.email && details?.phone_no) {
-      await updateExistingMemberPaymentDate(
-        String(details.email).trim().toLowerCase(),
-        String(details.phone_no).trim(),
-        new Date()
-      );
+      // Best-effort sync only; verification is already complete at this point.
+      try {
+        await updateExistingMemberPaymentDate(
+          String(details.email).trim().toLowerCase(),
+          String(details.phone_no).trim(),
+          new Date()
+        );
+      } catch (syncErr) {
+        console.warn(
+          '[payment/verify-payment] non-fatal member payment_date sync failed for order=%s',
+          orderId,
+          syncErr
+        );
+      }
     }
 
     console.log(
