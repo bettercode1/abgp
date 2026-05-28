@@ -50,16 +50,16 @@ export function useLoginTextFieldStyles() {
 
 export function loginGradientButtonSx(theme: Theme): SxProps<Theme> {
   return {
-    py: 1.75,
-    borderRadius: 2.5,
+    py: 1.35,
+    borderRadius: 2,
     fontWeight: 700,
-    fontSize: '1.05rem',
+    fontSize: '0.98rem',
     textTransform: 'none',
-    boxShadow: '0 8px 24px rgba(30, 58, 138, 0.25)',
+    boxShadow: '0 5px 14px rgba(30, 58, 138, 0.18)',
     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
     '&:hover': {
-      boxShadow: '0 12px 32px rgba(30, 58, 138, 0.35)',
-      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 20px rgba(30, 58, 138, 0.24)',
+      transform: 'translateY(-1px)',
     },
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   };
@@ -91,10 +91,10 @@ export const LoginPageLayout: React.FC<LoginPageLayoutProps> = ({
       sx={{
         minHeight: '85vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-start', md: 'center' },
         justifyContent: 'center',
-        py: { xs: 6, md: 8 },
-        px: 2,
+        py: { xs: 2.5, md: 5 },
+        px: { xs: 1, sm: 2 },
         background:
           theme.palette.mode === 'dark'
             ? `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[900]} 100%)`
@@ -105,12 +105,12 @@ export const LoginPageLayout: React.FC<LoginPageLayoutProps> = ({
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 4, sm: 5 },
-            borderRadius: 4,
+            p: { xs: 2.2, sm: 3.2 },
+            borderRadius: 3,
             overflow: 'hidden',
             border: '1px solid',
             borderColor: theme.palette.divider,
-            boxShadow: '0 24px 48px rgba(0,0,0,0.08)',
+            boxShadow: '0 10px 26px rgba(0,0,0,0.06)',
             backgroundColor: theme.palette.background.paper,
           }}
         >
@@ -121,19 +121,19 @@ export const LoginPageLayout: React.FC<LoginPageLayoutProps> = ({
               mx: 'auto',
               borderRadius: 2,
               background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`,
-              mb: 4,
+              mb: 2.2,
             }}
           />
           <Typography
-            variant="h4"
+            variant="h5"
             component="h1"
             align="center"
             fontWeight={800}
-            sx={{ color: theme.palette.text.primary, letterSpacing: '-0.02em', mb: 1 }}
+            sx={{ color: theme.palette.text.primary, letterSpacing: '-0.02em', mb: 0.5 }}
           >
             {title}
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3, fontWeight: 500 }}>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2.2, fontWeight: 500 }}>
             {subtitle}
           </Typography>
           {showBack && (

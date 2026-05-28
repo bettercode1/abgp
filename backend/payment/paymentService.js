@@ -11,20 +11,20 @@ const crypto = require('crypto');
 /** Fixed membership fee in production: ₹100 */
 const MEMBERSHIP_PRODUCTION_PAISE = 10000;
 
-/** Local testing only (non-production): ₹1 */
-const MEMBERSHIP_LOCAL_TEST_PAISE = 100;
+/** Local testing default (non-production): ₹100 */
+const MEMBERSHIP_LOCAL_TEST_PAISE = 10000;
 
 /**
  * Membership amount in paise — never taken from the client.
  * Production: ₹100 (10000 paise).
- * Local dev (NODE_ENV !== 'production'): ₹1 (100 paise) unless MEMBERSHIP_AMOUNT_PAISE is set.
+ * Local dev (NODE_ENV !== 'production'): ₹100 (10000 paise) unless MEMBERSHIP_AMOUNT_PAISE is set.
  */
 function getMembershipAmountPaise() {
   const override = process.env.MEMBERSHIP_AMOUNT_PAISE;
   if (override !== undefined && String(override).trim() !== '') {
     const n = parseInt(String(override).trim(), 10);
     if (!Number.isFinite(n) || n < 100) {
-      throw new Error('MEMBERSHIP_AMOUNT_PAISE must be at least 100 (₹1)');
+      throw new Error('MEMBERSHIP_AMOUNT_PAISE must be at least 100 (paise)');
     }
     return n;
   }

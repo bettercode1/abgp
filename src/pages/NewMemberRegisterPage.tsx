@@ -9,10 +9,11 @@ import {
   Alert,
   useTheme,
   InputAdornment,
+  ButtonBase,
 } from '@mui/material';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import {
@@ -22,10 +23,11 @@ import {
   shouldAutoSelectStateForPrant,
 } from '../lib/stateDistrictPrant';
 import {
-  LoginPageLayout,
   useLoginTextFieldStyles,
   loginGradientButtonSx,
 } from '../components/login/LoginPageLayout';
+import { AuthLayout } from '../components/auth/AuthLayout';
+import { AuthCard } from '../components/auth/AuthCard';
 import { createPaymentOrder, verifyPayment, recordPaymentFailed, getMembershipFee } from '../lib/api';
 import {
   GENDER_OPTIONS,
@@ -51,7 +53,11 @@ import {
   type RazorpaySuccessResponse,
 } from '../lib/razorpayCheckout';
 
-export const NewMemberRegisterPage: React.FC = () => {
+interface NewMemberRegisterPageProps {
+  embedded?: boolean;
+}
+
+export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ embedded = false }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
@@ -249,15 +255,9 @@ export const NewMemberRegisterPage: React.FC = () => {
     }
   };
 
-  return (
-    <LoginPageLayout
-      title={t('login.newMember')}
-      subtitle={t('login.newMemberRegisterSubtitle')}
-      backTo="/login/member"
-      maxWidth="md"
-    >
-      <form onSubmit={handleProceedToPayment} noValidate>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+  const formContent = (
+    <form onSubmit={handleProceedToPayment} noValidate>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: embedded ? 2 : 2.3 }}>
           <TextField
             fullWidth
             required
@@ -472,8 +472,36 @@ export const NewMemberRegisterPage: React.FC = () => {
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
             {t('login.paymentSecuredByRazorpay')}
           </Typography>
-        </Box>
-      </form>
-    </LoginPageLayout>
+      </Box>
+    </form>
+  );
+
+  if (embedded) {
+    return formContent;
+  }
+
+  return (
+    <AuthLayout
+      accent="member"
+      title={t('login.newMember')}
+      subtitle={t('login.newMemberRegisterSubtitle')}
+    >
+      <AuthCard title={t('login.newMember')} subtitle={t('login.newMemberRegisterSubtitle')}>
+        <ButtonBase
+          component={RouterLink}
+          to="/login"
+          sx={{
+            display: 'inline-flex',
+            mb: 2,
+            fontSize: '0.86rem',
+            fontWeight: 600,
+            color: '#4F46E5',
+          }}
+        >
+          ← {t('login.back')}
+        </ButtonBase>
+        {formContent}
+      </AuthCard>
+    </AuthLayout>
   );
 };

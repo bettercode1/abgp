@@ -381,10 +381,38 @@ export interface MemberLoginResponse {
   renew_required: boolean;
 }
 
+export interface MemberLookupMatch {
+  full_name: string;
+  email: string;
+  phone_no: string;
+  source: string;
+  state: string;
+  district: string;
+  prant: string;
+  found_in_payments?: boolean;
+  found_in_existing_members?: boolean;
+  membership: MembershipStatus;
+}
+
+export interface MemberLoginLookupResponse {
+  ok: boolean;
+  matches: MemberLookupMatch[];
+}
+
 export async function memberLoginApi(email: string, phone: string): Promise<MemberLoginResponse> {
   return fetchJson<MemberLoginResponse>(`${API_BASE}/auth/member/login`, null, {
     method: 'POST',
     body: JSON.stringify({ email: email.trim().toLowerCase(), phone }),
+  });
+}
+
+export async function memberLoginLookupApi(data: {
+  email?: string;
+  phone?: string;
+}): Promise<MemberLoginLookupResponse> {
+  return fetchJson<MemberLoginLookupResponse>(`${API_BASE}/auth/member/login-lookup`, null, {
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 }
 

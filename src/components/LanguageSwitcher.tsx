@@ -17,12 +17,14 @@ const languages = [
 export const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
   // Ensure we get the resolved language to properly highlight the active one
-  const currentCode = i18n.resolvedLanguage || i18n.language?.split('-')[0] || 'en';
+  const currentCode = (i18n.resolvedLanguage || i18n.language?.split('-')[0] || 'en').split('-')[0];
 
-  const handleLanguageChange = (lng: string) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('abgp-language', lng);
-    document.documentElement.lang = lng;
+  const handleLanguageChange = async (lng: string) => {
+    if (lng === currentCode) return;
+    await i18n.changeLanguage(lng);
+    const nextLang = (i18n.resolvedLanguage || lng).split('-')[0];
+    localStorage.setItem('abgp-language', nextLang);
+    document.documentElement.lang = nextLang;
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MainLayout } from './layouts/MainLayout';
 import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
@@ -26,13 +27,13 @@ import { QuickMemosPage } from './pages/QuickMemosPage';
 import { ArticalsPage } from './pages/ArticalsPage';
 import { SearchPage } from './pages/SearchPage';
 import { LoginPage } from './pages/LoginPage';
-import { MemberLoginPage } from './pages/MemberLoginPage';
-import { NewMemberRegisterPage } from './pages/NewMemberRegisterPage';
 import { PrantLoginPage } from './pages/PrantLoginPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 import { PanelPage } from './pages/PanelPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { PaymentFailurePage } from './pages/PaymentFailurePage';
 import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './routes/ProtectedRoutes';
 import { getTheme, ThemeName } from './theme/themes';
 import './i18n';
 
@@ -51,6 +52,7 @@ interface AccessibilitySettings {
 }
 
 function App() {
+  const { i18n } = useTranslation();
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('tricolor');
   const [fontSize, setFontSize] = useState<FontSize>('medium');
   const [contrastMode, setContrastMode] = useState<ContrastMode>('light');
@@ -173,6 +175,7 @@ function App() {
         <AuthProvider>
           <ScrollToTop />
           <MainLayout
+          key={`layout-${i18n.resolvedLanguage || i18n.language}`}
           currentTheme={currentTheme}
           onThemeChange={handleThemeChange}
           fontSize={fontSize}
@@ -209,12 +212,20 @@ function App() {
                     <Route path="/quickmemos" element={<QuickMemosPage />} />
                     <Route path="/articals" element={<ArticalsPage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/director-login" element={<Navigate to="/login?mode=director" replace />} />
+            <Route path="/director-login" element={<Navigate to="/login/admin" replace />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/login/member" element={<MemberLoginPage />} />
-            <Route path="/login/member/new" element={<NewMemberRegisterPage />} />
+            <Route path="/login/member" element={<Navigate to="/login" replace />} />
+            <Route path="/login/member/new" element={<Navigate to="/login?tab=register" replace />} />
             <Route path="/login/prant" element={<PrantLoginPage />} />
-            <Route path="/panel" element={<PanelPage />} />
+            <Route path="/login/admin" element={<AdminLoginPage />} />
+            <Route
+              path="/panel"
+              element={(
+                <ProtectedRoute>
+                  <PanelPage />
+                </ProtectedRoute>
+              )}
+            />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/failure" element={<PaymentFailurePage />} />
           </Routes>

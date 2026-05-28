@@ -18,8 +18,6 @@ import {
   MenuItem,
   useTheme,
   useMediaQuery,
-  TextField,
-  InputAdornment,
   Link,
   Stack,
   Divider,
@@ -28,7 +26,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Search,
   Facebook,
   Instagram,
   YouTube,
@@ -38,7 +35,7 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { GlobalLoader } from '../components/GlobalLoader';
@@ -122,11 +119,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const drawerPaperRef = useRef<HTMLDivElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
@@ -158,16 +153,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       else paper.focus();
     }
   }, [mobileOpen]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = searchQuery.trim();
-    if (trimmed) {
-      navigate(`/search?q=${encodeURIComponent(trimmed)}`);
-    } else {
-      navigate('/search');
-    }
-  };
 
   const drawer = (
     <Box sx={{ width: 280, pt: 2 }}>
@@ -286,11 +271,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         sx={{
           backgroundColor: theme.palette.background.paper,
           borderBottom: `1px solid ${theme.palette.divider}`,
-          boxShadow: theme.shadows[1],
+          boxShadow: 'none',
         }}
       >
         <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
-          <Toolbar sx={{ flexDirection: { xs: 'column', md: 'row' }, gap: 2, py: { xs: 2, md: 1.5 }, minHeight: { xs: 'auto', md: 72 } }}>
+          <Toolbar
+            sx={{
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'stretch', md: 'center' },
+              gap: { xs: 1.25, md: 2 },
+              py: { xs: 1.25, md: 1.5 },
+              minHeight: { xs: 'auto', md: 72 },
+              px: 0,
+            }}
+          >
             <Box
               component={RouterLink}
               to="/"
@@ -298,7 +292,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 flexGrow: 1,
-                gap: 2,
+                gap: { xs: 1.2, sm: 1.8, md: 2 },
                 textDecoration: 'none',
                 color: 'inherit',
                 transition: 'opacity 0.2s ease',
@@ -310,11 +304,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 src={logoImage}
                 alt={t('header.fullName')}
                 sx={{
-                  height: { xs: 56, sm: 64, md: 68 },
+                  height: { xs: 44, sm: 56, md: 64 },
                   width: 'auto',
                   flexShrink: 0,
                   objectFit: 'contain',
-                  maxWidth: { xs: '160px', sm: '200px', md: '220px' },
+                  maxWidth: { xs: '120px', sm: '160px', md: '210px' },
                 }}
               />
               <Box sx={{ minWidth: 0, textAlign: { xs: 'center', md: 'left' } }}>
@@ -322,7 +316,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   component="h1"
                   sx={{
                     fontWeight: 800,
-                    fontSize: { xs: '1.125rem', sm: '1.35rem', md: '1.65rem', lg: '1.85rem' },
+                    fontSize: { xs: '0.98rem', sm: '1.18rem', md: '1.45rem', lg: '1.7rem' },
                     lineHeight: 1.15,
                     letterSpacing: '-0.02em',
                     color: theme.palette.primary.main,
@@ -334,9 +328,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <Typography
                   component="p"
                   sx={{
-                    mt: 0.35,
+                    mt: 0.2,
                     fontWeight: 600,
-                    fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.95rem' },
+                    fontSize: { xs: '0.74rem', sm: '0.82rem', md: '0.9rem' },
                     lineHeight: 1.25,
                     color: theme.palette.secondary.dark,
                     fontFamily: '"Noto Sans Devanagari", "Roboto", sans-serif',
@@ -347,18 +341,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: { xs: 0, md: 0.5 } }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-end' }, width: { xs: '100%', md: 'auto' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mr: { xs: 0, md: 0.5 } }}>
                 <IconButton
                   component="a"
                   href="https://www.facebook.com/groups/abgpindia/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  size="medium"
+                  size="small"
                   sx={{ color: '#1877F2', '&:hover': { color: '#166FE5' } }}
                 >
-                  <Facebook fontSize="medium" />
+                  <Facebook fontSize="small" />
                 </IconButton>
                 <IconButton
                   component="a"
@@ -366,10 +360,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  size="medium"
+                  size="small"
                   sx={{ color: '#E1306C', '&:hover': { color: '#C13584' } }}
                 >
-                  <Instagram fontSize="medium" />
+                  <Instagram fontSize="small" />
                 </IconButton>
                 <IconButton
                   component="a"
@@ -377,10 +371,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube"
-                  size="medium"
+                  size="small"
                   sx={{ color: '#FF0000', '&:hover': { color: '#CC0000' } }}
                 >
-                  <YouTube fontSize="medium" />
+                  <YouTube fontSize="small" />
                 </IconButton>
                 <IconButton
                   component="a"
@@ -388,10 +382,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
-                  size="medium"
+                  size="small"
                   sx={{ color: '#25D366', '&:hover': { color: '#1DAF58' } }}
                 >
-                  <WhatsApp fontSize="medium" />
+                  <WhatsApp fontSize="small" />
                 </IconButton>
               </Box>
               <Button
@@ -399,12 +393,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 to={isAuthenticated ? '/panel' : '/login'}
                 variant="contained"
                 color="primary"
-                size="medium"
+                size="small"
                 sx={{
                   borderRadius: 2,
                   fontWeight: 600,
                   textTransform: 'none',
-                  px: 3,
+                  px: { xs: 1.8, sm: 2.5 },
                 }}
               >
                 {isAuthenticated ? t('panel.title') : t('header.login')}
@@ -413,14 +407,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <Button
                   variant="outlined"
                   color="primary"
-                  size="medium"
+                  size="small"
                   onClick={() => logout()}
                   sx={{
                     borderRadius: 2,
                     fontWeight: 600,
                     textTransform: 'none',
                     borderWidth: 2,
-                    px: 2.5,
+                    px: { xs: 1.5, sm: 2.2 },
                     '&:hover': { borderWidth: 2 },
                   }}
                 >
@@ -460,7 +454,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                           fontWeight: (item.key === 'nav.about' ? isAboutActive : item.key === 'nav.gyandeep' ? isGyandeepActive : item.key === 'nav.media' ? isMediaActive : false) ? 700 : 500,
                           textTransform: 'uppercase',
                           letterSpacing: '0.04em',
-                          fontSize: '0.8rem',
+                          fontSize: '0.75rem',
                           borderRadius: 0,
                           px: 1.5,
                           py: 1.25,
@@ -482,7 +476,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                               mt: 0,
                               minWidth: 220,
                               borderRadius: 0,
-                              boxShadow: theme.shadows[4],
+                              boxShadow: theme.shadows[2],
                               borderTop: `3px solid ${theme.palette.secondary.main}`,
                             },
                           },
@@ -512,7 +506,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                         fontWeight: location.pathname === item.path ? 700 : 500,
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
-                        fontSize: '0.8rem',
+                        fontSize: '0.75rem',
                         borderRadius: 0,
                         px: 1.5,
                         py: 1.25,
@@ -527,32 +521,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </Box>
             )}
 
-            <Box component="form" onSubmit={handleSearch} sx={{ flexGrow: { xs: 1, md: 0 }, minWidth: { md: 220 } }}>
-              <TextField
-                size="small"
-                placeholder={t('search.placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search sx={{ fontSize: 20, color: 'rgba(255,255,255,0.8)' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: 1,
-                  '& .MuiOutlinedInput-root': {
-                    color: '#fff',
-                    '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-                    '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.4)' },
-                    '&.Mui-focused fieldset': { borderColor: 'rgba(255,255,255,0.6)' },
-                  },
-                  '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.7)' },
-                }}
-              />
-            </Box>
           </Toolbar>
         </Container>
       </AppBar>
@@ -616,9 +584,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   src={footerLogoImage}
                   alt={t('header.fullName')}
                   sx={{
-                    height: '300px',
+                    height: { xs: 120, sm: 160, md: 210 },
                     width: 'auto',
-                    maxWidth: '400px',
+                    maxWidth: { xs: '170px', sm: '220px', md: '280px' },
                     objectFit: 'contain',
                   }}
                 />

@@ -57,6 +57,7 @@ const eventKeys = [
 const eventImages = [mp_whatsapp_1, rj_woman_safety, mp_adulteration, rj_bikaner, rj_1, mp_china, mp_mobile];
 
 type MediaTab = 0 | 1 | 2 | 3; // News | Blogs | Events | Videos
+const newestFirst = <T,>(items: T[]): T[] => [...items].reverse();
 
 export const LatestNewsSection: React.FC = () => {
   const { t } = useTranslation();
@@ -79,10 +80,10 @@ export const LatestNewsSection: React.FC = () => {
   };
 
   const directorNewsItems: PanelItem[] = useMemo(() => {
-    const texts = directorNews.texts;
+    const texts = newestFirst(directorNews.texts);
     if (texts.length === 0) {
       // If Director only added images, still show something in the panel.
-      return directorNews.images.slice(0, 6).map((img) => ({
+      return newestFirst(directorNews.images).slice(0, 6).map((img) => ({
         title: img.caption || t('media.news'),
         dateLabel: img.caption,
         imageUrl: img.url,
@@ -99,10 +100,10 @@ export const LatestNewsSection: React.FC = () => {
   }, [directorNews.images, directorNews.texts, t]);
 
   const directorBlogItems: PanelItem[] = useMemo(() => {
-    const texts = directorBlogs.texts;
+    const texts = newestFirst(directorBlogs.texts);
     if (texts.length === 0) {
       if (directorBlogs.images.length === 0) return [];
-      return directorBlogs.images.slice(0, 6).map((img) => ({
+      return newestFirst(directorBlogs.images).slice(0, 6).map((img) => ({
         title: img.caption || t('nav.blogs'),
         dateLabel: img.caption,
         excerpt: '',
@@ -118,10 +119,10 @@ export const LatestNewsSection: React.FC = () => {
   }, [directorBlogs.images, directorBlogs.texts, t]);
 
   const directorEventItems: PanelItem[] = useMemo(() => {
-    const texts = directorEvents.texts;
+    const texts = newestFirst(directorEvents.texts);
     if (texts.length === 0) {
       if (directorEvents.images.length === 0) return [];
-      return directorEvents.images.slice(0, 7).map((img) => ({
+      return newestFirst(directorEvents.images).slice(0, 7).map((img) => ({
         title: img.caption || t('media.events'),
         dateLabel: img.caption,
         excerpt: '',
@@ -144,7 +145,7 @@ export const LatestNewsSection: React.FC = () => {
       return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : undefined;
     };
 
-    const mapped = directorVideos.videos.slice(0, 6).map((vid) => ({
+    const mapped = newestFirst(directorVideos.videos).slice(0, 6).map((vid) => ({
       title: vid.title || vid.url,
       dateLabel: vid.caption || '',
       imageUrl: toYoutubeThumb(vid.url),

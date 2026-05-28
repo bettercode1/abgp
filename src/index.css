@@ -11,6 +11,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 code {
@@ -28,6 +29,26 @@ code {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 8rem;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+body,
+#root {
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.MuiContainer-root {
+  width: 100%;
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -62,6 +83,18 @@ a, button {
 
 .skip-link:focus {
   top: 0;
+}
+
+@media (max-width: 900px) {
+  html {
+    scroll-padding-top: 6.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  html {
+    scroll-padding-top: 5.25rem;
+  }
 }
 
 

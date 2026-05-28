@@ -103,16 +103,21 @@ export const MediaPage: React.FC = () => {
 
   const directorNewsIndex = directorNewsIndexParam ? Number(directorNewsIndexParam) : null;
 
+  const reversedDirectorNewsTexts = [...directorNews.texts].reverse();
+  const reversedDirectorNewsImages = [...directorNews.images].reverse();
+  const reversedDirectorEventTexts = [...directorEvents.texts].reverse();
+  const reversedDirectorEventImages = [...directorEvents.images].reverse();
+
   const directorNewsForDisplay = directorNews.texts.length
-    ? directorNews.texts.map((txt, idx) => ({
+    ? reversedDirectorNewsTexts.map((txt, idx) => ({
         title: txt.title,
-        date: directorNews.images[idx]?.caption || directorNews.images[0]?.caption || '—',
+        date: reversedDirectorNewsImages[idx]?.caption || reversedDirectorNewsImages[0]?.caption || '—',
         category: t('panel.sectionNews'),
         summary: txt.body,
-        image: directorNews.images[idx]?.url,
+        image: reversedDirectorNewsImages[idx]?.url,
       }))
     : directorNews.images.length
-      ? directorNews.images.map((img) => ({
+      ? reversedDirectorNewsImages.map((img) => ({
           title: img.caption || 'News',
           date: img.caption || '—',
           category: t('panel.sectionNews'),
@@ -304,9 +309,9 @@ export const MediaPage: React.FC = () => {
         description: t('media.event.item7.description'),
       },
     ];
-    const directorEventsMapped = directorEvents.texts.map((txt: any, idx: number) => ({
+    const directorEventsMapped = reversedDirectorEventTexts.map((txt: any, idx: number) => ({
       title: txt.title,
-      date: directorEvents.images[idx]?.caption || '—',
+      date: reversedDirectorEventImages[idx]?.caption || reversedDirectorEventImages[0]?.caption || '—',
       category: t('media.events'),
       description: txt.body,
     }));

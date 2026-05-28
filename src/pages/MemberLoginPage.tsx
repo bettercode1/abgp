@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -6,27 +6,44 @@ import {
   Typography,
   CircularProgress,
   useTheme,
+  ToggleButton,
+  ToggleButtonGroup,
+  Alert,
+  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  InputAdornment,
+  Snackbar,
+  Tab,
+  Tabs,
+  Stack,
 } from '@mui/material';
-import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
+import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LoginPageLayout,
   useLoginTextFieldStyles,
   loginGradientButtonSx,
 } from '../components/login/LoginPageLayout';
+import { AuthLayout } from '../components/auth/AuthLayout';
+import { AuthCard } from '../components/auth/AuthCard';
+import { NewMemberRegisterPage } from './NewMemberRegisterPage';
 import {
   memberLoginApi,
+  memberLoginLookupApi,
   createRenewalOrder,
   verifyPayment,
   recordPaymentFailed,
   type MemberLoginResponse,
+  type MemberLookupMatch,
+  type ApiPetition,
+  fetchPetitionsFromApi,
 } from '../lib/api';
 import {
   formatRazorpayContact,
@@ -63,17 +80,27 @@ export const MemberLoginPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { login } = useAuth();
   const textFieldStyles = useLoginTextFieldStyles();
   const razorpayOpenRef = useRef(false);
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [loginMode, setLoginMode] = useState<'email' | 'phone'>('phone');
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupMatches, setLookupMatches] = useState<MemberLookupMatch[]>([]);
   const [renewDialogOpen, setRenewDialogOpen] = useState(false);
   const [pendingLogin, setPendingLogin] = useState<MemberLoginResponse | null>(null);
   const [isRenewing, setIsRenewing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>(
+    searchParams.get('tab') === 'register' ? 'register' : 'login'
+  );
+  const [toastOpen, setToastOpen] = useState(false);
+  const [recentPetitions, setRecentPetitions] = useState<ApiPetition[]>([]);
+  const [petitionError, setPetitionError] = useState('');
 
   const completeMemberSession = (data: MemberLoginResponse) => {
     login({
@@ -85,26 +112,11 @@ export const MemberLoginPage: React.FC = () => {
     navigate('/panel');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting || isRenewing) return;
+  const continueWithMember = async (match: MemberLookupMatch) => {
     setLoginError('');
-
-    const emailVal = email.trim().toLowerCase();
-    const phoneVal = phone.trim();
-
-    if (!emailVal || !phoneVal) {
-      setLoginError(t('login.existingMemberFieldsRequired'));
-      return;
-    }
-    if (!PHONE_PATTERN.test(phoneVal)) {
-      setLoginError(t('login.phoneInvalid'));
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const result = await memberLoginApi(emailVal, phoneVal);
+      const result = await memberLoginApi(match.email, match.phone_no);
       if (result.renew_required) {
         setPendingLogin(result);
         setRenewDialogOpen(true);
@@ -113,13 +125,56 @@ export const MemberLoginPage: React.FC = () => {
       completeMemberSession(result);
     } catch (err) {
       const message = parseApiErrorMessage(err);
-      if (message.toLowerCase().includes('not found') || message.toLowerCase().includes('register')) {
-        setLoginError(t('login.membershipNotFound'));
-      } else {
-        setLoginError(message);
-      }
+      setLoginError(message);
+      setToastOpen(true);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting || isRenewing) return;
+    setLoginError('');
+    setLookupMatches([]);
+    setPendingLogin(null);
+
+    const emailVal = email.trim().toLowerCase();
+    const phoneVal = phone.trim();
+
+    if (loginMode === 'email') {
+      if (!emailVal) {
+        setLoginError(t('login.emailRequired'));
+        setToastOpen(true);
+        return;
+      }
+    } else if (!PHONE_PATTERN.test(phoneVal)) {
+      setLoginError(t('login.phoneInvalid'));
+      setToastOpen(true);
+      return;
+    }
+
+    setIsLookingUp(true);
+    try {
+      const result = await memberLoginLookupApi({
+        email: loginMode === 'email' ? emailVal : undefined,
+        phone: loginMode === 'phone' ? phoneVal : undefined,
+      });
+      if (!result.matches.length) {
+        setLoginError(t('login.membershipNotFound'));
+        setToastOpen(true);
+        return;
+      }
+      setLookupMatches(result.matches);
+      if (result.matches.length === 1) {
+        await continueWithMember(result.matches[0]);
+      }
+    } catch (err) {
+      const message = parseApiErrorMessage(err);
+      setLoginError(message);
+      setToastOpen(true);
+    } finally {
+      setIsLookingUp(false);
     }
   };
 
@@ -135,6 +190,7 @@ export const MemberLoginPage: React.FC = () => {
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         setLoginError(t('login.razorpayLoadError'));
+        setToastOpen(true);
         setIsRenewing(false);
         return;
       }
@@ -143,6 +199,7 @@ export const MemberLoginPage: React.FC = () => {
       const razorpayKey = resolveCheckoutKey(order.key_id);
       if (!razorpayKey) {
         setLoginError(t('login.razorpayConfigError'));
+        setToastOpen(true);
         setIsRenewing(false);
         return;
       }
@@ -184,6 +241,7 @@ export const MemberLoginPage: React.FC = () => {
             completeMemberSession(refreshed);
           } catch (verifyErr) {
             setLoginError(parseApiErrorMessage(verifyErr));
+            setToastOpen(true);
             navigate('/payment/failure', {
               state: { orderId: order.order_id, reason: 'Verification failed' },
               replace: true,
@@ -231,6 +289,7 @@ export const MemberLoginPage: React.FC = () => {
       rzp.open();
     } catch (err) {
       setLoginError(parseApiErrorMessage(err));
+      setToastOpen(true);
       setRenewDialogOpen(true);
       setIsRenewing(false);
       razorpayOpenRef.current = false;
@@ -238,40 +297,194 @@ export const MemberLoginPage: React.FC = () => {
   };
 
   const renewDateLabel = formatMembershipDate(pendingLogin?.membership.payment_date);
+  const tabQuery = searchParams.get('tab');
+
+  useEffect(() => {
+    const nextTab: 'login' | 'register' = tabQuery === 'register' ? 'register' : 'login';
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab);
+    }
+  }, [tabQuery, activeTab]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadRecentPetitions = async () => {
+      try {
+        const petitions = await fetchPetitionsFromApi();
+        const recent = [...petitions]
+          .sort((a, b) => {
+            const aTime = new Date(a.created_at ?? 0).getTime();
+            const bTime = new Date(b.created_at ?? 0).getTime();
+            return bTime - aTime;
+          })
+          .slice(0, 4);
+        if (mounted) {
+          setRecentPetitions(recent);
+          setPetitionError('');
+        }
+      } catch {
+        if (mounted) {
+          setPetitionError('Unable to load recent petitions right now.');
+        }
+      }
+    };
+    void loadRecentPetitions();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleTabChange = (_event: React.SyntheticEvent, value: 'login' | 'register') => {
+    setActiveTab(value);
+    if (value === 'register') {
+      setSearchParams({ tab: 'register' }, { replace: true });
+      return;
+    }
+    setSearchParams({}, { replace: true });
+  };
 
   return (
-    <LoginPageLayout
-      title={t('header.login')}
-      subtitle={t('login.existingMemberLoginSubtitle')}
-      backTo="/login"
+    <AuthLayout
+      accent="member"
+      title="ABGP Member Login"
+      subtitle="Continue with your membership details or register as a new member."
     >
-      <form onSubmit={handleSubmit}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <TextField
-            fullWidth
-            required
-            label={t('login.email')}
-            variant="outlined"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={textFieldStyles}
-          />
-          <TextField
-            fullWidth
-            required
-            label={t('login.phone')}
-            variant="outlined"
-            inputProps={{ maxLength: 10, inputMode: 'numeric' }}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            sx={textFieldStyles}
-          />
+      <AuthCard
+        title="Member Access"
+        subtitle="Fast secure login for members with integrated renewal and payment support."
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          textColor="inherit"
+          indicatorColor="secondary"
+          sx={{
+            mb: 2,
+            borderBottom: '1px solid #E5E7EB',
+            '& .MuiTab-root': {
+              color: '#6B7280',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: { xs: '0.82rem', sm: '0.9rem' },
+              minHeight: { xs: 40, sm: 46 },
+              px: { xs: 1, sm: 2 },
+            },
+            '& .Mui-selected': { color: '#111827' },
+            '& .MuiTabs-indicator': { backgroundColor: '#4F46E5', height: 3, borderRadius: 3 },
+          }}
+        >
+          <Tab value="login" label="Member Login" />
+          <Tab value="register" label="New Registration" />
+        </Tabs>
+        {activeTab === 'register' ? (
+          <NewMemberRegisterPage embedded />
+        ) : (
+          <form onSubmit={handleSubmit}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              p: 0.4,
+              borderRadius: 3,
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.100',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <ToggleButtonGroup
+              fullWidth
+              exclusive
+              value={loginMode}
+              onChange={(_, value) => {
+                if (!value) return;
+                setLoginMode(value);
+                setLookupMatches([]);
+                setLoginError('');
+              }}
+              size="small"
+              sx={{
+                '& .MuiToggleButton-root': {
+                  flex: 1,
+                  border: 0,
+                  borderRadius: '10px !important',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.78rem',
+                  py: 0.9,
+                  color: 'text.secondary',
+                },
+                '& .Mui-selected': {
+                  color: 'primary.main',
+                  bgcolor: 'background.paper',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                },
+              }}
+            >
+              <ToggleButton value="phone">Login with phone</ToggleButton>
+              <ToggleButton value="email">Login with gmail</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          <Box
+            sx={{
+              px: 1.25,
+              py: 1,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.18)' : 'rgba(25,118,210,0.18)',
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(25,118,210,0.1)' : 'rgba(25,118,210,0.05)',
+            }}
+          >
+            <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', fontWeight: 500 }}>
+              Sign in with your registered {loginMode === 'phone' ? 'phone number' : 'email'}.
+            </Typography>
+          </Box>
+
+          {loginMode === 'email' ? (
+            <TextField
+              fullWidth
+              required
+              label={t('login.email')}
+              variant="outlined"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@gmail.com"
+              helperText="Use the email linked to your membership."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AlternateEmailOutlinedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={textFieldStyles}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              required
+              label={t('login.phone')}
+              variant="outlined"
+              inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="Enter 10-digit mobile number"
+              helperText="Numbers only. Example: 9876543210"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PhoneOutlinedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={textFieldStyles}
+            />
+          )}
 
           {loginError && (
-            <Typography variant="body2" color="error" sx={{ textAlign: 'center' }}>
+            <Alert severity="error" variant="outlined" sx={{ borderRadius: 2 }}>
               {loginError}
-            </Typography>
+            </Alert>
           )}
 
           <Button
@@ -280,39 +493,118 @@ export const MemberLoginPage: React.FC = () => {
             color="primary"
             size="large"
             fullWidth
-            disabled={isSubmitting || isRenewing}
-            startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : undefined}
+            disabled={isSubmitting || isRenewing || isLookingUp}
+            startIcon={isLookingUp ? <CircularProgress size={18} color="inherit" /> : undefined}
             sx={loginGradientButtonSx(theme)}
           >
-            {isSubmitting ? t('login.pleaseWait') : t('login.button')}
+            {isLookingUp
+              ? 'Checking member records...'
+              : loginMode === 'phone'
+                ? 'Continue with Phone'
+                : 'Continue with Email'}
           </Button>
 
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-            {t('login.paymentSecuredByRazorpay')}
-          </Typography>
+          {lookupMatches.length > 0 && (
+            <Box sx={{ mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2, p: { xs: 1.25, sm: 1.75 } }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                Matching profiles
+              </Typography>
+              {lookupMatches.map((match, idx) => (
+                <Box key={`${match.email}-${match.phone_no}-${idx}`} sx={{ py: 1.25 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {match.full_name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {match.email} | {match.phone_no}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                    Last payment: {formatMembershipDate(match.membership.payment_date)}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={isSubmitting}
+                    onClick={() => continueWithMember(match)}
+                  >
+                    Continue as this member
+                  </Button>
+                  {idx < lookupMatches.length - 1 && <Divider sx={{ mt: 1.5 }} />}
+                </Box>
+              ))}
+            </Box>
+          )}
 
-          <Box sx={{ textAlign: 'center', pt: 1 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {t('login.notRegisteredYet')}
+          {pendingLogin && renewDialogOpen && (
+            <Alert severity="warning" sx={{ borderRadius: 2 }}>
+              Membership found but renewal is required before login.
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+            <LockOutlinedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              {t('login.paymentSecuredByRazorpay')}
             </Typography>
-            <Button
-              component={RouterLink}
-              to="/login/member/new"
-              variant="text"
-              startIcon={<PersonAddOutlinedIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-                color: 'primary.main',
-                '&:hover': { bgcolor: 'primary.main', color: 'primary.contrastText', opacity: 0.92 },
-              }}
-            >
-              {t('login.newMember')}
-            </Button>
           </Box>
+
         </Box>
       </form>
+        )}
+      </AuthCard>
+
+      <AuthCard
+        title="Recent Petitions"
+        subtitle="Latest public petitions you can review quickly."
+      >
+        {petitionError ? (
+          <Alert severity="info" sx={{ borderRadius: 2 }}>
+            {petitionError}
+          </Alert>
+        ) : recentPetitions.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No recent petitions available.
+          </Typography>
+        ) : (
+          <Stack spacing={1.25}>
+            {recentPetitions.map((petition, index) => (
+              <Box key={petition.petition_id}>
+                <Button
+                  component={RouterLink}
+                  to={`/petitions/${petition.petition_id}`}
+                  variant="text"
+                  color="primary"
+                  sx={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    px: 0,
+                    py: 0.5,
+                    fontWeight: 600,
+                    textAlign: 'left',
+                    whiteSpace: 'normal',
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {petition.subject}
+                </Button>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  {new Date(petition.created_at).toLocaleDateString()}
+                </Typography>
+                {index < recentPetitions.length - 1 ? <Divider sx={{ mt: 1 }} /> : null}
+              </Box>
+            ))}
+            <Button
+              component={RouterLink}
+              to="/petitions"
+              variant="outlined"
+              size="small"
+              sx={{ alignSelf: 'flex-start', textTransform: 'none', mt: 0.5 }}
+            >
+              View all petitions
+            </Button>
+          </Stack>
+        )}
+      </AuthCard>
 
       <Dialog open={renewDialogOpen} onClose={() => !isRenewing && setRenewDialogOpen(false)}>
         <DialogTitle>{t('login.membershipRenewTitle')}</DialogTitle>
@@ -335,6 +627,11 @@ export const MemberLoginPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </LoginPageLayout>
+      <Snackbar open={toastOpen} autoHideDuration={3000} onClose={() => setToastOpen(false)}>
+        <Alert severity="error" onClose={() => setToastOpen(false)} sx={{ width: '100%' }}>
+          {loginError}
+        </Alert>
+      </Snackbar>
+    </AuthLayout>
   );
 };

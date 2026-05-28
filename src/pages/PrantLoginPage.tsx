@@ -1,37 +1,38 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Box,
-  TextField,
-  MenuItem,
   Button,
-  Typography,
+  Checkbox,
   CircularProgress,
-  useTheme,
+  FormControlLabel,
+  Link,
+  MenuItem,
+  Snackbar,
+  Stack,
+  TextField,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { AuthCard, authFieldSx } from '../components/auth/AuthCard';
+import { AuthLayout } from '../components/auth/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
 import { addMember } from '../lib/memberRegistry';
-import {
-  LoginPageLayout,
-  useLoginTextFieldStyles,
-  loginGradientButtonSx,
-} from '../components/login/LoginPageLayout';
 
 export const PrantLoginPage: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const navigate = useNavigate();
   const { login } = useAuth();
-  const textFieldStyles = useLoginTextFieldStyles();
 
   const [prant, setPrant] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +43,13 @@ export const PrantLoginPage: React.FC = () => {
     const emailVal = email.trim();
     if (!prant) {
       setLoginError(t('login.prantRequired'));
+      setToastOpen(true);
       setIsSubmitting(false);
       return;
     }
     if (!emailVal || !password) {
       setLoginError(t('login.credentialsRequired'));
+      setToastOpen(true);
       setIsSubmitting(false);
       return;
     }
@@ -61,6 +64,7 @@ export const PrantLoginPage: React.FC = () => {
           });
           if (error) {
             setLoginError(error.message ?? 'Login failed');
+            setToastOpen(true);
             setIsSubmitting(false);
             return;
           }
@@ -77,11 +81,15 @@ export const PrantLoginPage: React.FC = () => {
             );
             addMember({ email: emailVal, role: 'prant', prant: p ?? prant });
             setIsSubmitting(false);
+            if (!rememberMe) {
+              sessionStorage.setItem('abgp-prant-last-email', emailVal);
+            }
             navigate('/panel');
             return;
           }
         } catch (err) {
           setLoginError(err instanceof Error ? err.message : 'Login failed');
+          setToastOpen(true);
           setIsSubmitting(false);
           return;
         }
@@ -91,74 +99,93 @@ export const PrantLoginPage: React.FC = () => {
     addMember({ email: emailVal, role: 'prant', prant });
     login({ role: 'prant', email: emailVal, prant });
     setIsSubmitting(false);
+    if (!rememberMe) {
+      sessionStorage.setItem('abgp-prant-last-email', emailVal);
+    }
     navigate('/panel');
   };
 
   return (
-    <LoginPageLayout
-      title={t('header.login')}
-      subtitle={t('login.prantLoginSubtitle')}
-      backTo="/login"
+    <AuthLayout
+      accent="prant"
+      title="ABGP Prant Portal"
+      subtitle="Sign in to manage prant content, member workflows, and annual reporting."
     >
-      <form onSubmit={handleSubmit}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <TextField
-            select
-            fullWidth
-            required
-            value={prant}
-            onChange={(e) => setPrant(e.target.value)}
-            label={t('login.selectPrant')}
-            variant="outlined"
-            sx={textFieldStyles}
-          >
-            {PRANT_KEYS.map((key) => (
-              <MenuItem key={key} value={key}>
-                {t(`prant.${key}`)}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            fullWidth
-            required
-            label={t('login.email')}
-            variant="outlined"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={textFieldStyles}
-          />
-          <TextField
-            fullWidth
-            required
-            label={t('login.password')}
-            variant="outlined"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={textFieldStyles}
-          />
-
-          {loginError && (
-            <Typography variant="body2" color="error" sx={{ textAlign: 'center' }}>
-              {loginError}
-            </Typography>
-          )}
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : undefined}
-            sx={loginGradientButtonSx(theme)}
-          >
-            {isSubmitting ? t('login.pleaseWait') : t('login.button')}
-          </Button>
+      <AuthCard title="Prant Login" subtitle="Regional dashboard access">
+        <Box component="form" onSubmit={handleSubmit}>
+          <Stack spacing={2}>
+            <TextField
+              select
+              fullWidth
+              required
+              value={prant}
+              onChange={(e) => setPrant(e.target.value)}
+              label={t('login.selectPrant')}
+              variant="outlined"
+              sx={authFieldSx}
+            >
+              {PRANT_KEYS.map((key) => (
+                <MenuItem key={key} value={key}>
+                  {t(`prant.${key}`)}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              fullWidth
+              required
+              label={t('login.email')}
+              variant="outlined"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={authFieldSx}
+            />
+            <TextField
+              fullWidth
+              required
+              label={t('login.password')}
+              variant="outlined"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={authFieldSx}
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={{ xs: 0.5, sm: 0 }}>
+              <FormControlLabel
+                control={<Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />}
+                label="Remember me"
+                sx={{ color: '#374151' }}
+              />
+              <Link component={RouterLink} to="/contact" underline="hover" sx={{ color: '#4F46E5', fontWeight: 600 }}>
+                Forgot password?
+              </Link>
+            </Stack>
+            {loginError ? <Alert severity="error">{loginError}</Alert> : null}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+              startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : undefined}
+              sx={{
+                py: 1.2,
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 700,
+                background: 'linear-gradient(130deg, #0A4CBF 0%, #35A9E0 100%)',
+                boxShadow: '0 6px 16px rgba(10,76,191,0.22)',
+              }}
+            >
+              {isSubmitting ? t('login.pleaseWait') : 'Sign in to Prant Panel'}
+            </Button>
+          </Stack>
         </Box>
-      </form>
-    </LoginPageLayout>
+      </AuthCard>
+      <Snackbar open={toastOpen} autoHideDuration={3200} onClose={() => setToastOpen(false)}>
+        <Alert severity="error" onClose={() => setToastOpen(false)} sx={{ width: '100%' }}>
+          {loginError}
+        </Alert>
+      </Snackbar>
+    </AuthLayout>
   );
 };
