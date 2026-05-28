@@ -19,13 +19,12 @@ import {
   Snackbar,
   Tab,
   Tabs,
-  Stack,
 } from '@mui/material';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   useLoginTextFieldStyles,
@@ -42,8 +41,6 @@ import {
   recordPaymentFailed,
   type MemberLoginResponse,
   type MemberLookupMatch,
-  type ApiPetition,
-  fetchPetitionsFromApi,
 } from '../lib/api';
 import {
   formatRazorpayContact,
@@ -99,8 +96,6 @@ export const MemberLoginPage: React.FC = () => {
     searchParams.get('tab') === 'register' ? 'register' : 'login'
   );
   const [toastOpen, setToastOpen] = useState(false);
-  const [recentPetitions, setRecentPetitions] = useState<ApiPetition[]>([]);
-  const [petitionError, setPetitionError] = useState('');
 
   const completeMemberSession = (data: MemberLoginResponse) => {
     login({
@@ -305,34 +300,6 @@ export const MemberLoginPage: React.FC = () => {
       setActiveTab(nextTab);
     }
   }, [tabQuery, activeTab]);
-
-  useEffect(() => {
-    let mounted = true;
-    const loadRecentPetitions = async () => {
-      try {
-        const petitions = await fetchPetitionsFromApi();
-        const recent = [...petitions]
-          .sort((a, b) => {
-            const aTime = new Date(a.created_at ?? 0).getTime();
-            const bTime = new Date(b.created_at ?? 0).getTime();
-            return bTime - aTime;
-          })
-          .slice(0, 4);
-        if (mounted) {
-          setRecentPetitions(recent);
-          setPetitionError('');
-        }
-      } catch {
-        if (mounted) {
-          setPetitionError('Unable to load recent petitions right now.');
-        }
-      }
-    };
-    void loadRecentPetitions();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const handleTabChange = (_event: React.SyntheticEvent, value: 'login' | 'register') => {
     setActiveTab(value);
@@ -549,60 +516,6 @@ export const MemberLoginPage: React.FC = () => {
 
         </Box>
       </form>
-        )}
-      </AuthCard>
-
-      <AuthCard
-        title="Recent Petitions"
-        subtitle="Latest public petitions you can review quickly."
-      >
-        {petitionError ? (
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            {petitionError}
-          </Alert>
-        ) : recentPetitions.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No recent petitions available.
-          </Typography>
-        ) : (
-          <Stack spacing={1.25}>
-            {recentPetitions.map((petition, index) => (
-              <Box key={petition.petition_id}>
-                <Button
-                  component={RouterLink}
-                  to={`/petitions/${petition.petition_id}`}
-                  variant="text"
-                  color="primary"
-                  sx={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    px: 0,
-                    py: 0.5,
-                    fontWeight: 600,
-                    textAlign: 'left',
-                    whiteSpace: 'normal',
-                    lineHeight: 1.35,
-                  }}
-                >
-                  {petition.subject}
-                </Button>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  {new Date(petition.created_at).toLocaleDateString()}
-                </Typography>
-                {index < recentPetitions.length - 1 ? <Divider sx={{ mt: 1 }} /> : null}
-              </Box>
-            ))}
-            <Button
-              component={RouterLink}
-              to="/petitions"
-              variant="outlined"
-              size="small"
-              sx={{ alignSelf: 'flex-start', textTransform: 'none', mt: 0.5 }}
-            >
-              View all petitions
-            </Button>
-          </Stack>
         )}
       </AuthCard>
 

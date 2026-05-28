@@ -5,6 +5,7 @@ import { ProfilSection } from '../components/sections/ProfilSection';
 import { QuickAccessCardsSection } from '../components/sections/QuickAccessCardsSection';
 import { ServiceCardsSection } from '../components/sections/ServiceCardsSection';
 import { LatestNewsSection } from '../components/sections/LatestNewsSection';
+import { RecentPetitionsSection } from '../components/sections/RecentPetitionsSection';
 import { ContactSection } from '../components/sections/ContactSection';
 
 export const HomePage: React.FC = () => {
@@ -15,6 +16,7 @@ export const HomePage: React.FC = () => {
       <QuickAccessCardsSection />
       <ServiceCardsSection />
       <LatestNewsSection />
+      <RecentPetitionsSection />
       <ContactSection />
     </Box>
   );
