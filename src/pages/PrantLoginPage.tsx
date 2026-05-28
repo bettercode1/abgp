@@ -40,7 +40,7 @@ export const PrantLoginPage: React.FC = () => {
     setIsSubmitting(true);
     setLoginError('');
 
-    const emailVal = email.trim();
+    const emailVal = email.trim().toLowerCase();
     if (!prant) {
       setLoginError(t('login.prantRequired'));
       setToastOpen(true);
@@ -63,7 +63,11 @@ export const PrantLoginPage: React.FC = () => {
             password,
           });
           if (error) {
-            setLoginError(error.message ?? 'Login failed');
+            const message =
+              error.status === 401
+                ? 'Supabase auth rejected this request (401). Check deployed VITE_SUPABASE_URL and public key.'
+                : error.message ?? 'Login failed';
+            setLoginError(message);
             setToastOpen(true);
             setIsSubmitting(false);
             return;

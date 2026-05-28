@@ -52,7 +52,11 @@ export const AdminLoginPage: React.FC = () => {
         });
 
         if (signInError) {
-          setError(signInError.message ?? 'Login failed');
+          const message =
+            signInError.status === 401
+              ? 'Supabase auth rejected this request (401). Check deployed VITE_SUPABASE_URL and public key.'
+              : signInError.message ?? 'Login failed';
+          setError(message);
           setToastOpen(true);
           return;
         }
