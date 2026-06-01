@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -60,6 +60,7 @@ import {
   deleteComplaintViaApi,
   fetchPetitionsFromApi,
   createPetitionViaApi,
+  updatePetitionViaApi,
   deletePetitionViaApi,
   type ApiPrant,
   type ApiComplaint,
@@ -97,6 +98,14 @@ type Petition = {
   durationFrom?: string;
   durationTo?: string;
 };
+
+function toDatetimeLocalValue(iso?: string | null): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
 export interface PrantProfile {
   name: string;
@@ -208,6 +217,7 @@ export const PanelPage: React.FC = () => {
   const [petitionDurationFrom, setPetitionDurationFrom] = useState('');
   const [petitionDurationTo, setPetitionDurationTo] = useState('');
   const [petitions, setPetitions] = useState<Petition[]>([]);
+  const [editingPetitionId, setEditingPetitionId] = useState<string | null>(null);
   const [apiComplaints, setApiComplaints] = useState<ApiComplaint[]>([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -1003,40 +1013,69 @@ export const PanelPage: React.FC = () => {
     refreshPetitionData();
   }, [user?.role, refreshPetitionData]);
 
-  const handleCreatePetition = async (event: React.FormEvent) => {
+  const clearPetitionForm = () => {
+    setEditingPetitionId(null);
+    setPetitionTitle('');
+    setPetitionDescription('');
+    setPetitionTargetEmail('');
+    setPetitionCcEmails('');
+    setPetitionBccEmails('');
+    setPetitionDurationFrom('');
+    setPetitionDurationTo('');
+  };
+
+  const handleEditPetition = (petition: Petition) => {
+    setEditingPetitionId(petition.id);
+    setPetitionTitle(petition.title);
+    setPetitionDescription(petition.description);
+    setPetitionTargetEmail(petition.targetEmail);
+    setPetitionCcEmails(petition.ccEmails ?? '');
+    setPetitionBccEmails(petition.bccEmails ?? '');
+    setPetitionDurationFrom(toDatetimeLocalValue(petition.durationFrom));
+    setPetitionDurationTo(toDatetimeLocalValue(petition.durationTo));
+  };
+
+  const handleSavePetition = async (event: React.FormEvent) => {
     event.preventDefault();
     const petitionData = {
       title: petitionTitle.trim(),
       description: petitionDescription.trim(),
       targetEmail: petitionTargetEmail.trim(),
+      ccEmails: petitionCcEmails.trim(),
+      bccEmails: petitionBccEmails.trim(),
+      durationFrom: petitionDurationFrom || undefined,
+      durationTo: petitionDurationTo || undefined,
     };
+    const isEditing = Boolean(editingPetitionId);
 
     if (token && isApiConfigured()) {
       try {
-        await createPetitionViaApi(token, {
+        const apiPayload = {
           recipientEmail: petitionData.targetEmail,
           subject: petitionData.title,
           emailBody: petitionData.description,
-          ccEmails: petitionCcEmails.trim(),
-          bccEmails: petitionBccEmails.trim(),
-          durationFrom: petitionDurationFrom || undefined,
-          durationTo: petitionDurationTo || undefined,
-        });
-        setSnackbarMessage('Petition created successfully and saved to database!');
+          ccEmails: petitionData.ccEmails,
+          bccEmails: petitionData.bccEmails,
+          durationFrom: petitionData.durationFrom,
+          durationTo: petitionData.durationTo,
+        };
+
+        if (isEditing && editingPetitionId) {
+          await updatePetitionViaApi(token, editingPetitionId, apiPayload);
+          setSnackbarMessage('Petition updated successfully.');
+        } else {
+          await createPetitionViaApi(token, apiPayload);
+          setSnackbarMessage('Petition created successfully and saved to database!');
+        }
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        setPetitionTitle('');
-        setPetitionDescription('');
-        setPetitionTargetEmail('');
-        setPetitionCcEmails('');
-        setPetitionBccEmails('');
-        setPetitionDurationFrom('');
-        setPetitionDurationTo('');
+        clearPetitionForm();
         refreshPetitionData();
         return;
-      } catch (err: any) {
-        console.error('Failed to create petition via API:', err);
-        setSnackbarMessage('Error: ' + (err.message || 'Failed to save to database.'));
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to save to database.';
+        console.error(`Failed to ${isEditing ? 'update' : 'create'} petition via API:`, err);
+        setSnackbarMessage(`Error: ${message}`);
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
         return;
@@ -1045,28 +1084,55 @@ export const PanelPage: React.FC = () => {
 
     // Fallback to localStorage
     try {
-      const nextPetition: Petition = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        ...petitionData,
-        createdAt: new Date().toISOString(),
-      };
-      const nextPetitions = [...loadPetitionsFromStorage(), nextPetition];
-      localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(nextPetitions));
-      setSnackbarMessage('Petition created successfully (Local Storage).');
+      const current = loadPetitionsFromStorage();
+      if (isEditing && editingPetitionId) {
+        const nextPetitions = current.map((p) =>
+          p.id === editingPetitionId
+            ? {
+                ...p,
+                title: petitionData.title,
+                description: petitionData.description,
+                targetEmail: petitionData.targetEmail,
+                ccEmails: petitionData.ccEmails,
+                bccEmails: petitionData.bccEmails,
+                durationFrom: petitionData.durationFrom,
+                durationTo: petitionData.durationTo,
+              }
+            : p
+        );
+        localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(nextPetitions));
+        setSnackbarMessage('Petition updated successfully (Local Storage).');
+      } else {
+        const nextPetition: Petition = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          title: petitionData.title,
+          description: petitionData.description,
+          targetEmail: petitionData.targetEmail,
+          ccEmails: petitionData.ccEmails,
+          bccEmails: petitionData.bccEmails,
+          durationFrom: petitionData.durationFrom,
+          durationTo: petitionData.durationTo,
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify([...current, nextPetition]));
+        setSnackbarMessage('Petition created successfully (Local Storage).');
+      }
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      setPetitionTitle('');
-      setPetitionDescription('');
-      setPetitionTargetEmail('');
+      clearPetitionForm();
       refreshPetitionData();
     } catch {
-      setSnackbarMessage('Unable to create petition. Please try again.');
+      setSnackbarMessage(`Unable to ${isEditing ? 'update' : 'create'} petition. Please try again.`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
 
   const handleDeletePetition = async (id: string) => {
+    if (editingPetitionId === id) {
+      clearPetitionForm();
+    }
+
     if (token && isApiConfigured()) {
       try {
         await deletePetitionViaApi(token, id);
@@ -1379,14 +1445,16 @@ export const PanelPage: React.FC = () => {
                         MAILBOX
                       </Typography>
                       <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-                        Create Petition Mail Draft
+                        {editingPetitionId ? 'Edit Petition Mail Draft' : 'Create Petition Mail Draft'}
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.95 }}>
-                        Compose petition details that users will send via their email app.
+                        {editingPetitionId
+                          ? 'Update petition details, then click Update Mail Petition.'
+                          : 'Compose petition details that users will send via their email app.'}
                       </Typography>
                     </Box>
 
-                    <Box component="form" onSubmit={handleCreatePetition} sx={{ p: { xs: 2, md: 3 } }}>
+                    <Box component="form" onSubmit={handleSavePetition} sx={{ p: { xs: 2, md: 3 } }}>
                       <Stack spacing={2}>
                         <TextField
                           label="Recipient Email(s)"
@@ -1458,10 +1526,21 @@ export const PanelPage: React.FC = () => {
                           fullWidth
                         />
 
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} flexWrap="wrap">
                           <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                            Save Mail Petition
+                            {editingPetitionId ? 'Update Mail Petition' : 'Save Mail Petition'}
                           </Button>
+                          {editingPetitionId ? (
+                            <Button
+                              type="button"
+                              variant="outlined"
+                              color="inherit"
+                              sx={{ textTransform: 'none', fontWeight: 600 }}
+                              onClick={clearPetitionForm}
+                            >
+                              Cancel Edit
+                            </Button>
+                          ) : null}
                           <Button
                             type="button"
                             variant="outlined"
@@ -1484,15 +1563,27 @@ export const PanelPage: React.FC = () => {
                                     <Typography variant="body2" fontWeight={600} noWrap>{p.title}</Typography>
                                     <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', mt: 0.25 }}>Target: {p.targetEmail}</Typography>
                                   </Box>
-                                  <Button 
-                                    size="small" 
-                                    color="error" 
-                                    variant="outlined" 
-                                    onClick={() => handleDeletePetition(p.id)}
-                                    sx={{ minWidth: 'auto', textTransform: 'none', px: 2 }}
-                                  >
-                                    Delete
-                                  </Button>
+                                  <Stack direction="row" spacing={1} flexShrink={0}>
+                                    <Button
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                      startIcon={<Edit fontSize="small" />}
+                                      onClick={() => handleEditPetition(p)}
+                                      sx={{ textTransform: 'none', px: 1.5 }}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      color="error"
+                                      variant="outlined"
+                                      onClick={() => handleDeletePetition(p.id)}
+                                      sx={{ textTransform: 'none', px: 1.5 }}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </Stack>
                                 </Paper>
                               ))}
                             </Stack>

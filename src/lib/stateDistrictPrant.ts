@@ -1,18 +1,39 @@
 import { PRANT_KEYS, type PrantKey } from './prantKeys';
 import { STATE_DISTRICT_PRANT_MAP } from './stateDistrictPrantMap.generated';
 
-const { stateDefault, byStateDistrict, prantPrimaryState } = STATE_DISTRICT_PRANT_MAP;
+const { stateDefault, byStateDistrict, prantPrimaryState, districtsByState } = STATE_DISTRICT_PRANT_MAP;
 
-/** States with multiple prants — user must pick prant manually after state/district */
-export const MULTI_PRANT_STATES = new Set([
-  'Maharashtra',
-  'Madhya Pradesh',
-  'Uttar Pradesh',
-  'Rajasthan',
-  'Bihar',
-  'Tamil Nadu',
-  'Odisha',
-]);
+function buildMultiPrantStates(): Set<string> {
+  const prantsPerState = new Map<string, Set<string>>();
+  for (const key of Object.keys(byStateDistrict)) {
+    const pipe = key.indexOf('|');
+    if (pipe < 0) continue;
+    const state = key.slice(0, pipe);
+    const prant = byStateDistrict[key as keyof typeof byStateDistrict];
+    if (!prant) continue;
+    if (!prantsPerState.has(state)) prantsPerState.set(state, new Set());
+    prantsPerState.get(state)?.add(String(prant));
+  }
+  return new Set(
+    [...prantsPerState.entries()].filter(([, prants]) => prants.size > 1).map(([state]) => state)
+  );
+}
+
+/** States with multiple prants — derived from DSP / CSV mapping */
+export const MULTI_PRANT_STATES = buildMultiPrantStates();
+
+/** District list for a state from DSP mapping (empty if not in map) */
+export function getDistrictsForStateFromMap(state: string): string[] {
+  if (!state || !districtsByState) return [];
+  const list = districtsByState[state as keyof typeof districtsByState];
+  return list ? [...list] : [];
+}
+
+/** All states present in the DSP mapping */
+export function getStatesFromDspMap(): string[] {
+  if (!districtsByState) return [];
+  return Object.keys(districtsByState).sort((a, b) => a.localeCompare(b));
+}
 
 export function isMultiPrantState(state: string): boolean {
   return MULTI_PRANT_STATES.has(state);

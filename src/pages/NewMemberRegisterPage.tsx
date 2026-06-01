@@ -17,9 +17,12 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import {
+  getDistrictsForStateFromMap,
   getPrimaryStateForPrant,
+  getPrantForStateDistrict,
   getPrantOptionsForState,
   getSinglePrantForState,
+  getStatesFromDspMap,
   shouldAutoSelectStateForPrant,
 } from '../lib/stateDistrictPrant';
 import {
@@ -85,7 +88,17 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
       .catch(() => setMembershipInr(null));
   }, []);
 
-  const allDistrictsForState = state ? getDistrictsForState(state) : [];
+  const stateOptions = useMemo(() => {
+    const fromDsp = getStatesFromDspMap();
+    if (fromDsp.length === 0) return STATE_NAMES;
+    return [...new Set([...STATE_NAMES, ...fromDsp])].sort((a, b) => a.localeCompare(b));
+  }, []);
+
+  const allDistrictsForState = useMemo(() => {
+    if (!state) return [];
+    const fromDsp = getDistrictsForStateFromMap(state);
+    return fromDsp.length > 0 ? fromDsp : getDistrictsForState(state);
+  }, [state]);
   const districtOptions = allDistrictsForState;
   const prantOptions = state
     ? getPrantOptionsForState(state, allDistrictsForState)
@@ -369,7 +382,11 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
               value={state}
               onChange={(e) => {
                 const nextState = e.target.value;
-                const districts = nextState ? getDistrictsForState(nextState) : [];
+                const districts = nextState
+                  ? getDistrictsForStateFromMap(nextState).length > 0
+                    ? getDistrictsForStateFromMap(nextState)
+                    : getDistrictsForState(nextState)
+                  : [];
                 setState(nextState);
                 setDistrict('');
                 const singlePrant = getSinglePrantForState(nextState, districts);
@@ -379,7 +396,7 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
               variant="outlined"
               sx={textFieldStyles}
             >
-              {STATE_NAMES.map((s) => (
+              {stateOptions.map((s) => (
                 <MenuItem key={s} value={s}>
                   {s}
                 </MenuItem>
@@ -390,7 +407,12 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
               fullWidth
               required
               value={district}
-              onChange={(e) => setDistrict(e.target.value)}
+              onChange={(e) => {
+                const nextDistrict = e.target.value;
+                setDistrict(nextDistrict);
+                const autoPrant = getPrantForStateDistrict(state, nextDistrict);
+                if (autoPrant) setPrant(autoPrant);
+              }}
               label={t('login.district')}
               variant="outlined"
               disabled={!state}

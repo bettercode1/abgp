@@ -257,21 +257,34 @@ export async function fetchPetitionDetailFromApi(id: string): Promise<ApiPetitio
   return fetchJson<ApiPetition>(`${API_BASE}/petitions/${id}`, null, {}, false);
 }
 
+export type PetitionWritePayload = {
+  recipientEmail: string;
+  subject: string;
+  emailBody: string;
+  ccEmails?: string;
+  bccEmails?: string;
+  durationFrom?: string;
+  durationTo?: string;
+  attachments?: { name: string; url: string }[];
+};
+
 export async function createPetitionViaApi(
   token: string,
-  data: { 
-    recipientEmail: string; 
-    subject: string; 
-    emailBody: string;
-    ccEmails?: string;
-    bccEmails?: string;
-    durationFrom?: string;
-    durationTo?: string;
-    attachments?: { name: string; url: string }[];
-  }
+  data: PetitionWritePayload
 ): Promise<ApiPetition> {
   return fetchJson<ApiPetition>(`${API_BASE}/petitions`, token, {
     method: 'POST',
+    body: JSON.stringify(data),
+  }, true);
+}
+
+export async function updatePetitionViaApi(
+  token: string,
+  id: string,
+  data: PetitionWritePayload
+): Promise<ApiPetition> {
+  return fetchJson<ApiPetition>(`${API_BASE}/petitions/${id}`, token, {
+    method: 'PUT',
     body: JSON.stringify(data),
   }, true);
 }

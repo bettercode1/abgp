@@ -178,16 +178,17 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
                   <Stack spacing={1.5}>
                     <TextField
                       size="small"
-                      label={`${t('petition.joinFullName')} *`}
+                      label={`${t('petitionDetail.name', 'Name')} *`}
                       value={fullName}
                       onChange={(event) => setFullName(event.target.value)}
                       disabled={isSubmittingSupport}
                       required
+                      autoComplete="name"
                       error={Boolean(supportError) && !fullName.trim()}
                     />
                     <TextField
                       size="small"
-                      label={`${t('petition.joinPhone')} *`}
+                      label={`${t('petitionDetail.phone', 'Phone No.')} *`}
                       value={phoneNo}
                       onChange={(event) => {
                         const digits = event.target.value.replace(/\D/g, '').slice(0, 10);
@@ -218,6 +219,19 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
                 );
               })()}
             </Stack>
+
+            <Box sx={{ mt: 3 }}>
+              <Chip
+                icon={<Email />}
+                label={t('petitionDetail.targetEmail', {
+                  defaultValue: 'Target: {{email}}',
+                  email: petition.recipient_email,
+                })}
+                size="small"
+                variant="outlined"
+                sx={{ width: '100%', justifyContent: 'flex-start', px: 1 }}
+              />
+            </Box>
           </Paper>
         </Grid>
       </Grid>

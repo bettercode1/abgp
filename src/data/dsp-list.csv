@@ -1,0 +1,783 @@
+District,State,Prant
+Adilabad , Telangana , Telangana Prant
+Agar Malwa , Madhya Pradesh , MP-Malwa Prant
+Agra , Uttar Pradesh , UP-Bruj Prant
+Ahmedabad , Gujarat , Gujarat Prant
+Ahmednagar , Maharashtra , MH-Madhya Maharashtra Prant
+Aizawl , Mizoram , Mizoram Prant 
+Ajmer , Rajasthan , RJ-Chittor Prant
+Akola , Maharashtra , MH-Vidharbh Prant
+Alappuzha , Kerala , Kerala Prant
+Aligarh , Uttar Pradesh , UP-Bruj Prant
+Alipurduar , West Bengal , West Bengal Prant
+Alirajpur , Madhya Pradesh , MP-Malwa Prant
+Alluri Sitarama Raju , Andhra Pradesh , Andhra Pradesh Prant
+Almora , Uttarakhand , Uttarakhand Prant
+Alwar , Rajasthan , RJ-Jaipur Prant
+Ambala , Haryana , Haryana Prant
+Ambedkar Nagar , Uttar Pradesh , UP-Awadh Prant
+Amethi , Uttar Pradesh , UP-Kashi Prant
+Amravati , Maharashtra , MH-Vidharbh Prant
+Amreli , Gujarat , Gujarat Prant
+Amritsar , Punjab , Punjab Prant
+Amroha , Uttar Pradesh , UP-Meerut Prant
+Anakapalli , Andhra Pradesh , Andhra Pradesh Prant
+Anand , Gujarat , Gujarat Prant
+Anantapur , Andhra Pradesh , Andhra Pradesh Prant
+Anantnag , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Angul , Odisha , OD-Purba Prant
+Anjaw , Arunachal Pradesh , Arunachal Pradesh Prant
+Annamaya , Andhra Pradesh , Andhra Pradesh Prant
+Anopgarh , Rajasthan , RJ-Jodhpur Prant
+Anuppur , Madhya Pradesh , MP-Madhya Bharat Prant
+Araria , Bihar , BR-Uttar Prant
+Aravalli , Gujarat , Gujarat Prant
+Ariyalur , Tamil Nadu , TN-Dakshin Prant
+Arwal , Bihar , BR-Dakshin Prant
+Ashoknagar , Madhya Pradesh , MP-Madhya Bharat Prant
+Auraiya , Uttar Pradesh , UP-Kanpur Prant
+Aurangabad , Bihar , BR-Dakshin Prant
+Aurangabad (Sambaji Nagar) , Maharashtra , MH-Devgiri Prant
+Ayodhya , Uttar Pradesh , UP-Awadh Prant
+Azamgarh , Uttar Pradesh , UP-Goraksha Prant
+Bagalkot , Karnataka , Karnataka Prant
+Bageshwar , Uttarakhand , Uttarakhand Prant
+Baghpat , Uttar Pradesh , UP-Meerut Prant
+Bahraich , Uttar Pradesh , UP-Awadh Prant
+Bajali , Assam , Assam Prant
+Baksa , Assam , Assam Prant
+Balaghat , Madhya Pradesh , MP-Mahakaushal Prant
+Balangir , Odisha , OD-Pashchim Prant
+Balasore , Odisha , OD-Purba Prant
+Ballia , Uttar Pradesh , UP-Goraksha Prant
+Balod , Chhattisgarh , Chhattisgarh
+Balotara , Rajasthan , RJ-Jodhpur Prant
+Balrampur , Chhattisgarh , Chhattisgarh Prant
+Balrampur , Uttar Pradesh , UP-Awadh Prant
+Banaskantha , Gujarat , Gujarat Prant
+Banda , Uttar Pradesh , UP-Kanpur Prant
+Bandipora , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Bangalore Rural , Karnataka , Karnataka Prant
+Bangalore Urban , Karnataka , Karnataka Prant
+Banka , Bihar , BR-Dakshin Prant
+Bankura , West Bengal , West Bengal Prant
+Banswara , Rajasthan , RJ-Chittor Prant
+Bapatla , Andhra Pradesh , Andhra Pradesh Prant
+Barabanki , Uttar Pradesh , UP-Awadh Prant
+Baramulla , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Baran , Rajasthan , RJ-Chittor Prant
+Bareilly , Uttar Pradesh , UP-Bruj Prant
+Bargarh , Odisha , OD-Pashchim Prant
+Barmer , Rajasthan , RJ-Jodhpur Prant
+Barnala , Punjab , Punjab Prant
+Barpeta , Assam , Assam Prant
+Barwani , Madhya Pradesh , MP-Malwa Prant
+Bastar , Chhattisgarh , Chhattisgarh Prant
+Basti , Uttar Pradesh , UP-Goraksha Prant
+Bathinda , Punjab , Punjab Prant
+Beawar , Rajasthan , RJ-Chittor Prant
+Beed , Maharashtra , MH-Devgiri Prant
+Begusarai , Bihar , BR-Uttar Prant
+Belgaum , Karnataka , Karnataka Prant
+Bellary , Karnataka , Karnataka Prant
+Bemetara , Chhattisgarh , Chhattisgarh Prant
+Betul , Madhya Pradesh , MP-Madhya Bharat Prant
+Bhadohi , Uttar Pradesh , UP-Kashi Prant
+Bhadradri Kothagudem , Telangana , Telangana Prant
+Bhadrak , Odisha , OD-Purba Prant
+Bhagalpur , Bihar , BR-Dakshin Prant
+Bhandara , Maharashtra , MH-Vidharbh Prant
+Bharatpur , Rajasthan , RJ-Jaipur Prant
+Bharuch , Gujarat , Gujarat Prant
+Bhavnagar , Gujarat , Gujarat Prant
+Bhilwara , Rajasthan , RJ-Chittor Prant
+Bhind , Madhya Pradesh , MP-Madhya Bharat Prant
+Bhiwani , Haryana , Haryana Prant
+Bhojpur , Bihar , BR-Dakshin Prant
+Bhopal , Madhya Pradesh , MP-Madhya Bharat Prant
+Bidar , Karnataka , Karnataka Prant
+Bijapur , Chhattisgarh , Chhattisgarh Prant
+Bijnor , Uttar Pradesh , UP-Meerut Prant
+Bikaner , Rajasthan , RJ-Jodhpur Prant
+Bilaspur , Chhattisgarh , Chhattisgarh Prant
+Bilaspur , Himachal Pradesh , Himachal Prant
+Birbhum , West Bengal , West Bengal Prant
+Bishnupur , Manipur , Manipur Prant
+Biswanath , Assam , Assam Prant
+Bokaro , Jharkhand , Jharkhand Prant
+Bongaigaon , Assam , Assam Prant
+Botad , Gujarat , Gujarat Prant
+Boudh , Odisha , OD-Pashchim Prant
+Budaun , Uttar Pradesh , UP-Bruj Prant
+Budgam , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Bulandshahr , Uttar Pradesh , UP-Meerut Prant
+Buldhana , Maharashtra , MH-Vidharbh Prant
+Bundi , Rajasthan , RJ-Chittor Prant
+Burhanpur , Madhya Pradesh , MP-Malwa Prant
+Buxar , Bihar , BR-Dakshin Prant
+Cachar , Assam , Assam Prant
+Central Delhi (UT) , Delhi (UT) , Delhi Prant
+Central Siang , Arunachal Pradesh , Arunachal Pradesh Prant
+Chachaura , Madhya Pradesh , MP-Madhya Bharat Prant
+Chamarajanagar , Karnataka  , Karnataka Prant
+Chamba , Himachal Pradesh , Himachal Prant
+Chamoli , Uttarakhand , Uttarakhand Prant
+Champawat , Uttarakhand , Uttarakhand Prant
+Champhai , Mizoram , Mizoram Prant
+Chandauli , Uttar Pradesh , UP-Kashi Prant
+Chandel , Manipur , Manipur Prant
+Chandigarh , Chandigarh (UT) , Panjab Prant
+Chandrapur , Maharashtra , MH-Vidharbh Prant
+Changlang , Arunachal Pradesh , Arunachal Pradesh Prant
+Charaideo , Assam , Assam Prant
+Charkhi Dadri , Haryana , Haryana Prant
+Chatra , Jharkhand , Jharkhand Prant
+Chengalpattu , Tamil Nadu , TN-Uttar Prant
+Chennai , Tamil Nadu , TN-Uttar Prant
+Chhatarpur , Madhya Pradesh , MP-Mahakaushal Prant
+Chhota Udaipur , Gujarat , Gujarat Prant
+Chikkaballapur , Karnataka , Karnataka Prant
+Chikkamagaluru , Karnataka , Karnataka Prant
+Chirang , Assam , Assam Prant
+Chitradurga , Karnataka , Karnataka Prant
+Chitrakoot , Uttar Pradesh , UP-Kanpur Prant
+Chittoor , Andhra Pradesh , Andhra Pradesh Prant
+Chittorgarh , Rajasthan , RJ-Chittor Prant
+Chumukedima , Nagaland , Nagaland Prant
+Churachandpur , Manipur , Manipur Prant
+Churu , Rajasthan , RJ-Jaipur Prant
+Coimbatore , Tamil Nadu , TN-Dakshin Prant
+Cooch Behar , West Bengal , West Bengal Prant
+Cuddalore , Tamil Nadu , TN-Uttar Prant
+Cuttack , Odisha , OD-Purba Prant
+Dadra and Nagar Haveli , Dadra and Nagar Haveli and Daman and Diu (UT) , Dadra Nagar Haveli Prant
+Dahod , Gujarat , Gujarat Prant
+Dakshin Dinajpur , West Bengal , West Bengal Prant
+Dakshina Kannada , Karnataka , Karnataka Prant
+Daman , Dadra and Nagar Haveli and Daman and Diu (UT) , Dadra Nagar Haveli Prant
+Damoh , Madhya Pradesh , MP-Mahakaushal Prant
+Dang , Gujarat , Gujarat Prant
+Dantewada , Chhattisgarh , Chhattisgarh Prant
+Darbhanga , Bihar , BR-Uttar Prant
+Darjeeling , West Bengal , West Bengal Prant
+Darrang , Assam , Assam Prant
+Datia , Madhya Pradesh , MP-Madhya Bharat Prant
+Dausa , Rajasthan , RJ-Jaipur Prant
+Davanagere , Karnataka , Karnataka Prant
+Debagarh , Odisha , OD-Pashchim Prant
+Deeg , Rajasthan , RJ-Jaipur Prant
+Dehradun , Uttarakhand , Uttarakhand Prant
+Deoghar , Jharkhand , Jharkhand Prant
+Deoria , Uttar Pradesh , UP-Goraksha Prant
+Devbhoomi Dwarka , Gujarat , Gujarat Prant
+Dewas , Madhya Pradesh , MP-Malwa Prant
+Dhalai , Tripura , Tripura Prant
+Dhamtari , Chhattisgarh , Chhattisgarh Prant
+Dhanbad , Jharkhand , Jharkhand Prant
+Dhar , Madhya Pradesh , MP-Malwa Prant
+Dharmapuri , Tamil Nadu , TN-Uttar Prant
+Dharwad , Karnataka , Karnataka Prant
+Dhemaji , Assam , Assam Prant
+Dhenkanal , Odisha , OD-Purba Prant
+Dholpur , Rajasthan , RJ-Jaipur Prant
+Dhubri , Assam , Assam Prant
+Dhule , Maharashtra , MH-Madhya Maharashtra Prant
+Dibang Valley , Arunachal Pradesh , Arunachal Pradesh Prant
+Dibrugarh , Assam , Assam Prant
+Didwana , Rajasthan , RJ-Jodhpur Prant
+Dima Hasao , Assam , Assam Prant
+Dimapur , Nagaland , Nagaland Prant
+Dindigul , Tamil Nadu , TN-Dakshin Prant
+Dindori , Madhya Pradesh , MP-Mahakaushal Prant
+Diu , Dadra and Nagar Haveli and Daman and Diu (UT) , Dadra Nagar Haveli Prant
+Doda , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Dudu , Rajasthan , RJ-Jaipur Prant
+Dumka , Jharkhand , Jharkhand Prant
+Dungarpur , Rajasthan , RJ-Chittor Prant
+Durg , Chhattisgarh , Chhattisgarh Prant
+East Champaran , Bihar , BR-Uttar Prant
+East Delhi , Delhi (UT) , Delhi Prant
+East Garo Hills , Meghalaya , Meghalaya Prant
+East Godavari , Andhra Pradesh , Andhra Pradesh Prant
+East Jaintia Hills , Meghalaya , Meghalaya Prant
+East Kameng , Arunachal Pradesh , Arunachal Pradesh Prant
+East Khasi Hills , Meghalaya , Meghalaya Prant
+East Siang , Arunachal Pradesh , Arunachal Pradesh Prant
+East Sikkim , Sikkim , Sikkim Prant
+East Singhbhum , Jharkhand , Jharkhand Prant
+Eluru , Andhra Pradesh , Andhra Pradesh Prant
+Ernakulam , Kerala , Kerala Prant
+Erode , Tamil Nadu , TN-Uttar Prant
+Etah , Uttar Pradesh , UP-Bruj Prant
+Etawah , Uttar Pradesh , UP-Kanpur Prant
+Faridabad , Haryana , Haryana Prant
+Faridkot , Punjab , Punjab Prant
+Farrukhabad , Uttar Pradesh , UP-Kanpur Prant
+Fatehabad , Haryana , Haryana Prant
+Fatehgarh Sahib , Punjab , Punjab Prant
+Fatehpur , Uttar Pradesh , UP-Kanpur Prant
+Fazilka , Punjab , Punjab Prant
+Firozabad , Uttar Pradesh , UP-Bruj Prant
+Firozpur , Punjab , Punjab Prant
+Gadag , Karnataka , Karnataka Prant
+Gadchiroli , Maharashtra , MH-Vidharbh Prant
+Gajapati , Odisha , OD-Purba Prant
+Ganderbal , Jammu Kashmiri (UT)  , Jammu Kashmir Prant
+Gandhinagar , Gujarat , Gujarat Prant
+Gangapur City , Rajasthan , RJ-Jaipur prant
+Ganjam , Odisha , OD-Purba Prant
+Garhwa , Jharkhand , Jharkhand Prant
+Gariaband , Chhattisgarh , Chhattisgarh Prant
+Gaurela Pendra Marwahi , Chhattisgarh , Chhattisgarh Prant
+Gautam Buddha Nagar , Uttar Pradesh , UP-Meerut Prant
+Gaya , Bihar , BR-Dakshin Prant
+Ghaziabad , Uttar Pradesh , UP-Meerut Prant
+Ghazipur , Uttar Pradesh , UP-Kashi Prant
+Gir Somnath , Gujarat , Gujarat Prant
+Giridih , Jharkhand , Jharkhand Prant
+Goalpara , Assam , Assam Prant
+Godda , Jharkhand , Jharkhand Prant
+Golaghat , Assam , Assam Prant
+Gomati , Tripura , Tripura Prant
+Gonda , Uttar Pradesh , UP-Awadh Prant
+Gondia , Maharashtra , MH-Vidharbh Prant
+Gopalganj , Bihar , BR-Uttar Prant
+Gorakhpur , Uttar Pradesh , UP-Goraksha Prant
+Gulbarga , Karnataka , Karnataka Prant
+Gumla , Jharkhand , Jharkhand Prant
+Guna , Madhya Pradesh , MP-Madhya Bharat Prant
+Guntur , Andhra Pradesh , Andhra Pradesh Prant
+Gurdaspur , Punjab , Punjab Prant
+Gurugram , Haryana , Haryana Prant
+Gwalior , Madhya Pradesh , MP-Madhya Bharat Prant
+Hailakandi , Assam , Assam Prant
+Hamirpur , Himachal Pradesh , Himachal Prant
+Hamirpur , Uttar Pradesh , UP-Kanpur Prant
+Hanamkonda , Telangana , Telangana Prant
+Hanumangarh , Rajasthan , RJ-Jodhpur Prant
+Hapur , Uttar Pradesh , UP-Meerut Prant
+Harda , Madhya Pradesh , MP-Madhya Bharat Prant
+Hardoi , Uttar Pradesh , UP-Awadh Prant
+Haridwar , Uttarakhand , Uttarakhand Prant
+Hassan , Karnataka , Karnataka Prant
+Hathras , Uttar Pradesh , UP-Bruj Prant
+Haveri , Karnataka , Karnataka Prant
+Hazaribagh , Jharkhand , Jharkhand Prant
+Hingoli , Maharashtra , MH-Devgiri Prant
+Hisar , Haryana , Haryana Prant
+Hnahthial , Mizoram , Mizoram Prant
+Hojai , Assam , Assam Prant
+Hooghly , West Bengal , West Bengal Prant
+Hoshangabad , Madhya Pradesh , MP-Madhya Bharat Prant
+Hoshiarpur , Punjab , Punjab Prant
+Howrah , West Bengal , West Bengal Prant
+Hyderabad , Telangana , Telangana Prant
+Idukki , Kerala , Kerala Prant
+Imphal East , Manipur , Manipur Prant
+Imphal West , Manipur , Manipur Prant
+Indore , Madhya Pradesh , MP-Malwa Prant
+Jabalpur , Madhya Pradesh , MP-Mahakaushal Prant
+Jagatsinghpur , Odisha , OD-Purba Prant
+Jagtial , Telangana , Telangana Prant
+Jaipur , Rajasthan , RJ-Jaipur Prant
+Jaipur Rural , Rajasthan , RJ-Jaipur Prant
+Jaisalmer , Rajasthan , RJ-Jodhpur Prant
+Jajpur , Odisha , OD-Purba Prant
+Jalandhar , Punjab , Punjab Prant
+Jalaun , Uttar Pradesh , UP-Kanpur Prant
+Jalgaon , Maharashtra , MH-Madhya Maharashtra Prant
+Jalna , Maharashtra , MH-Devgiri Prant
+Jalore , Rajasthan , RJ-Jodhpur Prant
+Jalpaiguri , West Bengal , West Bengal Prant
+Jammu , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Jamnagar , Gujarat , Gujarat Prant
+Jamtara , Jharkhand , Jharkhand Prant
+Jamui , Bihar , BR-Dakshin Prant
+Jangaon , Telangana , Telangana Prant
+Janjgir Champa , Chhattisgarh , Chhattisgarh Prant
+Jashpur , Chhattisgarh , Chhattisgarh Prant
+Jaunpur , Uttar Pradesh , UP-Kashi Prant
+Jayashankar , Telangana , Telangana Prant
+Jehanabad , Bihar , BR-Dakshin Prant
+Jhabua , Madhya Pradesh , MP-Malwa Prant
+Jhajjar , Haryana , Haryana Prant
+Jhalawar , Rajasthan , RJ-Chittor Prant
+Jhansi , Uttar Pradesh , UP-Kanpur Prant
+Jhargram , West Bengal , West Bengal Prant
+Jharsuguda , Odisha , OD-Pashchim Prant
+Jhunjhunu , Rajasthan , RJ-Jaipur Prant
+Jind , Haryana , Haryana Prant
+Jiribam , Manipur , Manipur Prant
+Jodhpur , Rajasthan , RJ-Jodhpur Prant
+Jodhpur Rural , Rajasthan , RJ-Jodhpur Prant
+Jogulamba , Telangana , Telangana Prant
+Jorhat , Assam , Assam Prant
+Junagadh , Gujarat , Gujarat Prant
+Kabirdham , Chhattisgarh , Chhattisgarh Prant
+Kadapa , Andhra Pradesh , Andhra Pradesh Prant
+Kaimur , Bihar , BR-Dakshin Prant
+Kaithal , Haryana , Haryana Prant
+Kakching , Manipur , Manipur Prant
+Kakinada  , Andhra Pradesh , Andhra Pradesh Prant
+Kalahandi , Odisha , OD-Pashchim Prant
+Kalimpong , West Bengal , West Bengal Prant
+Kallakurichi , Tamil Nadu , TN-Uttar Prant
+Kamareddy , Telangana , Telangana Prant
+Kamjong , Manipur , Manipur Prant
+Kamle , Arunachal Pradesh , Arunachal Pradesh Prant
+Kamrup , Assam , Assam Prant
+Kamrup Metropolitan , Assam , Assam Prant
+Kanchipuram , Tamil Nadu , TN-Uttar Prant
+Kandhamal , Odisha , OD-Purba Prant
+Kangpokpi , Manipur , Manipur Prant
+Kangra , Himachal Pradesh , Himachal Prant
+Kanker , Chhattisgarh , Chhattisgarh Prant
+Kannauj , Uttar Pradesh , UP-Kanpur Prant
+Kannur , Kerala , Kerala Prant
+Kanpur Dehat , Uttar Pradesh , UP-Kanpur Prant
+Kanpur Nagar , Uttar Pradesh , UP-Kanpur Prant
+Kanyakumari , Tamil Nadu , TN-Dakshin Prant
+Kapurthala , Punjab , Punjab Prant
+Karaikal , Puducherry (UT) , Puducherry Prant
+Karauli , Rajasthan , RJ-Jaipur Prant
+Karbi Anglong , Assam , Assam Prant
+Kargil , Ladakh (UT) , Ladakh Prant
+Karimganj , Assam , Assam Prant
+Karimnagar , Telangana , Telangana Prant
+Karnal , Haryana , Haryana Prant
+Karur , Tamil Nadu , TN-Dakshin Prant
+Kasaragod , Kerala , Kerala Prant
+Kasganj , Uttar Pradesh , UP-Bruj Prant
+Kathua , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Katihar , Bihar , BR-Uttar Prant
+Katni , Madhya Pradesh , MP-Mahakaushal Prant
+Kaushambi , Uttar Pradesh , UP-Kashi Prant
+Kekri , Rajasthan , RJ-Chittor Prant
+Kendrapara , Odisha , OD-Purba Prant
+Kendujhar , Odisha , OD-Purba Prant
+Khagaria , Bihar , BR-Uttar Prant
+Khairagarh , Chhattisgarh , Chhattisgarh Prant
+Khairthal,Tijara , Rajasthan - RJ
+Khammam , Telangana , Telangana Prant
+Khandwa , Madhya Pradesh , MP-Malwa Prant
+Khargone , Madhya Pradesh , MP-Malwa Prant
+Khawzawl , Mizoram , Mizoram Prant 
+Kheda , Gujarat , Gujarat Prant
+Kheri (Lakhimpur) , Uttar Pradesh , UP-Awadh Prant
+Khordha , Odisha , OD-Purba Prant
+Khowai , Tripura , Tripura Prant
+Khunti , Jharkhand , Jharkhand Prant
+Kinnaur , Himachal Pradesh , Himachal Prant
+Kiphire , Nagaland , Nagaland Prant
+Kishanganj , Bihar , BR-Uttar Prant
+Kishtwar , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Kodagu , Karnataka , Karnataka Prant
+Koderma , Jharkhand , Jharkhand Prant
+Kohima , Nagaland , Nagaland Prant
+Kokrajhar , Assam , Assam Prant
+Kolar , Karnataka , Karnataka Prant
+Kolasib , Mizoram , Mizoram Prant 
+Kolhapur , Maharashtra , MH-Madhya Maharashtra Prant
+Kolkata , West Bengal , West Bengal Prant
+Kollam , Kerala , Kerala Prant
+Komaram Bheem , Telangana , Telangana Prant
+Konaseema , Andhra Pradesh , Andhra Pradesh Prant
+Kondagaon , Chhattisgarh , Chhattisgarh Prant
+Koppal , Karnataka , Karnataka Prant
+Koraput , Odisha , OD-Pashchim Prant
+Korba , Chhattisgarh , Chhattisgarh Prant
+Koriya , Chhattisgarh , Chhattisgarh Prant
+Kota , Rajasthan , RJ-Chittor Prant
+Kotputli Behror , Rajasthan , RJ-Jaipur prant
+Kottayam , Kerala , Kerala Prant
+Kozhikode , Kerala , Kerala Prant
+Kra Daadi , Arunachal Pradesh , Arunachal Pradesh Prant
+Krishna , Andhra Pradesh , Andhra Pradesh Prant
+Krishnagiri , Tamil Nadu , TN-Uttar Prant
+Kulgam , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Kullu , Himachal Pradesh , Himachal Prant
+Kupwara , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Kurnool , Andhra Pradesh , Andhra Pradesh Prant
+Kurukshetra , Haryana , Haryana Prant
+Kurung Kumey , Arunachal Pradesh , Arunachal Pradesh Prant
+Kushinagar , Uttar Pradesh , UP-Goraksha Prant
+Kutch , Gujarat , Gujarat Prant
+Lahaul Spiti , Himachal Pradesh , Himachal Prant
+Lakhimpur , Assam , Assam Prant
+Lakhisarai , Bihar , BR-Uttar Prant
+Lakshadweep , Lakshadweep (UT) , Lakshadweep Prant
+Lalitpur , Uttar Pradesh , UP-Kanpur Prant
+Latehar , Jharkhand , Jharkhand Prant
+Latur , Maharashtra , MH-Devgiri Prant
+Lawngtlai , Mizoram , Mizoram Prant 
+Leh , Ladakh (UT) , Ladakh Prant
+Lepa Rada , Arunachal Pradesh , Arunachal Pradesh Prant
+Lohardaga , Jharkhand , Jharkhand Prant
+Lohit , Arunachal Pradesh , Arunachal Pradesh Prant
+Longding , Arunachal Pradesh , Arunachal Pradesh Prant
+Longleng , Nagaland , Nagaland Prant
+Lower Dibang Valley , Arunachal Pradesh , Arunachal Pradesh Prant
+Lower Siang , Arunachal Pradesh , Arunachal Pradesh Prant
+Lower Subansiri , Arunachal Pradesh , Arunachal Pradesh Prant
+Lucknow , Uttar Pradesh , UP-Awadh Prant
+Ludhiana , Punjab , Punjab Prant
+Lunglei , Mizoram , Mizoram Prant 
+Madhepura , Bihar , BR-Uttar Prant
+Madhubani , Bihar , BR-Uttar Prant
+Madurai , Tamil Nadu , TN-Dakshin Prant
+Mahabubabad , Telangana , Telangana Prant
+Maharajganj , Uttar Pradesh , UP-Goraksha Prant
+Mahasamund , Chhattisgarh , Chhattisgarh Prant
+Mahbubnagar , Telangana , Telangana Prant
+Mahe , Puducherry (UT) , Puducherry Prant
+Mahendragarh , Haryana , Haryana Prant
+Mahisagar , Gujarat , Gujarat Prant
+Mahoba , Uttar Pradesh , UP-Kanpur Prant
+Maihar , Madhya Pradesh , MP-Mahakaushal Prant
+Mainpuri , Uttar Pradesh , UP-Bruj Prant
+Mairang , Meghalaya , Meghalaya Prant
+Majuli , Assam , Assam Prant
+Malappuram , Kerala , Kerala Prant
+Malda , West Bengal , West Bengal Prant
+Malerkotla , Punjab , Punjab Prant
+Malkangiri , Odisha , OD-Pashchim Prant
+Mamit , Mizoram , Mizoram Prant 
+Mandi , Himachal Pradesh  , Himachal Prant
+Mandla , Madhya Pradesh , MP-Mahakaushal Prant
+Mandsaur , Madhya Pradesh , MP-Malwa Prant
+Mandya , Karnataka , Karnataka Prant
+Manendragarh , Chhattisgarh , Chhattisgarh Prant
+Mansa , Punjab , Punjab Prant
+Manyam , Andhra Pradesh , Andhra Pradesh Prant
+Mathura , Uttar Pradesh , UP-Bruj Prant
+Mau , Uttar Pradesh , UP-Goraksha Prant
+Mayiladuthurai  , Tamil Nadu , TN-Dakshin Prant
+Mayurbhanj , Odisha , OD-Purba Prant
+Medak , Telangana , Telangana Prant
+Medchal , Telangana , Telangana Prant
+Meerut , Uttar Pradesh , UP-Meerut Prant
+Mehsana , Gujarat , Gujarat Prant
+Mewat , Haryana , Haryana Prant
+Mirzapur , Uttar Pradesh , UP-Kashi Prant
+Moga , Punjab , Punjab Prant
+Mohali , Punjab , Punjab Prant
+Mohla Manpur , Chhattisgarh , Chhattisgarh Prant
+Mokokchung , Nagaland , Nagaland Prant
+Mon , Nagaland , Nagaland Prant
+Moradabad , Uttar Pradesh , UP-Meerut Prant
+Morbi , Gujarat  , Gujarat Prant
+Morena , Madhya Pradesh , MP-Madhya Bharat Prant
+Morigaon , Assam , Assam Prant
+Muktsar , Punjab , Punjab Prant
+Mulugu , Telangana , Telangana Prant
+Mumbai City , Maharashtra , MH-Konkan Prant
+Mumbai Suburban , Maharashtra , MH-Konkan Prant
+Mungeli , Chhattisgarh , Chhattisgarh Prant
+Munger , Bihar , BR-Dakshin Prant
+Murshidabad , West Bengal , West Bengal Prant
+Muzaffarnagar , Uttar Pradesh , UP-Meerut Prant
+Muzaffarpur , Bihar , BR-Uttar Prant
+Mysore , Karnataka , Karnataka Prant
+N T Rama Rao , Andhra Pradesh , Andhra Pradesh Prant
+Nabarangpur , Odisha , OD-Pashchim Prant
+Nadia , West Bengal , West Bengal Prant
+Nagaon , Assam , Assam Prant
+Nagapattinam , Tamil Nadu , TN-Dakshin Prant
+Nagarkurnool , Telangana , Telangana Prant
+Nagaur , Rajasthan , RJ-Jodhpur Prant
+Nagda , Madhya Pradesh , MP-Malwa Prant
+Nagpur , Maharashtra , MH-Vidharbh Prant
+Nainital , Uttarakhand , Uttarakhand Prant
+Nalanda , Bihar , BR-Uttar Prant
+Nalbari , Assam , Assam Prant
+Nalgonda , Telangana , Telangana Prant
+Namakkal , Tamil Nadu , TN-Uttar Prant
+Namsai , Arunachal Pradesh , Arunachal Pradesh Prant
+Nanded , Maharashtra , MH-Devgiri Prant
+Nandurbar , Maharashtra , MH-Madhya Maharashtra Prant
+Nandyal , Andhra Pradesh , Andhra Pradesh Prant
+Narayanpet , Telangana , Telangana Prant
+Narayanpur , Chhattisgarh , Chhattisgarh Prant
+Narmada , Gujarat , Gujarat Prant
+Narsinghpur , Madhya Pradesh , MP-Madhya Bharat Prant
+Nashik , Maharashtra , MH-Madhya Maharashtra Prant
+Navsari , Gujarat , Gujarat Prant
+Nawada , Bihar , BR-Dakshin Prant
+Nayagarh , Odisha , OD-Purba Prant
+Neem ka Thana , Rajasthan , RJ-Jaipur prant
+Neemuch , Madhya Pradesh , MP-Malwa Prant
+Nellore , Andhra Pradesh , Andhra Pradesh Prant
+New Delhi , Delhi (UT) , Delhi Prant
+Nicobar , Andaman Nicobar (UT) , Andaman Nicobar Prant
+Nilgiris , Tamil Nadu , TN-Dakshin Prant
+Nirmal , Telangana , Telangana Prant
+Niuland , Nagaland , Nagaland Prant
+Niwari , Madhya Pradesh , MP-Mahakaushal Prant
+Nizamabad , Telangana , Telangana Prant
+Noklak , Nagaland , Nagaland Prant
+Noney , Manipur , Manipur Prant
+North 24 Parganas , West Bengal , West Bengal Prant
+North Delhi , Delhi (UT) , Delhi Prant
+North East Delhi , Delhi (UT) , Delhi Prant
+North Garo Hills , Meghalaya , Meghalaya Prant
+North Goa , Goa , Goa Prant
+North Middle Andaman , Andaman Nicobar (UT) , Andaman Nicobar Prant
+North Sikkim , Sikkim , Sikkim Prant
+North Tripura , Tripura , Tripura Prant
+North West Delhi , Delhi (UT) , Delhi Prant
+Nuapada , Odisha , OD-Pashchim Prant
+Osmanabad , Maharashtra , MH-Devgiri Prant
+Pakke Kessang , Arunachal Pradesh , Arunachal Pradesh Prant
+Pakur , Jharkhand , Jharkhand Prant
+Pakyong , Sikkim , Sikkim Prant
+Palakkad , Kerala , Kerala Prant
+Palamu , Jharkhand , Jharkhand Prant
+Palghar , Maharashtra , MH-Konkan Prant
+Pali , Rajasthan , RJ-Jodhpur Prant
+Palnadu , Andhra Pradesh , Andhra Pradesh Prant
+Palwal , Haryana , Haryana Prant
+Panchkula , Haryana , Haryana Prant
+Panchmahal , Gujarat , Gujarat Prant
+Panipat , Haryana , Haryana Prant
+Panna , Madhya Pradesh , MP-Mahakaushal Prant
+Papum Pare , Arunachal Pradesh , Arunachal Pradesh Prant
+Parbhani , Maharashtra , MH-Devgiri Prant
+Paschim Bardhaman , West Bengal , West Bengal Prant
+Paschim Medinipur , West Bengal , West Bengal Prant
+Patan , Gujarat , Gujarat Prant
+Pathanamthitta , Kerala , Kerala Prant
+Pathankot , Punjab , Punjab Prant
+Patiala , Punjab , Punjab Prant
+Patna , Bihar , BR-Dakshin Prant
+Pauri , Uttarakhand , Uttarakhand Prant
+Peddapalli , Telangana , Telangana Prant
+Perambalur , Tamil Nadu , TN-Dakshin Prant
+Peren , Nagaland , Nagaland Prant
+Phalodi , Rajasthan , RJ-Jodhpur Prant
+Phek , Nagaland , Nagaland Prant
+Pherzawl , Manipur , Manipur Prant
+Pilibhit , Uttar Pradesh , UP-Bruj Prant
+Pithoragarh , Uttarakhand , Uttarakhand Prant
+Poonch , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Porbandar , Gujarat , Gujarat Prant
+Prakasam , Andhra Pradesh , Andhra Pradesh Prant
+Pratapgarh , Rajasthan , RJ-Chittor Prant
+Pratapgarh , Uttar Pradesh , UP-Kashi Prant
+Prayagraj , Uttar Pradesh , UP-Kashi Prant
+Puducherry , Puducherry (UT) , Puducherry Prant
+Pudukkottai , Tamil Nadu , TN-Dakshin Prant
+Pulwama , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Pune , Maharashtra , MH-Madhya Maharashtra Prant
+Purba Bardhaman , West Bengal , West Bengal Prant
+Purba Medinipur , West Bengal , West Bengal Prant
+Puri , Odisha , OD-Purba Prant
+Purnia , Bihar , BR-Uttar Prant
+Purulia , West Bengal , West Bengal Prant
+Raebareli , Uttar Pradesh , UP-Awadh Prant
+Raichur , Karnataka , Karnataka Prant
+Raigad , Maharashtra , MH-Konkan Prant
+Raigarh , Chhattisgarh , Chhattisgarh Prant
+Raipur , Chhattisgarh , Chhattisgarh Prant
+Raisen , Madhya Pradesh , MP-Madhya Bharat Prant
+Rajanna Sircilla , Telangana , Telangana Prant
+Rajgarh , Madhya Pradesh , MP-Madhya Bharat Prant
+Rajkot , Gujarat , Gujarat Prant
+Rajnandgaon , Chhattisgarh , Chhattisgarh Prant
+Rajouri , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Rajsamand , Rajasthan , RJ-Chittor Prant
+Ramanagara (Bengaluru South Dist) , Karnataka , Karnataka Prant
+Ramanathapuram , Tamil Nadu , TN-Dakshin Prant
+Ramban , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Ramgarh , Jharkhand , Jharkhand Prant
+Rampur , Uttar Pradesh , UP-Meerut Prant
+Ranchi , Jharkhand , Jharkhand Prant
+Ranga Reddy , Telangana , Telangana Prant
+Ranipet , Tamil Nadu , TN-Uttar Prant
+Ratlam , Madhya Pradesh , MP-Malwa Prant
+Ratnagiri , Maharashtra , MH-Konkan Prant
+Rayagada , Odisha , OD-Pashchim Prant
+Reasi , Jammu Kashmiri (UT) , Jammu Kashmir Prant - Jammu Kashmir Prant
+Rewa , Madhya Pradesh , MP-Mahakaushal Prant
+Rewari , Haryana , Haryana Prant
+Ri Bhoi , Meghalaya , Meghalaya Prant
+Rohtak , Haryana , Haryana Prant
+Rohtas , Bihar , BR-Dakshin Prant
+Rudraprayag , Uttarakhand , Uttarakhand Prant
+Rupnagar , Punjab , Punjab Prant
+Sabarkantha , Gujarat , Gujarat Prant
+Sagar , Madhya Pradesh , MP-Mahakaushal Prant
+Saharanpur , Uttar Pradesh , UP-Meerut Prant
+Saharsa , Bihar , BR-Uttar Prant
+Sahebganj , Jharkhand , Jharkhand Prant
+Saiha , Mizoram , Mizoram Prant 
+Saitual , Mizoram , Mizoram Prant 
+Sakti , Chhattisgarh , Chhattisgarh Prant
+Salem , Tamil Nadu , TN-Uttar Prant
+Salumber , Rajasthan , RJ-Chittor Prant
+Samastipur , Bihar , BR-Uttar Prant
+Samba , Jammu Kashmiri (UT) , Jammu Kashmir Pran
+Sambalpur , Odisha , OD-Pashchim Prant
+Sambhal , Uttar Pradesh , UP-Meerut Prant
+Sanchore , Rajasthan , RJ-Jodhpur Prant
+Sangareddy , Telangana , Telangana Prant
+Sangli , Maharashtra , MH-Madhya Maharashtra Prant
+Sangrur , Punjab , Punjab Prant
+Sant Kabir Nagar , Uttar Pradesh , UP-Goraksha Prant
+Saran , Bihar , BR-Uttar Prant
+Sarangarh Bilaigarh , Chhattisgarh , Chhattisgarh Prant
+Satara , Maharashtra , MH-Madhya Maharashtra Prant
+Satna , Madhya Pradesh , MP-Madhya Bharat Prant
+Sawai Madhopur , Rajasthan , RJ-Jaipur Prant
+Sehore , Madhya Pradesh , MP-Madhya Bharat Prant
+Senapati , Manipur , Manipur Prant
+Seoni , Madhya Pradesh , MP-Mahakaushal Prant
+Sepahijala , Tripura , Tripura Prant
+Seraikela Kharsawan , Jharkhand , Jharkhand Prant
+Serchhip , Mizoram , Mizoram Prant 
+Shahdara , Delhi (UT) , Delhi Prant
+Shahdol , Madhya Pradesh , MP-Mahakaushal Prant
+Shaheed Bhagat Singh Nagar , Punjab ,  - Punjab Prant
+Shahjahanpur , Uttar Pradesh , UP-Bruj Prant
+Shahpur , Rajasthan , RJ-Chittor Prant
+Shajapur , Madhya Pradesh , MP-Malwa Prant
+Shamator , Nagaland , Nagaland Prant
+Shamli , Uttar Pradesh , UP-Meerut Prant
+Sheikhpura , Bihar , BR-Dakshin Prant
+Sheohar , Bihar , BR-Uttar Prant
+Sheopur , Madhya Pradesh , MP-Madhya Bharat Prant
+Shi Yomi , Arunachal Pradesh , Arunachal Pradesh Prant
+Shimla , Himachal Pradesh , Himachal Prant
+Shimoga , Karnataka , Karnataka Prant
+Shivpuri , Madhya Pradesh , MP-Madhya Bharat Prant
+Shopian , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Shravasti , Uttar Pradesh , UP-Awadh Prant
+Siddharthnagar , Uttar Pradesh , UP-Goraksha Prant
+Siddipet , Telangana , Telangana Prant
+Sidhi , Madhya Pradesh , MP-Madhya Bharat Prant
+Sikar , Rajasthan , RJ-Jaipur Prant
+Simdega , Jharkhand , Jharkhand Prant
+Sindhudurg , Maharashtra , MH-Konkan Prant
+Singrauli , Madhya Pradesh , MP-Mahakaushal Prant
+Sirmaur , Himachal Pradesh , Himachal Prant
+Sirohi , Rajasthan , RJ-Jodhpur Prant
+Sirsa , Haryana , Haryana Prant
+Sitamarhi , Bihar , BR-Uttar Prant
+Sitapur , Uttar Pradesh , UP-Awadh Prant
+Sivaganga , Tamil Nadu , TN-Dakshin Prant
+Sivasagar , Assam , Assam Prant
+Siwan , Bihar , BR-Uttar Prant
+Solan , Himachal Pradesh , Himachal Prant
+Solapur , Maharashtra , MH-Madhya Maharashtra Prant
+Sonbhadra , Uttar Pradesh , UP-Kashi Prant
+Sonipat , Haryana , Haryana Prant
+Sonitpur , Assam , Assam Prant
+Soreng , Sikkim , Sikkim Prant
+South 24 Parganas , West Bengal , West Bengal Prant
+South Andaman , Andaman Nicobar (UT) , Andaman Nicobar Prant
+South Delhi , Delhi (UT) , Delhi Prant
+South East Delhi , Delhi (UT) , Delhi Prant
+South Garo Hills , Meghalaya , Meghalaya Prant
+South Goa , Goa , Goa Prant
+South Salmara,Mankachar , Assam - Assam Prant
+South Sikkim , Sikkim , Sikkim Prant
+South Tripura , Tripura , Tripura Prant
+South West Delhi , Delhi (UT) , Delhi Prant
+South West Garo Hills , Meghalaya , Meghalaya Prant
+South West Khasi Hills , Meghalaya , Meghalaya Prant
+Sri Balaji , Andhra Pradesh , Andhra Pradesh Prant
+Sri Ganganagar , Rajasthan , RJ-Jodhpur Prant
+Sri Satya Sai , Andhra Pradesh , Andhra Pradesh Prant
+Srikakulam , Andhra Pradesh , Andhra Pradesh Prant
+Srinagar , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Subarnapur , Odisha , OD-Pashchim Prant
+Sukma , Chhattisgarh , Chhattisgarh Prant
+Sultanpur , Uttar Pradesh , UP-Kashi Prant
+Sundergarh , Odisha , OD-Pashchim Prant
+Supaul , Bihar , BR-Uttar Prant
+Surajpur , Chhattisgarh , Chhattisgarh Prant
+Surat , Gujarat , Gujarat Prant
+Surendranagar , Gujarat , Gujarat Prant
+Surguja , Chhattisgarh , Chhattisgarh Prant
+Suryapet , Telangana , Telangana Prant
+Tamenglong , Manipur , Manipur Prant
+Tamulpur , Assam , Assam Prant
+Tapi , Gujarat , Gujarat Prant
+Tarn Taran , Punjab , Punjab Prant
+Tawang , Arunachal Pradesh , Arunachal Pradesh Prant
+Tehri , Uttarakhand , Uttarakhand Prant
+Tengnoupal , Manipur , Manipur Prant
+Tenkasi , Tamil Nadu , TN-Dakshin Prant
+Thane , Maharashtra , MH-Konkan Prant
+Thanjavur , Tamil Nadu , TN-Dakshin Prant
+Theni , Tamil Nadu , TN-Dakshin Prant
+Thiruvananthapuram , Kerala , Kerala Prant
+Thoothukudi , Tamil Nadu , TN-Dakshin Prant
+Thoubal , Manipur , Manipur Prant
+Thrissur , Kerala , Kerala Prant
+Tikamgarh , Madhya Pradesh , MP-Mahakaushal Prant
+Tinsukia , Assam , Assam Prant
+Tirap , Arunachal Pradesh , Arunachal Pradesh Prant
+Tiruchirappalli , Tamil Nadu , TN-Dakshin Prant
+Tirunelveli , Tamil Nadu , TN-Dakshin Prant
+Tirupattur , Tamil Nadu , TN-Uttar Prant
+Tiruppur , Tamil Nadu , TN-Dakshin Prant
+Tiruvallur , Tamil Nadu , TN-Uttar Prant
+Tiruvannamalai , Tamil Nadu , TN-Uttar Prant
+Tiruvarur , Tamil Nadu , TN-Dakshin Prant
+Tonk , Rajasthan , RJ-Jaipur Prant
+Tseminyu , Nagaland , Nagaland Prant
+Tuensang , Nagaland , Nagaland Prant
+Tumkur , Karnataka , Karnataka Prant
+Udaipur , Rajasthan , RJ-Chittor Prant
+Udalguri , Assam , Assam Prant
+Udham Singh Nagar , Uttarakhand , Uttarakhand Prant
+Udhampur , Jammu Kashmiri (UT) , Jammu Kashmir Prant
+Udupi , Karnataka , Karnataka Prant
+Ujjain , Madhya Pradesh , MP-Malwa Prant
+Ukhrul , Manipur , Manipur Prant
+Umaria , Madhya Pradesh , MP-Mahakaushal Prant
+Una , Himachal Pradesh , Himachal Prant
+Unakoti , Tripura , Tripura Prant
+Unnao , Uttar Pradesh , UP-Awadh Prant
+Upper Siang , Arunachal Pradesh , Arunachal Pradesh Prant
+Upper Subansiri , Arunachal Pradesh , Arunachal Pradesh Prant
+Uttar Dinajpur , West Bengal , West Bengal Prant
+Uttara Kannada , Karnataka , Karnataka Prant
+Uttarkashi , Uttarakhand , Uttarakhand Prant
+Vadodara , Gujarat , Gujarat Prant
+Vaishali , Bihar , BR-Uttar Prant
+Valsad , Gujarat , Gujarat Prant
+Varanasi , Uttar Pradesh , UP-Kashi Prant
+Vellore , Tamil Nadu , TN-Uttar Prant
+Vidisha , Madhya Pradesh , MP-Madhya Bharat Prant
+Vijayanagara , Karnataka , Karnataka Prant
+Vijayapura  , Karnataka , Karnataka Prant
+Vikarabad , Telangana , Telangana Prant
+Viluppuram , Tamil Nadu , TN-Uttar Prant
+Virudhunagar , Tamil Nadu , TN-Dakshin Prant
+Visakhapatnam , Andhra Pradesh , Andhra Pradesh Prant
+Vizianagaram , Andhra Pradesh , Andhra Pradesh Prant
+Wanaparthy , Telangana , Telangana Prant
+Warangal , Telangana , Telangana Prant
+Wardha , Maharashtra , MH-Vidharbh Prant
+Washim , Maharashtra , MH-Vidharbh Prant
+Wayanad , Kerala , Kerala Prant
+West Champaran , Bihar , BR-Uttar Prant
+West Delhi , Delhi (UT) , Delhi Prant
+West Garo Hills , Meghalaya , Meghalaya Prant
+West Godavari , Andhra Pradesh , Andhra Pradesh Prant
+West Jaintia Hills , Meghalaya , Meghalaya Prant
+West Kameng , Arunachal Pradesh , Arunachal Pradesh Prant
+West Karbi Anglong , Assam , Assam Prant
+West Khasi Hills , Meghalaya , Meghalaya Prant
+West Siang , Arunachal Pradesh , Arunachal Pradesh Prant
+West Sikkim , Sikkim , Sikkim Prant
+West Singhbhum , Jharkhand , Jharkhand Prant
+West Tripura , Tripura , Tripura Prant
+Wokha , Nagaland , Nagaland Prant
+Yadadri Bhuvanagiri , Telangana , Telangana Prant
+Yadgiri , Karnataka , Karnataka Prant
+Yamunanagar , Haryana , Haryana Prant
+Yanam , Puducherry (UT) , Puducherry Prant
+Yavatmal , Maharashtra , MH-Vidharbh Prant
+Zunheboto , Nagaland , Nagaland Prant
