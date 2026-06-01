@@ -1,14 +1,16 @@
 /**
- * Builds state-district-prant.csv (prant names) and generated map for the registration form.
+ * Builds state-district-prant mapping for the registration form.
  *
- *   node backend/scripts/build-prant-mapping.cjs           — rebuild CSV + map from rules
- *   node backend/scripts/build-prant-mapping.cjs --from-csv  — apply CSV edits to map only
+ *   node backend/scripts/build-prant-mapping.cjs              — rebuild from IGOD district rules
+ *   node backend/scripts/build-prant-mapping.cjs --from-csv   — apply src/data/state-district-prant.csv
+ *   node backend/scripts/build-prant-mapping.cjs --from-dsp   — apply src/data/dsp-list.csv (DSP List)
  */
 const { writeFileSync, readFileSync, mkdirSync } = require('fs');
 const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');
 const FROM_CSV = process.argv.includes('--from-csv');
+const FROM_DSP = process.argv.includes('--from-dsp');
 
 const PRANT_DISPLAY_NAMES = {
   andhra: 'Andhra Pradesh',
@@ -88,6 +90,170 @@ function parseCsvLine(line) {
   }
   out.push(cur);
   return out;
+}
+
+/** CSV "Prant" column labels → internal prant key (see src/lib/prantKeys.ts) */
+const PRANT_CSV_ALIASES = {
+  '- Punjab Prant': 'punjab',
+  'Andaman Nicobar Prant': 'andhra',
+  'Andhra Pradesh Prant': 'andhra',
+  'Arunachal Pradesh Prant': 'arunachal',
+  'Assam - Assam Prant': 'assam',
+  'Assam Prant': 'assam',
+  'BR-Dakshin Prant': 'biharDakshin',
+  'BR-Uttar Prant': 'biharUttar',
+  Chhattisgarh: 'chattisgarh',
+  'Chhattisgarh Prant': 'chattisgarh',
+  'Dadra Nagar Haveli Prant': 'gujarat',
+  'Delhi Prant': 'delhi',
+  'Goa Prant': 'maharashtraKonkan',
+  'Gujarat Prant': 'gujarat',
+  'Haryana Prant': 'haryana',
+  'Himachal Prant': 'himachal',
+  'Jammu Kashmir Pran': 'jammuKashmir',
+  'Jammu Kashmir Prant': 'jammuKashmir',
+  'Jammu Kashmir Prant - Jammu Kashmir Prant': 'jammuKashmir',
+  'Jharkhand Prant': 'jharkhand',
+  'Karnataka Prant': 'karnataka',
+  'Kerala Prant': 'kerala',
+  'Ladakh Prant': 'jammuKashmir',
+  'Lakshadweep Prant': 'kerala',
+  'MH-Devgiri Prant': 'maharashtraDevgiri',
+  'MH-Konkan Prant': 'maharashtraKonkan',
+  'MH-Madhya Maharashtra Prant': 'madhyaMaharashtra',
+  'MH-Vidharbh Prant': 'maharashtraVidharbh',
+  'MP-Madhya Bharat Prant': 'mpMadhyabharat',
+  'MP-Mahakaushal Prant': 'mpMahakaushal',
+  'MP-Malwa Prant': 'mpMalwa',
+  'Manipur Prant': 'assam',
+  'Meghalaya Prant': 'meghalaya',
+  'Mizoram Prant': 'assam',
+  'Nagaland Prant': 'assam',
+  'OD-Pashchim Prant': 'odishaPashchim',
+  'OD-Purba Prant': 'odishaPurba',
+  'Panjab Prant': 'punjab',
+  'Puducherry Prant': 'tamilnaduDakshin',
+  'Punjab Prant': 'punjab',
+  'RJ-Chittor Prant': 'rajasthanChittor',
+  'RJ-Jaipur Prant': 'rajasthanJaipur',
+  'RJ-Jaipur prant': 'rajasthanJaipur',
+  'RJ-Jodhpur Prant': 'rajasthanJodhpur',
+  'Rajasthan - RJ': 'rajasthanJaipur',
+  'Sikkim Prant': 'sikkim',
+  'TN-Dakshin Prant': 'tamilnaduDakshin',
+  'TN-Uttar Prant': 'tamilnaduUttar',
+  'Telangana Prant': 'telangana',
+  'Tripura Prant': 'assam',
+  'UP-Awadh Prant': 'upAvadh',
+  'UP-Bruj Prant': 'upBraj',
+  'UP-Goraksha Prant': 'upGoraksha',
+  'UP-Kanpur Prant': 'upKanpur',
+  'UP-Kashi Prant': 'upKashi',
+  'UP-Meerut Prant': 'upMeerut',
+  'Uttarakhand Prant': 'uttarakhand',
+  'West Bengal Prant': 'biharUttar',
+};
+
+const STATE_CSV_ALIASES = {
+  'Andaman Nicobar (UT)': 'Andaman and Nicobar Islands',
+  'Chandigarh (UT)': 'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu (UT)': 'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi (UT)': 'Delhi',
+  'Jammu Kashmiri (UT)': 'Jammu and Kashmir',
+  'Ladakh (UT)': 'Ladakh',
+  'Lakshadweep (UT)': 'Lakshadweep',
+  'Puducherry (UT)': 'Puducherry',
+};
+
+function normalizeStateName(stateRaw) {
+  const trimmed = String(stateRaw || '').trim();
+  return STATE_CSV_ALIASES[trimmed] || trimmed;
+}
+
+function normalizePrantFromCsv(prantRaw) {
+  const trimmed = String(prantRaw || '').trim();
+  if (!trimmed) return '';
+  if (PRANT_CSV_ALIASES[trimmed]) return PRANT_CSV_ALIASES[trimmed];
+  if (PRANT_NAME_TO_KEY[trimmed]) return PRANT_NAME_TO_KEY[trimmed];
+  const withoutPrant = trimmed.replace(/\s+Prant$/i, '').trim();
+  if (PRANT_CSV_ALIASES[`${withoutPrant} Prant`]) return PRANT_CSV_ALIASES[`${withoutPrant} Prant`];
+  if (PRANT_NAME_TO_KEY[withoutPrant]) return PRANT_NAME_TO_KEY[withoutPrant];
+  return '';
+}
+
+function parseDspLine(line) {
+  const raw = String(line || '').trim();
+  if (!raw) return null;
+
+  if (raw.includes('Khairthal,Tijara')) {
+    return { district: 'Khairthal-Tijara', state: 'Rajasthan', prantRaw: 'RJ-Jaipur Prant' };
+  }
+  if (raw.includes('South Salmara,Mankachar')) {
+    return { district: 'South Salmara-Mankachar', state: 'Assam', prantRaw: 'Assam Prant' };
+  }
+
+  const parts = raw.split(' , ').map((s) => s.trim());
+  if (parts.length < 3) return null;
+  const prantRaw = parts.pop();
+  const stateRaw = parts.pop();
+  const district = parts.join(' , ').trim();
+  if (!district || !stateRaw || !prantRaw) return null;
+  return { district, state: stateRaw, prantRaw };
+}
+
+function buildMapFromDspCsv(csvPath) {
+  const text = readFileSync(csvPath, 'utf8').trim();
+  const lines = text.split(/\r?\n/).slice(1);
+  const byStateDistrict = {};
+  const districtsByState = {};
+  const prantStateCounts = {};
+  const statePrantCounts = {};
+  const unknownPrants = new Set();
+
+  for (const line of lines) {
+    const parsed = parseDspLine(line);
+    if (!parsed) continue;
+
+    const state = normalizeStateName(parsed.state);
+    const district = parsed.district.trim();
+    const prant_key = normalizePrantFromCsv(parsed.prantRaw);
+    if (!prant_key) {
+      unknownPrants.add(parsed.prantRaw);
+      continue;
+    }
+
+    byStateDistrict[`${state}|${district}`] = prant_key;
+    if (!districtsByState[state]) districtsByState[state] = [];
+    if (!districtsByState[state].includes(district)) districtsByState[state].push(district);
+
+    if (!prantStateCounts[prant_key]) prantStateCounts[prant_key] = {};
+    prantStateCounts[prant_key][state] = (prantStateCounts[prant_key][state] || 0) + 1;
+
+    if (!statePrantCounts[state]) statePrantCounts[state] = {};
+    statePrantCounts[state][prant_key] = (statePrantCounts[state][prant_key] || 0) + 1;
+  }
+
+  for (const state of Object.keys(districtsByState)) {
+    districtsByState[state].sort((a, b) => a.localeCompare(b));
+  }
+
+  const stateDefault = {};
+  for (const [state, counts] of Object.entries(statePrantCounts)) {
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (top) stateDefault[state] = top[0];
+  }
+
+  const prantPrimaryState = {};
+  for (const [prant, stateCounts] of Object.entries(prantStateCounts)) {
+    const top = Object.entries(stateCounts).sort((a, b) => b[1] - a[1])[0];
+    if (top) prantPrimaryState[prant] = top[0];
+  }
+
+  if (unknownPrants.size > 0) {
+    console.warn('Unknown prant labels (rows skipped):', [...unknownPrants].sort().join(', '));
+  }
+
+  return { stateDefault, byStateDistrict, prantPrimaryState, districtsByState };
 }
 
 function writeGeneratedMap(map) {
@@ -341,6 +507,16 @@ function resolvePrant(state, district) {
 const dataDir = join(ROOT, 'src/data');
 mkdirSync(dataDir, { recursive: true });
 const csvPath = join(dataDir, 'state-district-prant.csv');
+const dspCsvPath = join(dataDir, 'dsp-list.csv');
+
+if (FROM_DSP) {
+  const map = buildMapFromDspCsv(dspCsvPath);
+  writeGeneratedMap(map);
+  console.log(
+    `Updated map from ${dspCsvPath} (${Object.keys(map.byStateDistrict).length} district rows)`
+  );
+  process.exit(0);
+}
 
 if (FROM_CSV) {
   const map = buildMapFromCsv(csvPath);

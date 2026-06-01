@@ -124,6 +124,61 @@ router.post('/', requireAuth, requireDirector, async (req, res) => {
   }
 });
 
+// PUT /api/petitions/:id - Update petition (Director Only)
+router.put('/:id', requireAuth, requireDirector, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      recipientEmail,
+      subject,
+      emailBody,
+      ccEmails,
+      bccEmails,
+      durationFrom,
+      durationTo,
+      attachments,
+    } = req.body;
+
+    if (!recipientEmail || !subject || !emailBody) {
+      return res.status(400).json({ error: 'Recipient, Subject, and Body are required' });
+    }
+
+    const result = await pool.query(
+      `UPDATE abgp.petitions
+       SET recipient_email = $1,
+           subject = $2,
+           email_body = $3,
+           cc_emails = $4,
+           bcc_emails = $5,
+           duration_from = $6,
+           duration_to = $7,
+           attachments = $8
+       WHERE petition_id = $9
+       RETURNING *`,
+      [
+        recipientEmail,
+        subject,
+        emailBody,
+        ccEmails || null,
+        bccEmails || null,
+        durationFrom || null,
+        durationTo || null,
+        JSON.stringify(attachments || []),
+        id,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Petition not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating petition:', err);
+    res.status(500).json({ error: 'Server error', details: err.message, code: err.code });
+  }
+});
+
 // POST /api/petitions/:id/support - Record support (Public)
 router.post('/:id/support', async (req, res) => {
   try {
