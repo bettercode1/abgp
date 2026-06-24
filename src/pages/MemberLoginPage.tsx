@@ -311,38 +311,49 @@ export const MemberLoginPage: React.FC = () => {
   };
 
   return (
-    <AuthLayout
-      accent="member"
-      title="ABGP Member Login"
-      subtitle="Continue with your membership details or register as a new member."
-    >
-      <AuthCard
-        title="Member Access"
-        subtitle="Fast secure login for members with integrated renewal and payment support."
-      >
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          textColor="inherit"
-          indicatorColor="secondary"
+    <AuthLayout accent="member" showHeader={false}>
+      <AuthCard>
+        <Box
           sx={{
-            mb: 2,
-            borderBottom: '1px solid #E5E7EB',
-            '& .MuiTab-root': {
-              color: '#6B7280',
-              textTransform: 'none',
-              fontWeight: 700,
-              fontSize: { xs: '0.82rem', sm: '0.9rem' },
-              minHeight: { xs: 40, sm: 46 },
-              px: { xs: 1, sm: 2 },
-            },
-            '& .Mui-selected': { color: '#111827' },
-            '& .MuiTabs-indicator': { backgroundColor: '#4F46E5', height: 3, borderRadius: 3 },
+            mb: 2.5,
+            p: 0.5,
+            borderRadius: 3,
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#F3F4F6',
+            border: '1px solid',
+            borderColor: 'divider',
           }}
         >
-          <Tab value="login" label="Member Login" />
-          <Tab value="register" label="New Registration" />
-        </Tabs>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            textColor="inherit"
+            sx={{
+              minHeight: { xs: 48, sm: 52 },
+              '& .MuiTabs-flexContainer': { gap: 0.5 },
+              '& .MuiTabs-indicator': { display: 'none' },
+              '& .MuiTab-root': {
+                color: '#374151',
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: { xs: '0.95rem', sm: '1.05rem' },
+                lineHeight: 1.3,
+                minHeight: { xs: 44, sm: 48 },
+                borderRadius: 2.5,
+                transition: 'all 0.2s ease',
+                opacity: 1,
+              },
+              '& .MuiTab-root.Mui-selected': {
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: '0 2px 10px rgba(17, 24, 39, 0.1)',
+              },
+            }}
+          >
+            <Tab value="login" label="Member Login" />
+            <Tab value="register" label="New Registration" />
+          </Tabs>
+        </Box>
         {activeTab === 'register' ? (
           <NewMemberRegisterPage embedded />
         ) : (
@@ -387,7 +398,7 @@ export const MemberLoginPage: React.FC = () => {
               }}
             >
               <ToggleButton value="phone">Login with phone</ToggleButton>
-              <ToggleButton value="email">Login with gmail</ToggleButton>
+              <ToggleButton value="email">Login with Email</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 

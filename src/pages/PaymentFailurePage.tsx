@@ -9,6 +9,7 @@ import { LoginPageLayout, loginGradientButtonSx } from '../components/login/Logi
 interface LocationState {
   orderId?: string;
   reason?: string;
+  kind?: 'donation' | 'membership';
 }
 
 export const PaymentFailurePage: React.FC = () => {
@@ -20,12 +21,14 @@ export const PaymentFailurePage: React.FC = () => {
   const state = (location.state as LocationState) || {};
   const orderId = state.orderId || '';
   const reason = state.reason || '';
+  const isDonation = state.kind === 'donation';
+  const retryPath = isDonation ? '/donate' : '/login/member/new';
 
   return (
     <LoginPageLayout
       title={t('payment.failureTitle')}
       subtitle={t('payment.failureSubtitle')}
-      backTo="/login/member/new"
+      backTo={retryPath}
       maxWidth="sm"
     >
       <Paper
@@ -66,7 +69,7 @@ export const PaymentFailurePage: React.FC = () => {
             variant="contained"
             size="large"
             fullWidth
-            onClick={() => navigate('/login/member/new')}
+            onClick={() => navigate(retryPath)}
             sx={loginGradientButtonSx(theme)}
           >
             {t('payment.tryAgain')}

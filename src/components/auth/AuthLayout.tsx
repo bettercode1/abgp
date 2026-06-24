@@ -3,9 +3,10 @@ import { Box, Container, Stack, Typography, type SxProps, type Theme } from '@mu
 
 interface AuthLayoutProps {
   children: React.ReactNode;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
   accent?: 'member' | 'prant' | 'admin';
+  showHeader?: boolean;
 }
 
 const accentByMode: Record<NonNullable<AuthLayoutProps['accent']>, { from: string; to: string }> = {
@@ -53,32 +54,37 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
   accent = 'member',
+  showHeader = true,
 }) => (
   <Box sx={getBackgroundSx(accent)}>
-    <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1, px: { xs: 0.5, sm: 1.5 } }}>
-      <Stack spacing={1} sx={{ mb: { xs: 1.25, sm: 2 }, textAlign: 'center' }}>
-        <Typography
-          variant="overline"
-          sx={{ color: '#4A4F64', letterSpacing: '0.14em', fontWeight: 700 }}
-        >
-          ABGP INDIA
-        </Typography>
-        <Typography
-          variant="h5"
-          component="h1"
-          sx={{
-            color: '#111827',
-            fontWeight: 800,
-            letterSpacing: '-0.02em',
-            fontSize: { xs: '1.35rem', sm: '1.65rem', md: '2rem' },
-          }}
-        >
-          {title}
-        </Typography>
-        <Typography sx={{ color: '#4B5563', maxWidth: 520, mx: 'auto' }}>
-          {subtitle}
-        </Typography>
-      </Stack>
+    <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1, px: { xs: 1, sm: 1.5 }, pt: showHeader ? 0 : { xs: 1, sm: 1.5 } }}>
+      {showHeader ? (
+        <Stack spacing={1} sx={{ mb: { xs: 1.25, sm: 2 }, textAlign: 'center' }}>
+          <Typography
+            variant="overline"
+            sx={{ color: '#4A4F64', letterSpacing: '0.14em', fontWeight: 700 }}
+          >
+            ABGP INDIA
+          </Typography>
+          {title ? (
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{
+                color: '#111827',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                fontSize: { xs: '1.35rem', sm: '1.65rem', md: '2rem' },
+              }}
+            >
+              {title}
+            </Typography>
+          ) : null}
+          {subtitle ? (
+            <Typography sx={{ color: '#4B5563', maxWidth: 520, mx: 'auto' }}>{subtitle}</Typography>
+          ) : null}
+        </Stack>
+      ) : null}
       {children}
     </Container>
   </Box>

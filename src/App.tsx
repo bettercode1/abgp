@@ -32,6 +32,7 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { PanelPage } from './pages/PanelPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { PaymentFailurePage } from './pages/PaymentFailurePage';
+import { DonatePage } from './pages/DonatePage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './routes/ProtectedRoutes';
 import { getTheme, ThemeName } from './theme/themes';
@@ -226,6 +227,7 @@ function App() {
                 </ProtectedRoute>
               )}
             />
+            <Route path="/donate" element={<DonatePage />} />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/failure" element={<PaymentFailurePage />} />
           </Routes>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Paper, Stack, Typography, type SxProps, type Theme } from '@mui/material';
 
 interface AuthCardProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   children: React.ReactNode;
 }
@@ -34,12 +34,16 @@ export const AuthCard: React.FC<AuthCardProps> = ({ title, subtitle, children })
       boxShadow: '0 8px 20px rgba(17, 24, 39, 0.06)',
     }}
   >
-    <Stack spacing={0.5} sx={{ mb: 1.8 }}>
-      <Typography variant="h6" sx={{ color: '#111827', fontWeight: 700 }}>
-        {title}
-      </Typography>
-      {subtitle ? <Typography sx={{ color: '#6B7280' }}>{subtitle}</Typography> : null}
-    </Stack>
+    {title || subtitle ? (
+      <Stack spacing={0.5} sx={{ mb: 1.8 }}>
+        {title ? (
+          <Typography variant="h6" sx={{ color: '#111827', fontWeight: 700 }}>
+            {title}
+          </Typography>
+        ) : null}
+        {subtitle ? <Typography sx={{ color: '#6B7280' }}>{subtitle}</Typography> : null}
+      </Stack>
+    ) : null}
     {children}
   </Paper>
 );

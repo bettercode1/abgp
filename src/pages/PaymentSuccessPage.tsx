@@ -9,6 +9,8 @@ import { LoginPageLayout, loginGradientButtonSx } from '../components/login/Logi
 interface LocationState {
   orderId?: string;
   name?: string;
+  kind?: 'donation' | 'membership';
+  amount?: number;
 }
 
 export const PaymentSuccessPage: React.FC = () => {
@@ -20,11 +22,17 @@ export const PaymentSuccessPage: React.FC = () => {
   const state = (location.state as LocationState) || {};
   const name = state.name || '';
   const orderId = state.orderId || '';
+  const isDonation = state.kind === 'donation';
+  const amount = state.amount;
 
   return (
     <LoginPageLayout
-      title={t('payment.successTitle')}
-      subtitle={t('payment.successSubtitle')}
+      title={isDonation ? t('donate.successTitle', 'Thank you for your donation') : t('payment.successTitle')}
+      subtitle={
+        isDonation
+          ? t('donate.successSubtitle', 'Your payment was successful.')
+          : t('payment.successSubtitle')
+      }
       backTo="/"
       maxWidth="sm"
     >
@@ -44,17 +52,32 @@ export const PaymentSuccessPage: React.FC = () => {
         />
 
         <Typography variant="h5" fontWeight={700} gutterBottom color="success.dark">
-          {t('payment.paymentSuccessful')}
+          {isDonation
+            ? t('donate.paymentSuccessful', 'Donation successful')
+            : t('payment.paymentSuccessful')}
         </Typography>
 
         {name && (
           <Typography variant="body1" sx={{ mb: 1 }}>
-            {t('payment.welcomeMember', { name })}
+            {isDonation
+              ? t('donate.thankYouDonor', { name, defaultValue: `Thank you, ${name}.` })
+              : t('payment.welcomeMember', { name })}
+          </Typography>
+        )}
+
+        {isDonation && amount != null && amount > 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {t('donate.amountReceived', {
+              amount: amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              defaultValue: `Amount received: ₹ ${amount.toLocaleString('en-IN')}`,
+            })}
           </Typography>
         )}
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {t('payment.registrationComplete')}
+          {isDonation
+            ? t('donate.donationComplete', 'Your donation details have been saved.')
+            : t('payment.registrationComplete')}
         </Typography>
 
         {orderId && (
@@ -73,14 +96,16 @@ export const PaymentSuccessPage: React.FC = () => {
           >
             {t('payment.goToHome')}
           </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            fullWidth
-            onClick={() => navigate('/login/member')}
-          >
-            {t('payment.memberLogin')}
-          </Button>
+          {!isDonation && (
+            <Button
+              variant="outlined"
+              size="large"
+              fullWidth
+              onClick={() => navigate('/login/member')}
+            >
+              {t('payment.memberLogin')}
+            </Button>
+          )}
         </Box>
       </Paper>
     </LoginPageLayout>

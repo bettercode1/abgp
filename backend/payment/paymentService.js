@@ -62,32 +62,25 @@ function isInvalidRazorpayKeySecret(keySecret) {
   return /^(REPLACE_ME|your_key_secret|changeme)$/i.test(v);
 }
 
-/** If backend/.env has placeholders, use valid keys from project root .env when present. */
-function mergeRazorpayFromRootEnv(keyId, keySecret) {
+/** Optional: read public Key ID from project root .env (never the secret). */
+function mergeRazorpayKeyIdFromRootEnv(keyId) {
   const rootEnvPath = path.join(__dirname, '..', '..', '.env');
-  if (!fs.existsSync(rootEnvPath)) {
-    return { keyId, keySecret };
+  if (!fs.existsSync(rootEnvPath) || !isInvalidRazorpayKeyId(keyId)) {
+    return keyId;
   }
   try {
     const parsed = dotenv.parse(fs.readFileSync(rootEnvPath));
     const rootId = normalizeEnvValue(parsed.RAZORPAY_KEY_ID);
-    const rootSecret = normalizeEnvValue(parsed.RAZORPAY_KEY_SECRET);
-    return {
-      keyId: isInvalidRazorpayKeyId(keyId) && !isInvalidRazorpayKeyId(rootId) ? rootId : keyId,
-      keySecret:
-        isInvalidRazorpayKeySecret(keySecret) && !isInvalidRazorpayKeySecret(rootSecret)
-          ? rootSecret
-          : keySecret,
-    };
+    return isInvalidRazorpayKeyId(rootId) ? keyId : rootId;
   } catch {
-    return { keyId, keySecret };
+    return keyId;
   }
 }
 
 function getRazorpayCredentials() {
   let keyId = normalizeEnvValue(process.env.RAZORPAY_KEY_ID);
-  let keySecret = normalizeEnvValue(process.env.RAZORPAY_KEY_SECRET);
-  ({ keyId, keySecret } = mergeRazorpayFromRootEnv(keyId, keySecret));
+  const keySecret = normalizeEnvValue(process.env.RAZORPAY_KEY_SECRET);
+  keyId = mergeRazorpayKeyIdFromRootEnv(keyId);
   return { keyId, keySecret };
 }
 
@@ -123,10 +116,22 @@ function getRazorpay() {
  * @param {string} receipt - Unique receipt identifier (e.g. phone number)
  */
 async function createRazorpayOrder(receipt, notes = {}) {
-  const razorpay = getRazorpay();
   const amountPaise = getMembershipAmountPaise();
+  return createRazorpayOrderWithAmount(receipt, amountPaise, notes);
+}
+
+/**
+ * Create a Razorpay order with a custom amount (e.g. donations).
+ * @param {number} amountPaise - Amount in paise (min 100 = ₹1)
+ */
+async function createRazorpayOrderWithAmount(receipt, amountPaise, notes = {}) {
+  const n = parseInt(String(amountPaise), 10);
+  if (!Number.isFinite(n) || n < 100) {
+    throw new Error('Donation amount must be at least ₹1 (100 paise)');
+  }
+  const razorpay = getRazorpay();
   const order = await razorpay.orders.create({
-    amount: amountPaise,
+    amount: n,
     currency: 'INR',
     receipt,
     payment_capture: 1,
@@ -180,6 +185,7 @@ function getRazorpayKeyId() {
 
 module.exports = {
   createRazorpayOrder,
+  createRazorpayOrderWithAmount,
   verifyRazorpaySignature,
   getMembershipAmountPaise,
   getRazorpayKeyId,

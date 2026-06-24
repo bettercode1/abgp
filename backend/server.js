@@ -16,6 +16,7 @@ const prantsRouter = require('./routes/prants');
 const petitionsRouter = require('./routes/petitions');
 const prantAnnualReportsRouter = require('./routes/prantAnnualReports');
 const paymentRouter = require('./payment/paymentRoutes');
+const donationRouter = require('./donation/donationRoutes');
 const memberAuthRouter = require('./member/memberAuthRoutes');
 
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 app.use('/api/petitions', petitionsRouter);
 app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/donation', donationRouter);
 
 app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports' }));
 function getDatabaseLabel() {

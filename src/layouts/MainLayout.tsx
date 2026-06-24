@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LoginDialog } from '../components/LoginDialog';
+import {
+  NEW_MEMBER_POPUP_STORAGE_KEY,
+  NewMemberRegistrationPopup,
+} from '../components/NewMemberRegistrationPopup';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
@@ -120,10 +124,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, authLoading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const drawerPaperRef = useRef<HTMLDivElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [registrationPopupOpen, setRegistrationPopupOpen] = useState(false);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
 
   const quickLinks = flattenNavItems(navigationItems);
@@ -132,9 +137,35 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const isGyandeepActive = location.pathname === '/gyandeep' || location.pathname === '/spandana';
   const isMediaActive = location.pathname === '/media' || location.pathname === '/blogs' || location.pathname === '/news' || location.pathname === '/events' || location.pathname === '/videos';
 
+  const dismissRegistrationPopup = () => {
+    try {
+      localStorage.setItem(NEW_MEMBER_POPUP_STORAGE_KEY, '1');
+    } catch {
+      // ignore storage errors
+    }
+    setRegistrationPopupOpen(false);
+  };
+
   useEffect(() => {
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
+
+  useEffect(() => {
+    if (location.pathname !== '/') {
+      setRegistrationPopupOpen(false);
+      return;
+    }
+    if (loading || authLoading || isAuthenticated) return;
+
+    try {
+      if (localStorage.getItem(NEW_MEMBER_POPUP_STORAGE_KEY)) return;
+    } catch {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setRegistrationPopupOpen(true), 700);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, loading, authLoading, isAuthenticated]);
 
   const handleDrawerToggle = () => {
     const opening = !mobileOpen;
@@ -388,6 +419,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   <WhatsApp fontSize="small" />
                 </IconButton>
               </Box>
+              <Button
+                component={RouterLink}
+                to="/donate"
+                variant="outlined"
+                color="primary"
+                size="small"
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: { xs: 1.6, sm: 2.2 },
+                  borderWidth: 2,
+                  '&:hover': { borderWidth: 2 },
+                }}
+              >
+                {t('header.donate', 'Donate')}
+              </Button>
               <Button
                 component={RouterLink}
                 to={isAuthenticated ? '/panel' : '/login'}
@@ -689,6 +737,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </Container>
       </Box>
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <NewMemberRegistrationPopup open={registrationPopupOpen} onDismiss={dismissRegistrationPopup} />
     </Box>
   );
 };

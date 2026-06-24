@@ -10,20 +10,17 @@ import {
   useTheme,
   InputAdornment,
   ButtonBase,
+  Autocomplete,
 } from '@mui/material';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { STATE_NAMES, getDistrictsForState } from '../lib/stateDistricts';
-import { PRANT_KEYS } from '../lib/prantKeys';
 import {
   getDistrictsForStateFromMap,
-  getPrimaryStateForPrant,
   getPrantForStateDistrict,
-  getPrantOptionsForState,
   getSinglePrantForState,
   getStatesFromDspMap,
-  shouldAutoSelectStateForPrant,
 } from '../lib/stateDistrictPrant';
 import {
   useLoginTextFieldStyles,
@@ -38,6 +35,7 @@ import {
   sanitizeEmailInput,
   isValidFullName,
   isValidGender,
+  isValidPincode,
   validatePhone,
   getPhoneErrorMessage,
   validateEmail,
@@ -74,6 +72,7 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
   const [district, setDistrict] = useState('');
   const [prant, setPrant] = useState('');
   const [address, setAddress] = useState('');
+  const [pincode, setPincode] = useState('');
   const [formError, setFormError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [membershipInr, setMembershipInr] = useState<number | null>(null);
@@ -100,9 +99,27 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
     return fromDsp.length > 0 ? fromDsp : getDistrictsForState(state);
   }, [state]);
   const districtOptions = allDistrictsForState;
-  const prantOptions = state
-    ? getPrantOptionsForState(state, allDistrictsForState)
-    : [...PRANT_KEYS];
+
+  const resolveDistrictsForState = (nextState: string) => {
+    if (!nextState) return [];
+    const fromDsp = getDistrictsForStateFromMap(nextState);
+    return fromDsp.length > 0 ? fromDsp : getDistrictsForState(nextState);
+  };
+
+  const handleStateChange = (_event: React.SyntheticEvent, nextState: string | null) => {
+    const stateValue = nextState ?? '';
+    const districts = resolveDistrictsForState(stateValue);
+    setState(stateValue);
+    setDistrict('');
+    setPrant(getSinglePrantForState(stateValue, districts));
+  };
+
+  const handleDistrictChange = (_event: React.SyntheticEvent, nextDistrict: string | null) => {
+    const districtValue = nextDistrict ?? '';
+    setDistrict(districtValue);
+    const autoPrant = getPrantForStateDistrict(state, districtValue);
+    if (autoPrant) setPrant(autoPrant);
+  };
 
   const emailSuggestion = useMemo(() => getEmailSuggestion(email), [email]);
   const phoneValidation = useMemo(() => validatePhone(phoneNo), [phoneNo]);
@@ -137,6 +154,12 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
     }
     if (!address.trim()) {
       setFormError(t('login.addressRequired'));
+      return false;
+    }
+    if (!isValidPincode(pincode)) {
+      setFormError(
+        t('login.pincodeInvalid', 'Enter a valid pincode between 110001 and 999999 (cannot start with 0)')
+      );
       return false;
     }
     return true;
@@ -177,7 +200,6 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
       if (!razorpayKey) {
         logPaymentError('Checkout Key ID missing after create-order', {
           hasOrderKeyId: Boolean(order.key_id),
-          hasViteKey: Boolean(import.meta.env.VITE_RAZORPAY_KEY_ID),
         });
         setFormError(t('login.razorpayConfigError'));
         setIsProcessing(false);
@@ -375,55 +397,57 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
           )}
 
           <Box sx={{ display: 'flex', gap: 2.5, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <TextField
-              select
+            <Autocomplete
               fullWidth
-              required
-              value={state}
-              onChange={(e) => {
-                const nextState = e.target.value;
-                const districts = nextState
-                  ? getDistrictsForStateFromMap(nextState).length > 0
-                    ? getDistrictsForStateFromMap(nextState)
-                    : getDistrictsForState(nextState)
-                  : [];
-                setState(nextState);
-                setDistrict('');
-                const singlePrant = getSinglePrantForState(nextState, districts);
-                setPrant(singlePrant);
+              options={stateOptions}
+              value={state || null}
+              onChange={handleStateChange}
+              autoHighlight
+              clearOnEscape
+              disablePortal
+              slotProps={{
+                paper: { sx: { maxHeight: { xs: 280, sm: 360 } } },
               }}
-              label={t('login.state')}
-              variant="outlined"
-              sx={textFieldStyles}
-            >
-              {stateOptions.map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
+              noOptionsText={t('login.noStateMatches', 'No matching state')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  label={t('login.state')}
+                  placeholder={t('login.searchState', 'Search state...')}
+                  variant="outlined"
+                  sx={textFieldStyles}
+                />
+              )}
+            />
+            <Autocomplete
               fullWidth
-              required
-              value={district}
-              onChange={(e) => {
-                const nextDistrict = e.target.value;
-                setDistrict(nextDistrict);
-                const autoPrant = getPrantForStateDistrict(state, nextDistrict);
-                if (autoPrant) setPrant(autoPrant);
-              }}
-              label={t('login.district')}
-              variant="outlined"
+              options={districtOptions}
+              value={district || null}
+              onChange={handleDistrictChange}
               disabled={!state}
-              sx={textFieldStyles}
-            >
-              {districtOptions.map((d) => (
-                <MenuItem key={d} value={d}>
-                  {d}
-                </MenuItem>
-              ))}
-            </TextField>
+              autoHighlight
+              clearOnEscape
+              disablePortal
+              slotProps={{
+                paper: { sx: { maxHeight: { xs: 280, sm: 360 } } },
+              }}
+              noOptionsText={t('login.noDistrictMatches', 'No matching district')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  label={t('login.district')}
+                  placeholder={
+                    state
+                      ? t('login.searchDistrict', 'Search district...')
+                      : t('login.selectStateFirst', 'Select state first')
+                  }
+                  variant="outlined"
+                  sx={textFieldStyles}
+                />
+              )}
+            />
           </Box>
 
           <TextField
@@ -431,22 +455,18 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
             fullWidth
             required
             value={prant}
-            onChange={(e) => {
-              const nextPrant = e.target.value;
-              setPrant(nextPrant);
-              if (shouldAutoSelectStateForPrant(nextPrant)) {
-                setState(getPrimaryStateForPrant(nextPrant));
-              }
-            }}
             label={t('login.selectPrant')}
             variant="outlined"
+            disabled
             sx={textFieldStyles}
           >
-            {prantOptions.map((key) => (
-              <MenuItem key={key} value={key}>
-                {t(`prant.${key}`)}
+            {prant ? (
+              <MenuItem value={prant}>{t(`prant.${prant}`)}</MenuItem>
+            ) : (
+              <MenuItem value="" disabled>
+                {t('login.selectStateDistrictFirst', 'Select state and district first')}
               </MenuItem>
-            ))}
+            )}
           </TextField>
 
           <TextField
@@ -459,6 +479,21 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder={t('login.addressPlaceholder')}
+            sx={textFieldStyles}
+          />
+
+          <TextField
+            fullWidth
+            label={t('login.pincode', 'Pincode')}
+            variant="outlined"
+            value={pincode}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+              if (digits.length > 0 && digits[0] === '0') return;
+              setPincode(digits);
+            }}
+            inputProps={{ inputMode: 'numeric', maxLength: 6 }}
+            placeholder={t('login.pincodePlaceholder')}
             sx={textFieldStyles}
           />
 

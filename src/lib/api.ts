@@ -5,12 +5,14 @@
  */
 import { getSupabase } from './supabase';
 
-const RAW_API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-// Support both:
-// - VITE_API_URL=https://host
-// - VITE_API_URL=https://host/api
-// so endpoint builders never produce /api/api/*
-const API_BASE = RAW_API_BASE.endsWith('/api') ? RAW_API_BASE : `${RAW_API_BASE}/api`;
+const RAW_API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+// Dev: empty VITE_API_URL → relative /api (Vite proxy → backend:3001).
+// Prod: set VITE_API_URL to your API host, e.g. https://api.yourdomain.com
+const API_BASE = RAW_API_BASE
+  ? RAW_API_BASE.endsWith('/api')
+    ? RAW_API_BASE
+    : `${RAW_API_BASE}/api`
+  : '/api';
 
 export interface ApiMember {
   id: string;
@@ -452,6 +454,60 @@ export async function recordPaymentFailed(data: {
   razorpay_payment_id?: string;
 }): Promise<{ recorded: boolean }> {
   return fetchJson<{ recorded: boolean }>(`${API_BASE}/payment/payment-failed`, null, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Donation APIs ─────────────────────────────────────────────────────────────
+
+export interface CreateDonationOrderPayload {
+  donation_amount: number;
+  first_name: string;
+  last_name: string;
+  father_or_spouse_name: string;
+  phone_no: string;
+  email: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  pincode: string;
+  pan: string;
+}
+
+export interface CreateDonationOrderResponse extends CreateOrderResponse {
+  donation_id: string;
+}
+
+export async function createDonationOrder(
+  payload: CreateDonationOrderPayload
+): Promise<CreateDonationOrderResponse> {
+  return fetchJson<CreateDonationOrderResponse>(`${API_BASE}/donation/create-order`, null, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function verifyDonationPayment(data: {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<{ success: boolean; donation_id?: string }> {
+  return fetchJson<{ success: boolean; donation_id?: string }>(
+    `${API_BASE}/donation/verify-payment`,
+    null,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function recordDonationPaymentFailed(data: {
+  razorpay_order_id: string;
+  razorpay_payment_id?: string;
+}): Promise<{ recorded: boolean }> {
+  return fetchJson<{ recorded: boolean }>(`${API_BASE}/donation/payment-failed`, null, {
     method: 'POST',
     body: JSON.stringify(data),
   });

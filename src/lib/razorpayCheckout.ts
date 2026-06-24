@@ -49,13 +49,8 @@ export function logPaymentError(context: string, detail: unknown): void {
 }
 
 export function resolveCheckoutKey(orderKeyId?: string): string | null {
-  const candidates = [
-    orderKeyId?.trim(),
-    (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined)?.trim(),
-  ];
-  for (const key of candidates) {
-    if (key && /^rzp_(test|live)_[A-Za-z0-9]+$/.test(key)) return key;
-  }
+  const key = orderKeyId?.trim();
+  if (key && /^rzp_(test|live)_[A-Za-z0-9]+$/.test(key)) return key;
   return null;
 }
 
@@ -65,6 +60,9 @@ export function formatRazorpayContact(phone: string): string {
 }
 
 export function parsePaymentApiErrorMessage(err: unknown): string {
+  if (err instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(err.message)) {
+    return 'Could not reach the payment server. Ensure the backend is running on port 3001 and try again.';
+  }
   if (!(err instanceof Error)) return 'Could not initiate payment. Please try again.';
   try {
     const parsed = JSON.parse(err.message) as { error?: string };

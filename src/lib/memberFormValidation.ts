@@ -8,6 +8,11 @@ export const FULL_NAME_PATTERN = /^[\u0900-\u097Fa-zA-Z]+(?:[\s\u0900-\u097Fa-zA
 /** India mobile: 10 digits, starts with 6–9 */
 export const INDIAN_PHONE_PATTERN = /^[6-9]\d{9}$/;
 
+/** India pincode: 6 digits, first digit 1–9, range 110001–999999 */
+export const PINCODE_MIN = 110001;
+export const PINCODE_MAX = 999999;
+export const PINCODE_PATTERN = /^[1-9]\d{5}$/;
+
 const BLOCKED_PHONE_NUMBERS = new Set([
   '9999999999',
   '8888888888',
@@ -134,6 +139,14 @@ export function validatePhone(value: string): PhoneValidationResult {
 
 export function isValidPhone(value: string): boolean {
   return validatePhone(value).valid;
+}
+
+export function isValidPincode(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  if (!PINCODE_PATTERN.test(trimmed)) return false;
+  const numeric = Number(trimmed);
+  return numeric >= PINCODE_MIN && numeric <= PINCODE_MAX;
 }
 
 export function getPhoneErrorMessage(
@@ -322,5 +335,111 @@ export function getEmailErrorMessage(
       return t('login.emailTypo', { email: result.suggestion ?? '' });
     default:
       return t('login.emailInvalid');
+  }
+}
+
+/** PAN: AAA[A-Z] + holder status (P/C/H/F/A/T) + surname initial + 0001–9999 + check letter */
+export const PAN_PATTERN = /^[A-Z]{3}[PCHFAT][A-Z][0-9]{4}[A-Z]$/;
+
+export type PanValidationError = 'empty' | 'format' | 'serial' | 'surname';
+
+export interface PanValidationResult {
+  valid: boolean;
+  error?: PanValidationError;
+}
+
+export function sanitizePanInput(value: string): string {
+  const raw = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let result = '';
+
+  for (let i = 0; i < raw.length && result.length < 10; i += 1) {
+    const ch = raw[i];
+    const pos = result.length;
+
+    if (pos <= 2) {
+      if (/[A-Z]/.test(ch)) result += ch;
+    } else if (pos === 3) {
+      if (/[PCHFAT]/.test(ch)) result += ch;
+    } else if (pos === 4) {
+      if (/[A-Z]/.test(ch)) result += ch;
+    } else if (pos <= 8) {
+      if (/[0-9]/.test(ch)) result += ch;
+    } else if (pos === 9) {
+      if (/[A-Z]/.test(ch)) result += ch;
+    }
+  }
+
+  return result;
+}
+
+export function getSurnameInitialFromLastName(lastName: string): string | null {
+  const trimmed = lastName.trim();
+  if (!trimmed) return null;
+  const initial = trimmed[0];
+  if (!initial || !/[A-Za-z\u0900-\u097F]/.test(initial)) return null;
+  return initial.toUpperCase();
+}
+
+export function validatePan(pan: string, lastName?: string): PanValidationResult {
+  const normalized = pan.trim().toUpperCase();
+  if (!normalized) {
+    return { valid: false, error: 'empty' };
+  }
+  if (normalized.length < 10) {
+    return { valid: false, error: 'format' };
+  }
+  if (!PAN_PATTERN.test(normalized)) {
+    return { valid: false, error: 'format' };
+  }
+  const serial = Number(normalized.slice(5, 9));
+  if (!Number.isFinite(serial) || serial < 1 || serial > 9999) {
+    return { valid: false, error: 'serial' };
+  }
+  if (lastName?.trim()) {
+    const surnameInitial = getSurnameInitialFromLastName(lastName);
+    if (surnameInitial && normalized[4] !== surnameInitial) {
+      return { valid: false, error: 'surname' };
+    }
+  }
+  return { valid: true };
+}
+
+export function isValidPan(pan: string, lastName?: string): boolean {
+  return validatePan(pan, lastName).valid;
+}
+
+export function shouldShowPanFieldError(
+  pan: string,
+  touched: boolean,
+  lastName?: string
+): boolean {
+  if (!touched) return false;
+  const trimmed = pan.trim();
+  if (!trimmed) return true;
+  return !validatePan(pan, lastName).valid;
+}
+
+export function getPanErrorMessage(
+  result: PanValidationResult,
+  t: (key: string, opts?: Record<string, string>) => string
+): string {
+  switch (result.error) {
+    case 'empty':
+      return t('donate.panRequired', 'PAN is required.');
+    case 'serial':
+      return t(
+        'donate.panSerialInvalid',
+        'Characters 6–9 of PAN must be digits from 0001 to 9999.'
+      );
+    case 'surname':
+      return t(
+        'donate.panSurnameInvalid',
+        'The 5th character of PAN must match the first letter of your Last Name.'
+      );
+    default:
+      return t(
+        'donate.panInvalid',
+        'Enter a valid 10-character PAN (e.g. ABCDP1234M).'
+      );
   }
 }

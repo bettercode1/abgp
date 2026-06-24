@@ -21,10 +21,3 @@ export const HomePage: React.FC = () => {
     </Box>
   );
 };
-
-
-
-
-
-
-
