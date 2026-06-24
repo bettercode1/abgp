@@ -61,14 +61,18 @@ export function formatRazorpayContact(phone: string): string {
 
 export function parsePaymentApiErrorMessage(err: unknown): string {
   if (err instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(err.message)) {
-    return 'Could not reach the payment server. Ensure the backend is running on port 3001 and try again.';
+    return 'Could not reach the payment server. Ensure the backend is running and VITE_API_URL is correct for production.';
   }
   if (!(err instanceof Error)) return 'Could not initiate payment. Please try again.';
+  const raw = err.message.trim();
+  if (raw.startsWith('<!DOCTYPE') || raw.startsWith('<html') || raw.includes('Cannot POST /api/')) {
+    return 'Donation API is not available on the server. Deploy the latest backend code and restart the API (pm2/systemd), then verify GET /api/donation/health returns ok.';
+  }
   try {
-    const parsed = JSON.parse(err.message) as { error?: string };
-    return parsed.error || err.message;
+    const parsed = JSON.parse(raw) as { error?: string };
+    return parsed.error || raw;
   } catch {
-    return err.message;
+    return raw;
   }
 }
 

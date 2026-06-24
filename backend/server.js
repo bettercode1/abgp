@@ -47,7 +47,11 @@ app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/donation', donationRouter);
 
-app.get('/', (req, res) => res.json({ name: 'ABGP API', health: '/health', api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports' }));
+app.get('/', (req, res) => res.json({
+  name: 'ABGP API',
+  health: '/health',
+  api: '/api/auth, /api/content, /api/complaints, /api/members, /api/prants, /api/prant-annual-reports, /api/payment, /api/donation',
+}));
 function getDatabaseLabel() {
   try {
     const u = new URL(process.env.DATABASE_URL || '');
