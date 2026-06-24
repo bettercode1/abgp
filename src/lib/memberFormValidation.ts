@@ -421,25 +421,22 @@ export function shouldShowPanFieldError(
 
 export function getPanErrorMessage(
   result: PanValidationResult,
-  t: (key: string, opts?: Record<string, string>) => string
+  t: (key: string, opts?: { defaultValue?: string }) => string
 ): string {
   switch (result.error) {
     case 'empty':
-      return t('donate.panRequired', 'PAN is required.');
+      return t('donate.panRequired', { defaultValue: 'PAN is required.' });
     case 'serial':
-      return t(
-        'donate.panSerialInvalid',
-        'Characters 6–9 of PAN must be digits from 0001 to 9999.'
-      );
+      return t('donate.panSerialInvalid', {
+        defaultValue: 'Characters 6–9 of PAN must be digits from 0001 to 9999.',
+      });
     case 'surname':
-      return t(
-        'donate.panSurnameInvalid',
-        'The 5th character of PAN must match the first letter of your Last Name.'
-      );
+      return t('donate.panSurnameInvalid', {
+        defaultValue: 'The 5th character of PAN must match the first letter of your Last Name.',
+      });
     default:
-      return t(
-        'donate.panInvalid',
-        'Enter a valid 10-character PAN (e.g. ABCDP1234M).'
-      );
+      return t('donate.panInvalid', {
+        defaultValue: 'Enter a valid 10-character PAN (e.g. ABCDP1234M).',
+      });
   }
 }
