@@ -36,7 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, BarChart, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
