@@ -341,6 +341,7 @@ export interface CreateOrderPayload {
   district: string;
   prant: string;
   location_details: string;
+  pincode: string;
   phone_no: string;
   email: string;
 }
@@ -513,6 +514,24 @@ export async function recordDonationPaymentFailed(data: {
   });
 }
 
+export interface PaymentServiceHealth {
+  ok: boolean;
+  service: string;
+  razorpay?: { configured: boolean; mode: string };
+  payments_table?: { ok: boolean; count?: number; missing?: boolean; error?: string };
+  donations_table?: { ok: boolean; count?: number; missing?: boolean; error?: string };
+  routes?: string[];
+  error?: string;
+}
+
+export async function getPaymentServiceHealth(): Promise<PaymentServiceHealth> {
+  return fetchJson<PaymentServiceHealth>(`${API_BASE}/payment/health`, null);
+}
+
+export async function getDonationServiceHealth(): Promise<PaymentServiceHealth> {
+  return fetchJson<PaymentServiceHealth>(`${API_BASE}/donation/health`, null);
+}
+
 export interface DbMembershipPayment {
   id: number;
   full_name: string;
@@ -557,4 +576,43 @@ export async function fetchMembershipPaymentsOverview(
   token: string
 ): Promise<MembershipPaymentsOverview> {
   return fetchJson<MembershipPaymentsOverview>(`${API_BASE}/payment/admin/overview`, token);
+}
+
+export interface DbDonation {
+  id: string;
+  donation_amount: string | number;
+  first_name: string;
+  last_name: string;
+  father_or_spouse_name: string;
+  phone_country_code: string;
+  phone_no: string;
+  email: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  pincode: string;
+  pan: string;
+  razorpay_order_id: string | null;
+  razorpay_payment_id: string | null;
+  currency: string;
+  payment_status: string;
+  payment_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchDonationsList(token: string): Promise<DbDonation[]> {
+  const data = await fetchJson<{ donations: DbDonation[] }>(
+    `${API_BASE}/donation/admin/list`,
+    token
+  );
+  return data.donations;
+}
+
+export async function deleteDonationViaApi(token: string, id: string): Promise<void> {
+  await fetchJson<{ deleted: boolean; id: string }>(
+    `${API_BASE}/donation/admin/${encodeURIComponent(id)}`,
+    token,
+    { method: 'DELETE' }
+  );
 }

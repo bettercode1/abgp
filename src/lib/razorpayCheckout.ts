@@ -66,7 +66,7 @@ export function parsePaymentApiErrorMessage(err: unknown): string {
   if (!(err instanceof Error)) return 'Could not initiate payment. Please try again.';
   const raw = err.message.trim();
   if (raw.startsWith('<!DOCTYPE') || raw.startsWith('<html') || raw.includes('Cannot POST /api/')) {
-    return 'Donation API is not available on the server. Deploy the latest backend code and restart the API (pm2/systemd), then verify GET /api/donation/health returns ok.';
+    return 'Payment API is not available on the server. Deploy the latest backend, restart the API, then verify GET /api/payment/health and GET /api/donation/health return ok.';
   }
   try {
     const parsed = JSON.parse(raw) as { error?: string };

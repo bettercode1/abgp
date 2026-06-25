@@ -11,6 +11,8 @@ const {
   getDonationByOrderId,
   updateDonationSuccess,
   updateDonationFailed,
+  listAllDonations,
+  deleteDonationById,
 } = require('./donationQueries');
 
 function buildDonationReceipt(phoneNo) {
@@ -182,8 +184,48 @@ async function donationPaymentFailed(req, res) {
   }
 }
 
+/**
+ * GET /api/donation/admin/list — director only
+ */
+async function listDonationsAdmin(req, res) {
+  try {
+    const rows = await listAllDonations();
+    return res.status(200).json({ donations: rows });
+  } catch (err) {
+    console.error('[donation/admin/list]', err);
+    if (err && err.code === '42P01') {
+      return res.status(503).json({
+        error: 'Donations table is missing. Run backend/migrations/008_donations_table.sql on the database.',
+      });
+    }
+    return res.status(500).json({ error: 'Failed to load donations' });
+  }
+}
+
+/**
+ * DELETE /api/donation/admin/:id — director only
+ */
+async function deleteDonationAdmin(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Donation id is required' });
+    }
+    const deleted = await deleteDonationById(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+    return res.status(200).json({ deleted: true, id: deleted.id });
+  } catch (err) {
+    console.error('[donation/admin/delete]', err);
+    return res.status(500).json({ error: 'Failed to delete donation' });
+  }
+}
+
 module.exports = {
   createDonationOrder,
   verifyDonationPayment,
   donationPaymentFailed,
+  listDonationsAdmin,
+  deleteDonationAdmin,
 };

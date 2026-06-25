@@ -17,6 +17,7 @@ async function createPaymentRecord(data) {
     district,
     prant,
     location_details,
+    pincode,
     phone_no,
     email,
     razorpay_order_id,
@@ -25,13 +26,14 @@ async function createPaymentRecord(data) {
   } = data;
 
   const type = member_type === 'EXISTING' ? 'EXISTING' : 'NEW';
+  const pincodeDigits = pincode ? String(pincode).replace(/\D/g, '').slice(0, 6) : null;
 
   const result = await pool.query(
     `INSERT INTO abgp.payments
        (full_name, gender, enrollment_remark, member_type, state, district, prant,
-        location_details, phone_no, email,
+        location_details, pincode, phone_no, email,
         razorpay_order_id, amount, currency, payment_status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'PENDING')
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'PENDING')
      RETURNING id`,
     [
       full_name,
@@ -42,6 +44,7 @@ async function createPaymentRecord(data) {
       district,
       prant,
       location_details,
+      pincodeDigits,
       phone_no,
       email,
       razorpay_order_id,
@@ -156,6 +159,7 @@ async function createPaymentRecordFromOrderNotes(orderId, rzOrder, amountFallbac
     district: notes.district || 'Unknown',
     prant: notes.prant || 'unknown',
     location_details: notes.location_details || '',
+    pincode: notes.pincode ? String(notes.pincode).replace(/\D/g, '').slice(0, 6) : null,
     phone_no: String(notes.phone_no || '').replace(/\D/g, '').slice(-10) || '0000000000',
     email: notes.email || 'unknown@unknown.com',
     razorpay_order_id: orderId,

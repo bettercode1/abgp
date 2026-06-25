@@ -156,6 +156,10 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
       setFormError(t('login.addressRequired'));
       return false;
     }
+    if (!pincode.trim()) {
+      setFormError(t('login.pincodeRequired', 'Pincode is required'));
+      return false;
+    }
     if (!isValidPincode(pincode)) {
       setFormError(
         t('login.pincodeInvalid', 'Enter a valid pincode between 110001 and 999999 (cannot start with 0)')
@@ -191,6 +195,7 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
         district,
         prant,
         location_details: address.trim(),
+        pincode: pincode.trim(),
         phone_no: phoneNo.trim(),
         email: email.trim(),
       });
@@ -484,6 +489,7 @@ export const NewMemberRegisterPage: React.FC<NewMemberRegisterPageProps> = ({ em
 
           <TextField
             fullWidth
+            required
             label={t('login.pincode', 'Pincode')}
             variant="outlined"
             value={pincode}

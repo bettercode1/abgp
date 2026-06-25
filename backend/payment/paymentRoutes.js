@@ -8,8 +8,23 @@ const {
   getMembershipFee,
   getPaymentsOverview,
 } = require('./paymentController');
+const { buildPaymentHealth } = require('./paymentHealth');
 
 const router = express.Router();
+
+router.get('/health', async (req, res) => {
+  try {
+    const health = await buildPaymentHealth();
+    return res.status(health.ok ? 200 : 503).json(health);
+  } catch (err) {
+    console.error('[payment/health]', err);
+    return res.status(503).json({
+      ok: false,
+      service: 'payment',
+      error: err instanceof Error ? err.message : 'Health check failed',
+    });
+  }
+});
 
 router.get('/membership-fee', getMembershipFee);
 router.post('/create-order', createOrder);

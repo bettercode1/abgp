@@ -52,6 +52,7 @@ async function createOrder(req, res) {
       district,
       prant,
       location_details,
+      pincode,
       phone_no,
       email,
     } = req.body;
@@ -67,6 +68,7 @@ async function createOrder(req, res) {
       district: String(district).trim(),
       prant: String(prant).trim(),
       location_details: String(location_details).trim(),
+      pincode: String(pincode).replace(/\D/g, '').slice(0, 6),
       phone_no: String(phone_no).trim(),
       email: String(email).trim().toLowerCase(),
     };
@@ -79,6 +81,7 @@ async function createOrder(req, res) {
       district: trimmed.district.slice(0, 256),
       prant: trimmed.prant.slice(0, 256),
       location_details: trimmed.location_details.slice(0, 256),
+      pincode: trimmed.pincode.slice(0, 6),
       phone_no: trimmed.phone_no.slice(0, 256),
       email: trimmed.email.slice(0, 256),
     };
@@ -204,8 +207,26 @@ async function createRenewalOrder(req, res) {
     });
   } catch (err) {
     console.error('[payment/create-renewal-order]', err);
+    if (isRazorpayError(err)) {
+      const message = formatRazorpayError(err);
+      const status = isRazorpayAuthError(err) ? 503 : 502;
+      return res.status(status).json({
+        error: isRazorpayAuthError(err)
+          ? 'Razorpay authentication failed. Regenerate the secret in the Razorpay Dashboard and paste the new Key Secret into backend/.env (Key ID and Secret must be from the same account and mode: test or live).'
+          : message,
+      });
+    }
+    if (err && typeof err === 'object' && err.code === '42P01') {
+      return res.status(503).json({
+        error: 'Payments table is missing. Run backend/migrations/005_payments_table.sql on the database.',
+      });
+    }
     const message = err instanceof Error ? err.message : 'Failed to create renewal order';
-    return res.status(500).json({ error: message });
+    const isConfig =
+      message.includes('not configured') ||
+      message.includes('key_id') ||
+      message.includes('Razorpay keys');
+    return res.status(isConfig ? 503 : 500).json({ error: message });
   }
 }
 

@@ -189,6 +189,7 @@ module.exports = {
   verifyRazorpaySignature,
   getMembershipAmountPaise,
   getRazorpayKeyId,
+  getRazorpayCredentials,
   fetchRazorpayOrder,
   fetchRecentRazorpayPayments,
   getRazorpayDashboardPaymentsUrl,

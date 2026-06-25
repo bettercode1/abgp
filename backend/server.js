@@ -64,7 +64,11 @@ function getDatabaseLabel() {
 app.get('/health', async (req, res) => {
   try {
     const { pool } = require('./db');
-    const dbCheck = await pool.query('SELECT current_database() AS db, COUNT(*)::int AS payments FROM abgp.payments');
+    const dbCheck = await pool.query(
+      `SELECT current_database() AS db,
+              (SELECT COUNT(*)::int FROM abgp.payments) AS payments,
+              (SELECT COUNT(*)::int FROM abgp.donations) AS donations`
+    );
     const row = dbCheck.rows[0] || {};
     return res.json({
       ok: true,
@@ -72,13 +76,20 @@ app.get('/health', async (req, res) => {
       database_name: row.db,
       database_target: getDatabaseLabel(),
       payments_row_count: row.payments,
+      donations_row_count: row.donations,
+      payment_api: '/api/payment/health',
+      donation_api: '/api/donation/health',
     });
   } catch (err) {
+    const missingDonations = err && err.code === '42P01';
     return res.status(503).json({
       ok: false,
-      database: 'disconnected',
+      database: missingDonations ? 'connected (donations table missing)' : 'disconnected',
       database_target: getDatabaseLabel(),
       error: err.code || err.message,
+      migration_hint: missingDonations
+        ? 'Run backend/migrations/008_donations_table.sql on the database.'
+        : undefined,
     });
   }
 });
@@ -105,6 +116,9 @@ async function logDatabaseStatus() {
 }
 
 app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON in request body' });
+  }
   console.error(err);
   res.status(500).json({ error: 'Server error' });
 });

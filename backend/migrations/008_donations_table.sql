@@ -1,6 +1,14 @@
 -- Donation form submissions (Payment Details form + Razorpay). Run once on DB.
 -- Fields match src/pages/DonatePage.tsx
 
+CREATE OR REPLACE FUNCTION abgp.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TABLE IF NOT EXISTS abgp.donations (
   id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 

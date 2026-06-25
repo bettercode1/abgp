@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Menu as MenuIcon,
   Payments,
+  VolunteerActivism,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import type { DirectorSectionKey } from '../lib/directorContent';
@@ -32,6 +33,7 @@ export type PanelView =
   | 'profile'
   | 'analytics'
   | 'membership-payments'
+  | 'donations'
   | 'content'
   | 'prant-logins'
   | 'prant-pdfs'
@@ -193,6 +195,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <Payments fontSize="small" />
               </ListItemIcon>
               <ListItemText primary={t('panel.membershipPayments')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'donations'}
+              onClick={() => onNavigate('donations')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <VolunteerActivism fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.donations')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
             </ListItemButton>
           </>
         )}

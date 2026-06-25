@@ -95,10 +95,32 @@ async function updateDonationFailed(data) {
   return result.rows[0] || null;
 }
 
+async function listAllDonations() {
+  const result = await pool.query(
+    `SELECT id, donation_amount, first_name, last_name, father_or_spouse_name,
+            phone_country_code, phone_no, email, address_line1, address_line2,
+            city, pincode, pan, razorpay_order_id, razorpay_payment_id,
+            currency, payment_status, payment_date, created_at, updated_at
+     FROM abgp.donations
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
+async function deleteDonationById(id) {
+  const result = await pool.query(
+    `DELETE FROM abgp.donations WHERE id = $1 RETURNING id`,
+    [id]
+  );
+  return result.rows[0] || null;
+}
+
 module.exports = {
   createDonationRecord,
   setDonationRazorpayOrderId,
   getDonationByOrderId,
   updateDonationSuccess,
   updateDonationFailed,
+  listAllDonations,
+  deleteDonationById,
 };

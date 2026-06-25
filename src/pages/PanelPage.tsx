@@ -8,6 +8,7 @@ import {
   TextField,
   MenuItem,
   useTheme,
+  useMediaQuery,
   Divider,
   Stack,
   Chip,
@@ -72,6 +73,18 @@ import { ComplaintCategoryFields, type ComplaintCategory } from '../components/C
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
 import { MembershipPaymentsSection } from '../components/panel/MembershipPaymentsSection';
+import { DonationsSection } from '../components/panel/DonationsSection';
+import {
+  PANEL_CONTENT_PY,
+  PANEL_CONTENT_PX,
+  PANEL_STACK_SPACING,
+  PANEL_TOP_BAR_SX,
+  panelPaperSx,
+  panelTableContainerSx,
+  panelMobileCardSx,
+  panelPaginationSx,
+  panelTopBarTitleSx,
+} from '../lib/panelLayout';
 
 const PRANT_PASSWORDS_KEY = 'abgp-prant-passwords';
 const PRANT_PROFILES_KEY = 'abgp-prant-profiles';
@@ -166,6 +179,7 @@ type HelpType = 'help' | 'complaint';
 export const PanelPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const isPanelMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { user, token, isAuthenticated, authLoading, logout, updateUser } = useAuth();
   const [paymentOpen, setPaymentOpen] = useState(false);
@@ -209,6 +223,10 @@ export const PanelPage: React.FC = () => {
   const [prantsFetchError, setPrantsFetchError] = useState<string | null>(null);
   const [panelView, setPanelView] = useState<PanelView>('profile');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    setSidebarOpen(!isPanelMobile);
+  }, [isPanelMobile]);
   const [petitionTitle, setPetitionTitle] = useState('');
   const [petitionDescription, setPetitionDescription] = useState('');
   const [petitionTargetEmail, setPetitionTargetEmail] = useState('');
@@ -1283,6 +1301,7 @@ export const PanelPage: React.FC = () => {
   const handlePanelNavigate = (view: PanelView, contentSection?: DirectorSectionKey) => {
     setPanelView(view);
     if (view === 'content' && contentSection) setSelectedSection(contentSection);
+    if (isPanelMobile) setSidebarOpen(false);
   };
 
   // Director or Prant Dashboard: sidebar + main content
@@ -1314,10 +1333,9 @@ export const PanelPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 1,
-              minHeight: 56,
-              px: 2,
               borderBottom: `1px solid ${theme.palette.divider}`,
               bgcolor: theme.palette.background.paper,
+              ...PANEL_TOP_BAR_SX,
             }}
           >
             <IconButton
@@ -1333,10 +1351,11 @@ export const PanelPage: React.FC = () => {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" fontWeight={600} color="text.primary">
+            <Typography variant="h6" color="text.primary" noWrap sx={panelTopBarTitleSx}>
               {panelView === 'profile' && (isPrant ? t('panel.prantTitle') : t('panel.directorTitle'))}
               {panelView === 'analytics' && t('panel.analytics')}
               {panelView === 'membership-payments' && t('panel.membershipPayments')}
+              {panelView === 'donations' && t('panel.donations')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
               {panelView === 'prant-pdfs' && t('panel.prantPdfsPageTitle')}
@@ -1345,14 +1364,14 @@ export const PanelPage: React.FC = () => {
               {panelView === 'prant-annual-report' && t('panel.prantAnnualReportPageTitle')}
             </Typography>
           </Box>
-          <Box sx={{ flex: 1, py: 3, px: 2, overflow: 'auto' }}>
-            <Container maxWidth="md" sx={{ maxWidth: '100%' }}>
-              <Stack spacing={4}>
+          <Box sx={{ flex: 1, py: PANEL_CONTENT_PY, px: PANEL_CONTENT_PX, overflow: 'auto' }}>
+            <Container maxWidth={false} disableGutters sx={{ maxWidth: '100%' }}>
+              <Stack spacing={PANEL_STACK_SPACING}>
                 {/* Profile: Director Header + Logout */}
                 {panelView === 'profile' && (
-            <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10] }}>
-              <Box sx={{ height: 4, background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`, mb: 3 }} />
-              <Typography variant="h5" component="h1" fontWeight={700} color="primary" gutterBottom>
+            <Paper elevation={1} sx={panelPaperSx(theme)}>
+              <Box sx={{ height: 4, background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`, mb: 1.5 }} />
+              <Typography variant="h5" component="h1" fontWeight={700} color="primary" gutterBottom sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {isPrant ? t('panel.prantTitle') : t('panel.directorTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -1558,7 +1577,7 @@ export const PanelPage: React.FC = () => {
                             </Typography>
                             <Stack spacing={1.5}>
                               {petitions.map((p) => (
-                                <Paper key={p.id} variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2, backgroundColor: 'background.default' }}>
+                                <Paper key={p.id} variant="outlined" sx={{ p: 1.5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 1.5, borderRadius: 2, backgroundColor: 'background.default' }}>
                                   <Box sx={{ overflow: 'hidden', flex: 1 }}>
                                     <Typography variant="body2" fontWeight={600} noWrap>{p.title}</Typography>
                                     <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', mt: 0.25 }}>Target: {p.targetEmail}</Typography>
@@ -1642,14 +1661,8 @@ export const PanelPage: React.FC = () => {
 
             {/* Analytics (Director only) */}
             {panelView === 'analytics' && isDirector && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'visible', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.dark}` }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                  <BarChart color="primary" sx={{ fontSize: 32 }} />
-                  <Typography variant="h6" fontWeight={700} color="primary">
-                    {t('panel.analytics')}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'secondary', overflow: 'visible' })}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 1 }}>
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 0 }}>
                     {t('panel.membersCount')}: <Chip label={analyticsMembersOnly.length.toLocaleString()} color="primary" size="small" />
                   </Typography>
@@ -1666,7 +1679,7 @@ export const PanelPage: React.FC = () => {
                 {(() => {
                   const recent = getAllComplaintsRecentFirst().slice(0, 50);
                   return recent.length > 0 ? (
-                    <Box sx={{ mb: 3 }}>
+                    <Box sx={{ mb: 1.5 }}>
                       <Typography variant="subtitle2" fontWeight={600} color="text.secondary" gutterBottom>
                         {t('panel.recentComplaints')}
                       </Typography>
@@ -1724,19 +1737,59 @@ export const PanelPage: React.FC = () => {
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
                       {t('panel.showingXtoY', { from: analyticsTotal === 0 ? 0 : analyticsPageStart + 1, to: analyticsPageEnd, total: analyticsTotal.toLocaleString() })}
                     </Typography>
+                    {isPanelMobile ? (
+                      <Stack spacing={1}>
+                        {analyticsPageMembers.map((m) => {
+                          const complaintCount = getComplaintCountForEmail(m.email);
+                          return (
+                            <Paper key={m.id} variant="outlined" sx={panelMobileCardSx}>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
+                                <Typography variant="subtitle2" fontWeight={600} sx={{ flex: 1, minWidth: 0 }} noWrap>
+                                  {m.name || m.email}
+                                </Typography>
+                                <Chip
+                                  label={m.isNewMember ? t('panel.newMemberLabel') : t('panel.existingMemberLabel')}
+                                  size="small"
+                                  color={m.isNewMember ? 'primary' : 'default'}
+                                  variant="outlined"
+                                  sx={{ height: 22, fontSize: '0.7rem' }}
+                                />
+                              </Box>
+                              <Typography variant="caption" color="text.secondary" display="block" noWrap>
+                                {m.email}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                {m.addedAt
+                                  ? new Date(m.addedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                                  : '—'}
+                              </Typography>
+                              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 0.25 }}>
+                                <Button size="small" variant="contained" onClick={() => openComplaintsDialog(m)} sx={{ textTransform: 'none', flex: 1, minWidth: 0 }}>
+                                  {complaintCount} {t('panel.complaints').toLowerCase()} · {t('panel.open')}
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  variant="outlined"
+                                  startIcon={<Delete />}
+                                  onClick={() => handleDeleteMember(m.id)}
+                                  sx={{ textTransform: 'none' }}
+                                >
+                                  {t('panel.deleteMember')}
+                                </Button>
+                              </Stack>
+                            </Paper>
+                          );
+                        })}
+                      </Stack>
+                    ) : (
                     <TableContainer
+                      component={Paper}
+                      variant="outlined"
                       sx={{
+                        ...panelTableContainerSx(),
                         maxHeight: 420,
                         overflow: 'auto',
-                        overflowX: 'scroll',
-                        width: '100%',
-                        minWidth: 0,
-                        borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        '&::-webkit-scrollbar': { height: 10 },
-                        '&::-webkit-scrollbar-track': { bgcolor: 'grey.200', borderRadius: 1 },
-                        '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 1, '&:hover': { bgcolor: 'grey.500' } },
                       }}
                     >
                       <Table size="small" stickyHeader sx={{ minWidth: 700 }}>
@@ -1818,6 +1871,7 @@ export const PanelPage: React.FC = () => {
                         </TableBody>
                       </Table>
                     </TableContainer>
+                    )}
                     <TablePagination
                       component="div"
                       count={analyticsTotal}
@@ -1825,9 +1879,9 @@ export const PanelPage: React.FC = () => {
                       onPageChange={handleAnalyticsPageChange}
                       rowsPerPage={analyticsRowsPerPage}
                       onRowsPerPageChange={handleAnalyticsRowsPerPageChange}
-                      rowsPerPageOptions={[10, 25, 50, 100, 250]}
+                      rowsPerPageOptions={isPanelMobile ? [10, 25, 50] : [10, 25, 50, 100, 250]}
                       labelRowsPerPage={t('panel.rowsPerPage')}
-                      sx={{ borderTop: 1, borderColor: 'divider' }}
+                      sx={panelPaginationSx}
                     />
                     {complaintsDialogMember && (() => {
                       const list = getComplaintsForEmail(complaintsDialogMember.email);
@@ -1847,8 +1901,8 @@ export const PanelPage: React.FC = () => {
                       };
                       const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s || '').trim());
                       const formRow = (label: string, value: string, options?: { link?: 'email' }) => (
-                        <Box key={label} sx={{ display: 'flex', gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}>
-                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: 140, fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
+                        <Box key={label} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.25, sm: 2 }, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: { sm: 140 }, fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
                           <Typography variant="body2" component={options?.link === 'email' && isEmail(value) ? 'a' : 'span'} href={options?.link === 'email' && isEmail(value) ? `mailto:${value.trim()}` : undefined} sx={{ flex: 1, wordBreak: 'break-word', ...(options?.link === 'email' && isEmail(value) ? { color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } } : {}) }}>{value || '—'}</Typography>
                         </Box>
                       );
@@ -1922,18 +1976,10 @@ export const PanelPage: React.FC = () => {
 
             {/* Prant logins (Director only) */}
             {panelView === 'prant-logins' && isDirector && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'visible', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                  <Lock color="primary" sx={{ fontSize: 32 }} />
-                  <Box>
-                    <Typography variant="h6" fontWeight={700} color="primary">
-                      {t('panel.prantListTitle')}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('panel.prantListSubtitle')}
-                    </Typography>
-                  </Box>
-                </Box>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary', overflow: 'visible' })}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  {t('panel.prantListSubtitle')}
+                </Typography>
                 {!isApiConfigured() && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     Placeholder emails shown. To see Supabase login IDs: add <code>VITE_API_URL=http://localhost:3001</code> to your frontend <code>.env</code> (or <code>.env.local</code>), then restart the dev server (<code>npm run dev</code>).
@@ -1955,19 +2001,84 @@ export const PanelPage: React.FC = () => {
                     No prants from Supabase. In backend .env set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. In Supabase ensure <code>user_roles</code> has rows with <code>role = &apos;prant&apos;</code>. Showing placeholder login IDs.
                   </Alert>
                 )}
+                {isPanelMobile ? (
+                  <Stack spacing={1}>
+                    {PRANT_KEYS.map((prantKey) => {
+                      const apiPrant = apiPrants?.find((p) => (p.prantKey ?? '').toString().toLowerCase() === (prantKey ?? '').toString().toLowerCase());
+                      const email = apiPrant?.email ?? (isApiConfigured() ? '—' : getPrantLoginEmail(prantKey));
+                      const password = prantPasswords[prantKey];
+                      const showPw = prantPasswordVisible[prantKey];
+                      const profile = prantProfiles[prantKey] ?? { name: '', number: '' };
+                      const displayName = apiPrant?.name ?? profile.name;
+                      const displayNumber = apiPrant?.contactNumber ?? profile.number;
+                      const passwordSetInSupabase = Boolean(apiPrant);
+                      return (
+                        <Paper key={prantKey} variant="outlined" sx={panelMobileCardSx}>
+                          <Typography variant="subtitle2" fontWeight={700}>
+                            {t(`prant.${prantKey}`)}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                            {email}
+                          </Typography>
+                          <TextField
+                            size="small"
+                            label={t('panel.prantListName')}
+                            placeholder={t('panel.prantListNamePlaceholder')}
+                            value={displayName}
+                            onChange={(e) => {
+                              const next = { ...profile, name: e.target.value };
+                              setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
+                              savePrantProfile(prantKey, next);
+                            }}
+                            variant="outlined"
+                            fullWidth
+                          />
+                          <TextField
+                            size="small"
+                            label={t('panel.prantListNumber')}
+                            placeholder={t('panel.prantListNumberPlaceholder')}
+                            value={displayNumber}
+                            onChange={(e) => {
+                              const next = { ...profile, number: e.target.value };
+                              setPrantProfiles((p) => ({ ...p, [prantKey]: next }));
+                              savePrantProfile(prantKey, next);
+                            }}
+                            variant="outlined"
+                            fullWidth
+                            inputProps={{ inputMode: 'tel' }}
+                          />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                              {passwordSetInSupabase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
+                            </Typography>
+                            {!passwordSetInSupabase && password && (
+                              <IconButton size="small" onClick={() => setPrantPasswordVisible((p) => ({ ...p, [prantKey]: !showPw }))} aria-label={showPw ? t('panel.prantListHide') : t('panel.prantListShow')}>
+                                {showPw ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                              </IconButton>
+                            )}
+                          </Box>
+                          <Button
+                            fullWidth
+                            size="small"
+                            variant="outlined"
+                            startIcon={<Lock />}
+                            onClick={() => { setChangePasswordPrant(prantKey); setChangePasswordNew(''); setChangePasswordConfirm(''); setChangePasswordError(''); }}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {t('panel.prantListChangePassword')}
+                          </Button>
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                ) : (
                 <TableContainer
+                  component={Paper}
+                  variant="outlined"
                   sx={{
+                    ...panelTableContainerSx(),
                     maxHeight: 440,
                     overflow: 'auto',
-                    overflowX: 'scroll',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 2,
-                    width: '100%',
-                    minWidth: 0,
-                    '&::-webkit-scrollbar': { height: 10 },
-                    '&::-webkit-scrollbar-track': { bgcolor: 'grey.200', borderRadius: 1 },
-                    '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 1, '&:hover': { bgcolor: 'grey.500' } },
                   }}
                 >
                   <Table stickyHeader size="small" sx={{ minWidth: 900 }}>
@@ -2057,8 +2168,9 @@ export const PanelPage: React.FC = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
+                )}
 
-                <Dialog open={changePasswordPrant !== null} onClose={() => { setChangePasswordPrant(null); setChangePasswordError(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+                <Dialog open={changePasswordPrant !== null} onClose={() => { setChangePasswordPrant(null); setChangePasswordError(''); }} maxWidth="sm" fullWidth fullScreen={isPanelMobile} PaperProps={{ sx: { borderRadius: isPanelMobile ? 0 : 2 } }}>
                   <DialogTitle sx={{ fontWeight: 700, color: 'primary' }}>
                     {changePasswordPrant ? t('panel.prantListChangePasswordTitle', { prant: t(`prant.${changePasswordPrant}`) }) : ''}
                   </DialogTitle>
@@ -2124,7 +2236,7 @@ export const PanelPage: React.FC = () => {
             )}
 
             {panelView === 'prant-director-docs' && isPrant && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                 <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
                   {t('panel.prantDirectorDocsPageTitle')}
                 </Typography>
@@ -2187,7 +2299,7 @@ export const PanelPage: React.FC = () => {
                   onChange={handleAddPrantPdf}
                   aria-hidden
                 />
-                <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+                <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                     <PictureAsPdf color="primary" sx={{ fontSize: 32 }} />
                     <Box>
@@ -2199,7 +2311,7 @@ export const PanelPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  <Stack spacing={2} sx={{ mb: 3 }}>
+                  <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                     <TextField
                       fullWidth
                       label={t('panel.prantPdfsTitleLabel')}
@@ -2227,7 +2339,7 @@ export const PanelPage: React.FC = () => {
                   ) : (
                     <Stack spacing={1.5} sx={{ mt: 1 }}>
                       {(prantPdfContent.pdfArticles ?? []).map((doc) => (
-                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2 }}>
+                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 1.5, borderRadius: 2 }}>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography variant="subtitle2" fontWeight={600} noWrap>
                               {doc.title}
@@ -2248,7 +2360,7 @@ export const PanelPage: React.FC = () => {
             )}
 
             {panelView === 'prant-annual-reports' && isDirector && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                 <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
                   {t('panel.prantAnnualReportsPageTitle')}
                 </Typography>
@@ -2269,7 +2381,47 @@ export const PanelPage: React.FC = () => {
                     {t('panel.prantAnnualReportsEmpty')}
                   </Typography>
                 ) : (
-                  <TableContainer sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, maxHeight: 520 }}>
+                  isPanelMobile ? (
+                    <Stack spacing={1}>
+                      {annualReports.map((r) => (
+                        <Paper key={r.reportId} variant="outlined" sx={panelMobileCardSx}>
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            {r.title}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {t(`prant.${r.prantKey}`, { defaultValue: r.prantKey })}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block" noWrap>
+                            {r.submittedByEmail ?? '—'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {new Date(r.createdAt).toLocaleString()}
+                          </Typography>
+                          <Button
+                            component="a"
+                            href={r.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="small"
+                            variant="outlined"
+                            fullWidth
+                            sx={{ textTransform: 'none', mt: 0.25 }}
+                          >
+                            {t('articals.viewMemo')}
+                          </Button>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  ) : (
+                  <TableContainer
+                    component={Paper}
+                    variant="outlined"
+                    sx={{
+                      ...panelTableContainerSx(),
+                      maxHeight: 520,
+                      overflow: 'auto',
+                    }}
+                  >
                     <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
@@ -2297,12 +2449,13 @@ export const PanelPage: React.FC = () => {
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  )
                 )}
               </Paper>
             )}
 
             {panelView === 'prant-annual-report' && isPrant && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                 <Typography variant="h6" fontWeight={700} color="primary" gutterBottom>
                   {t('panel.prantAnnualReportPageTitle')}
                 </Typography>
@@ -2317,7 +2470,7 @@ export const PanelPage: React.FC = () => {
                   onChange={handleSubmitAnnualReportPdf}
                   aria-hidden
                 />
-                <Stack spacing={2} sx={{ mb: 3 }}>
+                <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                   <TextField
                     fullWidth
                     label={t('panel.annualReportTitleLabel')}
@@ -2380,11 +2533,15 @@ export const PanelPage: React.FC = () => {
               <MembershipPaymentsSection token={token} />
             )}
 
+            {panelView === 'donations' && isDirector && (
+              <DonationsSection token={token} />
+            )}
+
             {/* Content: section selector + Add Image / Text / Video */}
             {panelView === 'content' && (
               <>
             {!isPrant && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                 <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                   {t('panel.selectSection')}
                 </Typography>
@@ -2408,7 +2565,7 @@ export const PanelPage: React.FC = () => {
               </Paper>
             )}
             {isPrant && (
-              <Paper elevation={4} sx={{ p: 2, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
                 <Chip label={sectionLabels.news} color="primary" size="small" />
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                   {t('panel.prantSubtitle')}
@@ -2436,8 +2593,8 @@ export const PanelPage: React.FC = () => {
                   onChange={handleAddArticalPdf}
                   aria-hidden
                 />
-                <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <PictureAsPdf color="primary" sx={{ fontSize: 32 }} />
                     <Typography variant="h6" fontWeight={700} color="primary">
                       {t('panel.articalsUploadTitle')}
@@ -2446,7 +2603,7 @@ export const PanelPage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {t('panel.articalsUploadHint', { maxMb: MAX_ARTICAL_PDF_MB })}
                   </Typography>
-                  <Stack spacing={2} sx={{ mb: 3 }}>
+                  <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                     <TextField
                       fullWidth
                       label={t('panel.articalsTitleLabel')}
@@ -2474,7 +2631,7 @@ export const PanelPage: React.FC = () => {
                   ) : (
                     <Stack spacing={1.5} sx={{ mt: 1 }}>
                       {(sectionContent.pdfArticles ?? []).map((doc) => (
-                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, borderRadius: 2 }}>
+                        <Paper key={doc.id} variant="outlined" sx={{ px: 2, py: 1.5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 1.5, borderRadius: 2 }}>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography variant="subtitle2" fontWeight={600} noWrap>
                               {doc.title}
@@ -2495,14 +2652,14 @@ export const PanelPage: React.FC = () => {
             )}
 
             {isSinglePostSection && (
-              <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                   <AddPhotoAlternate color="primary" sx={{ fontSize: 32 }} />
                   <Typography variant="h6" fontWeight={700} color="primary">
                     Add {sectionLabels[effectiveSection]} Item
                   </Typography>
                 </Box>
-                <Stack spacing={2} sx={{ mb: 3 }}>
+                <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                     <Button
                       variant="outlined"
@@ -2629,14 +2786,14 @@ export const PanelPage: React.FC = () => {
 
             {/* Add Image (to selected section) */}
             {!isSinglePostSection && !isVideosSection && !isArticalsSection && (
-            <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <AddPhotoAlternate color="primary" sx={{ fontSize: 32 }} />
                 <Typography variant="h6" fontWeight={700} color="primary">
                   {t('panel.addImage')}
                 </Typography>
               </Box>
-              <Stack spacing={2} sx={{ mb: 3 }}>
+              <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                   <Button
                     variant="outlined"
@@ -2703,7 +2860,7 @@ export const PanelPage: React.FC = () => {
                   {sectionContent.images.map((img) => (
                     <Card key={img.id} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
                       <CardMedia component="img" height="120" image={img.url} alt={img.caption || 'Director image'} onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="120" viewBox="0 0 200 120"><rect fill="%23eee" width="200" height="120"/><text x="50%" y="50%" fill="%23999" text-anchor="middle" dy=".3em" font-size="14">Invalid URL</text></svg>'; }} />
-                      <CardContent sx={{ py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                      <CardContent sx={{ py: 1, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 1 }}>
                         <Typography variant="body2" color="text.secondary" noWrap sx={{ flex: 1, minWidth: 0 }}>
                           {img.caption || (img.url.startsWith('data:') ? t('panel.uploadImage') : img.url)}
                         </Typography>
@@ -2727,14 +2884,14 @@ export const PanelPage: React.FC = () => {
 
             {/* Add Text (to selected section) */}
             {!isSinglePostSection && !isVideosSection && !isGallerySection && !isAdsSection && !isArticalsSection && (
-            <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.secondary?.main || theme.palette.primary.light}` }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+            <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'secondary' })}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <TextFields color="primary" sx={{ fontSize: 32 }} />
                 <Typography variant="h6" fontWeight={700} color="primary">
                   {t('panel.addText')}
                 </Typography>
               </Box>
-              <Stack spacing={2} sx={{ mb: 3 }}>
+              <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                 <TextField fullWidth label={t('panel.textTitle')} value={textTitle} onChange={(e) => setTextTitle(e.target.value)} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <TextField fullWidth label={t('panel.textBody')} value={textBody} onChange={(e) => setTextBody(e.target.value)} multiline rows={4} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <Button variant="contained" color="primary" startIcon={<TextFields />} onClick={handleAddText} disabled={!textTitle.trim() || !textBody.trim()} sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}>
@@ -2774,14 +2931,14 @@ export const PanelPage: React.FC = () => {
 
             {/* Add Video (to selected section) */}
             {!isSinglePostSection && !isGallerySection && !isAdsSection && !isArticalsSection && (
-            <Paper elevation={4} sx={{ p: 4, borderRadius: 3, overflow: 'hidden', boxShadow: theme.shadows[10], borderLeft: `4px solid ${theme.palette.info?.main || theme.palette.primary.main}` }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+            <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'info' })}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <VideoLibrary color="primary" sx={{ fontSize: 32 }} />
                 <Typography variant="h6" fontWeight={700} color="primary">
                   {t('panel.addVideo')}
                 </Typography>
               </Box>
-              <Stack spacing={2} sx={{ mb: 3 }}>
+              <Stack spacing={1.5} sx={{ mb: 1.5 }}>
                 <TextField fullWidth label={t('panel.videoUrl')} value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder={t('panel.videoUrlPlaceholder')} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <TextField fullWidth label={t('panel.videoTitle')} value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 <Button variant="contained" color="primary" startIcon={<VideoLibrary />} onClick={handleAddVideo} disabled={!videoUrl.trim()} sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}>
@@ -2840,29 +2997,21 @@ export const PanelPage: React.FC = () => {
           : `linear-gradient(180deg, ${theme.palette.grey[50]} 0%, ${theme.palette.background.paper} 100%)`,
       }}
     >
-      <Container maxWidth="md">
-        <Stack spacing={4}>
+      <Container maxWidth={false} disableGutters sx={{ maxWidth: '100%', px: PANEL_CONTENT_PX, py: PANEL_CONTENT_PY }}>
+        <Stack spacing={PANEL_STACK_SPACING}>
           {/* Profile Card */}
-          <Paper
-            elevation={4}
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              overflow: 'hidden',
-              boxShadow: theme.shadows[10],
-            }}
-          >
+          <Paper elevation={1} sx={panelPaperSx(theme)}>
             <Box
               sx={{
                 height: 4,
                 background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary?.main || theme.palette.primary.dark})`,
-                mb: 3,
+                mb: 1.5,
               }}
             />
             <Typography variant="h5" component="h1" fontWeight={700} gutterBottom sx={{ color: theme.palette.primary.main }}>
               {t('header.login')} {t('panel.title')}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
               {t('panel.welcome')}
             </Typography>
             <Divider sx={{ my: 2 }} />
@@ -2926,18 +3075,9 @@ export const PanelPage: React.FC = () => {
           </Paper>
 
           {/* Help or Complain Card */}
-          <Paper
-            elevation={4}
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              overflow: 'hidden',
-              boxShadow: theme.shadows[10],
-              borderLeft: `4px solid ${theme.palette.primary.main}`,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-              <Support color="primary" sx={{ fontSize: 32 }} />
+          <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+              <Support color="primary" sx={{ fontSize: 24 }} />
               <Typography variant="h6" fontWeight={700} color="primary">
                 {t('panel.helpOrComplain')}
               </Typography>

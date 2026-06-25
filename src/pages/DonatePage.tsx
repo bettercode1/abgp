@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import {
   Alert,
   Box,
@@ -21,7 +21,7 @@ import XIcon from '@mui/icons-material/X';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import logoImage from '../assets/Logo 1.jpg';
-import { createDonationOrder, recordDonationPaymentFailed, verifyDonationPayment } from '../lib/api';
+import { createDonationOrder, getDonationServiceHealth, recordDonationPaymentFailed, verifyDonationPayment } from '../lib/api';
 import {
   getPanErrorMessage,
   isValidPincode,
@@ -95,6 +95,39 @@ export const DonatePage: React.FC = () => {
   const [panTouched, setPanTouched] = useState(false);
   const [formError, setFormError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [serviceReady, setServiceReady] = useState(true);
+
+  useEffect(() => {
+    getDonationServiceHealth()
+      .then((health) => {
+        if (health.ok) {
+          setServiceReady(true);
+          return;
+        }
+        setServiceReady(false);
+        if (health.donations_table?.missing) {
+          setFormError(
+            t(
+              'donate.tableMissing',
+              'Donation service is not fully set up yet (database migration pending). Please try again later or contact support.'
+            )
+          );
+          return;
+        }
+        if (health.razorpay && !health.razorpay.configured) {
+          setFormError(t('login.razorpayConfigError'));
+        }
+      })
+      .catch(() => {
+        setServiceReady(false);
+        setFormError(
+          t(
+            'donate.serviceUnavailable',
+            'Could not reach the donation payment service. Please try again in a few minutes.'
+          )
+        );
+      });
+  }, [t]);
 
   const numericAmount = useMemo(() => {
     const parsed = Number(amount.replace(/[^\d.]/g, ''));
@@ -116,7 +149,7 @@ export const DonatePage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (isProcessing || razorpayOpenRef.current) return;
+    if (isProcessing || razorpayOpenRef.current || !serviceReady) return;
 
     setFormError('');
 
@@ -562,7 +595,7 @@ export const DonatePage: React.FC = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !serviceReady}
                   sx={{
                     minWidth: { xs: '100%', sm: 180 },
                     py: 1.25,
