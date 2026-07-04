@@ -132,6 +132,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [dropdownAnchor, setDropdownAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
 
   const quickLinks = flattenNavItems(navigationItems);
+  const footerQuickLinks = [
+    ...quickLinks.slice(0, 8),
+    { key: 'nav.facebookPages', path: '/facebook-pages' },
+  ];
 
   const isAboutActive = location.pathname === '/about' || location.pathname === '/history' || location.pathname === '/court-decisions' || location.pathname === '/terms';
   const isGyandeepActive = location.pathname === '/gyandeep' || location.pathname === '/spandana';
@@ -693,7 +697,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {t('nav.quickLinks')}
               </Typography>
               <Stack spacing={1}>
-                {quickLinks.slice(0, 8).map((item) => (
+                {footerQuickLinks.map((item) => (
                   <Link
                     key={item.key}
                     component={RouterLink}
