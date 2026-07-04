@@ -30,6 +30,7 @@ export const searchIndex: SearchEntry[] = [
   { path: '/faq', titleKey: 'nav.faq' },
   { path: '/petition', titleKey: 'nav.petition' },
   { path: '/contact', titleKey: 'nav.contact' },
+  { path: '/facebook-pages', titleKey: 'nav.facebookPages' },
   { path: '/national-executive', titleKey: 'executive.title' },
 ];
 

@@ -33,6 +33,7 @@ import { PanelPage } from './pages/PanelPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { PaymentFailurePage } from './pages/PaymentFailurePage';
 import { DonatePage } from './pages/DonatePage';
+import { FacebookPagesPage } from './pages/FacebookPagesPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './routes/ProtectedRoutes';
 import { getTheme, ThemeName } from './theme/themes';
@@ -228,6 +229,7 @@ function App() {
               )}
             />
             <Route path="/donate" element={<DonatePage />} />
+            <Route path="/facebook-pages" element={<FacebookPagesPage />} />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/failure" element={<PaymentFailurePage />} />
           </Routes>
