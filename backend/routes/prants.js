@@ -1,17 +1,28 @@
 /**
- * Prants API (Director only): list from Supabase user_roles + prant_profiles, update profile, change password via Supabase Admin.
+ * Prants API (Director only): list from Firebase custom claims + prant_profiles, update profile, change password.
  */
 const express = require('express');
 const { pool } = require('../db');
-const { listPrantUserRoles, getAuthUserIdByPrant, getSupabaseAdmin } = require('../lib/supabaseAdmin');
+const {
+  listPrantUserRoles,
+  getAuthUserIdByPrant,
+  isFirebaseConfigured,
+  updateUserPassword,
+} = require('../lib/firebaseAdmin');
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const supabaseConfigured = Boolean(getSupabaseAdmin());
+    const firebaseConfigured = isFirebaseConfigured();
     const prantRoles = await listPrantUserRoles();
-    console.log('[Prants GET] Supabase configured:', supabaseConfigured, '| user_roles prant count:', prantRoles.length, prantRoles.length ? '| keys: ' + prantRoles.map((p) => p.prantKey).join(', ') : '');
+    console.log(
+      '[Prants GET] Firebase configured:',
+      firebaseConfigured,
+      '| prant count:',
+      prantRoles.length,
+      prantRoles.length ? '| keys: ' + prantRoles.map((p) => p.prantKey).join(', ') : ''
+    );
     if (prantRoles.length === 0) {
       return res.json({ prants: [] });
     }
@@ -97,20 +108,15 @@ router.post('/:prantKey/change-password', async (req, res) => {
     if (!userId) {
       return res.status(404).json({ error: 'Prant not found' });
     }
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      return res.status(503).json({ error: 'Supabase admin not configured' });
+    if (!isFirebaseConfigured()) {
+      return res.status(503).json({ error: 'Firebase admin not configured' });
     }
-    const { error } = await supabase.auth.admin.updateUserById(userId, { password: String(newPassword) });
-    if (error) {
-      console.error('Supabase password update error:', error);
-      return res.status(400).json({ error: error.message || 'Password update failed' });
-    }
-    console.log('[Prants] Password updated in Supabase for prant:', prantKey, 'user:', userId);
+    await updateUserPassword(userId, String(newPassword));
+    console.log('[Prants] Password updated in Firebase for prant:', prantKey, 'user:', userId);
     res.json({ success: true, message: 'Password updated' });
   } catch (err) {
     console.error('Change password error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: err.message || 'Password update failed' });
   }
 });
 

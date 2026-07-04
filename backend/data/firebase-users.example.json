@@ -1,0 +1,13 @@
+[
+  {
+    "email": "director@abgpindia.com",
+    "password": "CHANGE_ME",
+    "role": "director"
+  },
+  {
+    "email": "prant-gujarat@abgpindia.com",
+    "password": "CHANGE_ME",
+    "role": "prant",
+    "prant": "gujarat"
+  }
+]

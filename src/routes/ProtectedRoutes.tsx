@@ -2,6 +2,8 @@ import React from 'react';
 import { CircularProgress, Stack } from '@mui/material';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, type LoginRole } from '../contexts/AuthContext';
+import { getFirebaseAuth } from '../lib/firebaseClient';
+import { isFirebaseConfigured } from '../lib/firebase';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -11,8 +13,10 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowRoles }) => {
   const { user, isAuthenticated, authLoading } = useAuth();
   const location = useLocation();
+  const firebaseSessionPending =
+    isFirebaseConfigured() && Boolean(getFirebaseAuth()?.currentUser) && !user;
 
-  if (authLoading) {
+  if (authLoading || firebaseSessionPending) {
     return (
       <Stack sx={{ minHeight: '45vh' }} alignItems="center" justifyContent="center">
         <CircularProgress />

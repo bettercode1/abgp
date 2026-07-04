@@ -35,3 +35,6 @@ Thumbs.db
 *.key
 prant-passwords.csv
 backend/prant-passwords.csv
+backend/data/firebase-users.json
+firebase-service-account.json
+backend/firebase-service-account.json

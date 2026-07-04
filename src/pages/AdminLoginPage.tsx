@@ -14,13 +14,14 @@ import {
   TextField,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthCard, authFieldSx } from '../components/auth/AuthCard';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
-import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
-import type { LoginRole } from '../contexts/AuthContext';
+import { getFirebaseAuth } from '../lib/firebaseClient';
+import { getUserRoleAndPrantFromUser, isFirebaseConfigured } from '../lib/firebase';
 
 export const AdminLoginPage: React.FC = () => {
   const { t } = useTranslation();
@@ -48,50 +49,47 @@ export const AdminLoginPage: React.FC = () => {
     setIsSubmitting(true);
     setError('');
     try {
-      const supabase = getSupabase();
-      if (isSupabaseConfigured() && supabase) {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: emailValue,
-          password,
-        });
+      const auth = getFirebaseAuth();
+      if (isFirebaseConfigured() && auth) {
+        const credential = await signInWithEmailAndPassword(auth, emailValue, password);
+        const firebaseUser = credential.user;
+        const { role } = await getUserRoleAndPrantFromUser(firebaseUser);
 
-        if (signInError) {
-          const message =
-            signInError.status === 401
-              ? 'Supabase auth rejected this request (401). Check deployed VITE_SUPABASE_URL and public key.'
-              : signInError.message ?? 'Login failed';
-          setError(message);
+        if (role !== 'director') {
+          await signOut(auth);
+          setError('This account is not authorized for admin access.');
           setToastOpen(true);
           return;
         }
 
-        if (data?.session?.user) {
-          const { role: backendRole, prant } = await getUserRoleAndPrant(data.session.user.id);
-          const role = (backendRole === 'director' ? 'director' : 'member') as LoginRole;
-          login(
-            {
-              role,
-              email: data.session.user.email ?? emailValue,
-              prant: prant ?? undefined,
-            },
-            data.session.access_token
-          );
-          if (!rememberMe) {
-            sessionStorage.setItem('abgp-admin-last-email', emailValue);
-          }
-          navigate('/panel');
-          return;
+        const idToken = await firebaseUser.getIdToken();
+        login(
+          {
+            role: 'director',
+            email: firebaseUser.email ?? emailValue,
+          },
+          idToken
+        );
+        if (!rememberMe) {
+          sessionStorage.setItem('abgp-admin-last-email', emailValue);
         }
+        navigate('/panel');
+        return;
       }
 
-      // Local fallback for non-Supabase setup
-      login({ role: 'director', email: emailValue });
-      if (!rememberMe) {
-        sessionStorage.setItem('abgp-admin-last-email', emailValue);
-      }
-      navigate('/panel');
+      setError('Firebase auth is not configured. Set VITE_FIREBASE_* in your .env file.');
+      setToastOpen(true);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Login failed');
+      const code = submitError && typeof submitError === 'object' && 'code' in submitError
+        ? String((submitError as { code?: string }).code)
+        : '';
+      const message =
+        code === 'auth/invalid-credential' || code === 'auth/wrong-password'
+          ? 'Invalid email or password.'
+          : submitError instanceof Error
+            ? submitError.message
+            : 'Login failed';
+      setError(message);
       setToastOpen(true);
     } finally {
       setIsSubmitting(false);

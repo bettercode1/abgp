@@ -1,11 +1,12 @@
 /**
- * Auth middleware: verify Supabase JWT (Bearer token), then load role/prant from Supabase user_roles.
- * Frontend sends the Supabase session access_token in Authorization: Bearer <token>.
+ * Auth middleware: verify Firebase ID token (Bearer), then read role/prant from custom claims.
+ * Frontend sends the Firebase ID token in Authorization: Bearer <token>.
  */
-const jwt = require('jsonwebtoken');
-const { getUserRoleAndPrant } = require('../lib/supabaseAdmin');
-
-const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
+const {
+  isFirebaseConfigured,
+  verifyIdToken,
+  getUserRoleAndPrantFromDecoded,
+} = require('../lib/firebaseAdmin');
 
 async function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
@@ -14,40 +15,27 @@ async function requireAuth(req, res, next) {
   }
   const token = auth.slice(7);
 
-  const { getSupabaseAdmin } = require('../lib/supabaseAdmin');
-  const supabase = getSupabaseAdmin();
-  
-  if (!supabase) {
+  if (!isFirebaseConfigured()) {
     return res.status(503).json({ error: 'Server auth not configured' });
   }
 
-  // Ask Supabase to verify the token natively (handles all new key formats automatically)
-  const { data, error } = await supabase.auth.getUser(token);
-
-  if (error || !data || !data.user) {
-    console.error('Supabase token verification failed:', error ? error.message : 'No user data returned');
-    return res.status(401).json({ 
-      error: 'Invalid or expired token', 
-      details: error ? error.message : 'No user data' 
+  try {
+    const decoded = await verifyIdToken(token);
+    const { role, prant } = getUserRoleAndPrantFromDecoded(decoded);
+    req.user = {
+      id: decoded.uid,
+      email: decoded.email || null,
+      role: role || 'member',
+      prant: prant ?? undefined,
+    };
+    next();
+  } catch (err) {
+    console.error('Firebase token verification failed:', err.message);
+    return res.status(401).json({
+      error: 'Invalid or expired token',
+      details: err.message,
     });
   }
-
-  const userId = data.user.id;
-  const payload = data.user;
-  getUserRoleAndPrant(userId)
-    .then(({ role, prant, email }) => {
-      req.user = {
-        id: userId,
-        email: email || payload.email || null,
-        role: role || 'member',
-        prant: prant ?? undefined,
-      };
-      next();
-    })
-    .catch((err) => {
-      console.error('user_roles lookup error:', err);
-      res.status(500).json({ error: 'Server error' });
-    });
 }
 
 function requireDirector(req, res, next) {

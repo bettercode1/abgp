@@ -333,7 +333,7 @@ export const PanelPage: React.FC = () => {
     }
   }, [user?.role, token, refetchMembersFromApi]);
 
-  // Fetch prants from API (Supabase) when director opens Prant logins
+  // Fetch prants from API (Firebase) when director opens Prant logins
   useEffect(() => {
     if (panelView !== 'prant-logins' || user?.role !== 'director' || !token || !isApiConfigured()) return;
     let cancelled = false;
@@ -1982,14 +1982,14 @@ export const PanelPage: React.FC = () => {
                 </Typography>
                 {!isApiConfigured() && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
-                    Placeholder emails shown. To see Supabase login IDs: add <code>VITE_API_URL=http://localhost:3001</code> to your frontend <code>.env</code> (or <code>.env.local</code>), then restart the dev server (<code>npm run dev</code>).
+                    Placeholder emails shown. To see Firebase login IDs: add <code>VITE_API_URL=http://localhost:3001</code> to your frontend <code>.env</code> (or <code>.env.local</code>), then restart the dev server (<code>npm run dev</code>).
                   </Alert>
                 )}
                 {prantsFetchError && (
                   <Alert severity="error" sx={{ mb: 2 }}>
                     Could not load prants: {prantsFetchError}
                     {prantsFetchError.includes('Server auth not configured') && (
-                      <> — Add <strong>SUPABASE_JWT_SECRET</strong> to <code>backend/.env</code>. In Supabase: Project Settings → API → JWT Secret (not the anon key). Then restart the backend.</>
+                      <> — Add <strong>FIREBASE_PROJECT_ID</strong>, <strong>FIREBASE_CLIENT_EMAIL</strong>, and <strong>FIREBASE_PRIVATE_KEY</strong> to <code>backend/.env</code>. Then restart the backend.</>
                     )}
                     {!prantsFetchError.includes('Server auth not configured') && (
                       <> Check backend, VITE_API_URL, and that you are logged in as director.</>
@@ -1998,7 +1998,7 @@ export const PanelPage: React.FC = () => {
                 )}
                 {isApiConfigured() && !prantsFetchError && apiPrants && apiPrants.length === 0 && (
                   <Alert severity="info" sx={{ mb: 2 }}>
-                    No prants from Supabase. In backend .env set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. In Supabase ensure <code>user_roles</code> has rows with <code>role = &apos;prant&apos;</code>. Showing placeholder login IDs.
+                    No prants from Firebase. Run <code>node scripts/seed-firebase-users.js</code> with your user list, or check backend Firebase credentials. Showing placeholder login IDs.
                   </Alert>
                 )}
                 {isPanelMobile ? (
@@ -2011,7 +2011,7 @@ export const PanelPage: React.FC = () => {
                       const profile = prantProfiles[prantKey] ?? { name: '', number: '' };
                       const displayName = apiPrant?.name ?? profile.name;
                       const displayNumber = apiPrant?.contactNumber ?? profile.number;
-                      const passwordSetInSupabase = Boolean(apiPrant);
+                      const passwordSetInFirebase = Boolean(apiPrant);
                       return (
                         <Paper key={prantKey} variant="outlined" sx={panelMobileCardSx}>
                           <Typography variant="subtitle2" fontWeight={700}>
@@ -2049,9 +2049,9 @@ export const PanelPage: React.FC = () => {
                           />
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                              {passwordSetInSupabase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
+                              {passwordSetInFirebase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
                             </Typography>
-                            {!passwordSetInSupabase && password && (
+                            {!passwordSetInFirebase && password && (
                               <IconButton size="small" onClick={() => setPrantPasswordVisible((p) => ({ ...p, [prantKey]: !showPw }))} aria-label={showPw ? t('panel.prantListHide') : t('panel.prantListShow')}>
                                 {showPw ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                               </IconButton>
@@ -2101,7 +2101,7 @@ export const PanelPage: React.FC = () => {
                         const profile = prantProfiles[prantKey] ?? { name: '', number: '' };
                         const displayName = apiPrant?.name ?? profile.name;
                         const displayNumber = apiPrant?.contactNumber ?? profile.number;
-                        const passwordSetInSupabase = Boolean(apiPrant);
+                        const passwordSetInFirebase = Boolean(apiPrant);
                         return (
                           <TableRow key={prantKey} hover>
                             <TableCell sx={{ fontWeight: 600, minWidth: 165 }}>{t(`prant.${prantKey}`)}</TableCell>
@@ -2148,9 +2148,9 @@ export const PanelPage: React.FC = () => {
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Typography variant="body2" component="span" sx={{ fontFamily: 'monospace' }}>
-                                  {passwordSetInSupabase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
+                                  {passwordSetInFirebase ? '••••••••' : password ? (showPw ? password : '••••••••') : '—'}
                                 </Typography>
-                                {!passwordSetInSupabase && password && (
+                                {!passwordSetInFirebase && password && (
                                   <IconButton size="small" onClick={() => setPrantPasswordVisible((p) => ({ ...p, [prantKey]: !showPw }))} aria-label={showPw ? t('panel.prantListHide') : t('panel.prantListShow')}>
                                     {showPw ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                                   </IconButton>
@@ -2199,8 +2199,8 @@ export const PanelPage: React.FC = () => {
                           return;
                         }
                         const useApi = isApiConfigured() && Boolean(token);
-                        const supabaseMode = Boolean(apiPrants && apiPrants.length > 0);
-                        if (supabaseMode && !useApi) {
+                        const firebaseMode = Boolean(apiPrants && apiPrants.length > 0);
+                        if (firebaseMode && !useApi) {
                           setChangePasswordError('Backend not connected. Set VITE_API_URL and refresh, then try again.');
                           return;
                         }

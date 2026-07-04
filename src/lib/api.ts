@@ -1,9 +1,9 @@
 /**
  * ABGP Backend API client.
  * Uses VITE_API_URL from .env when set (e.g. production/VPS); otherwise localhost for local dev.
- * All requests use API_BASE and automatically include Authorization: Bearer <token> from Supabase session when available.
+ * All requests use API_BASE and automatically include Authorization: Bearer <token> from Firebase session when available.
  */
-import { getSupabase } from './supabase';
+import { getFirebaseIdToken } from './firebase';
 
 const RAW_API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 // Dev: empty VITE_API_URL → relative /api (Vite proxy → backend:3001).
@@ -44,12 +44,9 @@ export interface LoginResponse {
   token: string;
 }
 
-/** Get Supabase access token from current session (used when caller does not pass token). */
+/** Get Firebase ID token from current session (used when caller does not pass token). */
 async function getAccessToken(): Promise<string | null> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
+  return getFirebaseIdToken();
 }
 
 async function fetchJson<T = unknown>(
@@ -58,7 +55,7 @@ async function fetchJson<T = unknown>(
   options: RequestInit = {},
   requireAuth = false
 ): Promise<T> {
-  // Prefer current Supabase session token so we always send a valid, up-to-date token
+  // Prefer current Firebase session token so we always send a valid, up-to-date token
   const authToken = (await getAccessToken()) ?? token ?? null;
   if (requireAuth && !authToken) {
     throw new Error('Authentication required. Please log in again.');
@@ -127,9 +124,7 @@ export interface ApiPrant {
 type ApiPrantRaw = ApiPrant & { prant_key?: string };
 
 export async function fetchPrantsFromApi(token: string): Promise<ApiPrant[]> {
-  const supabase = getSupabase();
-  const { data: sessionData } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
-  const sessionToken = sessionData.session?.access_token ?? token ?? null;
+  const sessionToken = (await getAccessToken()) ?? token ?? null;
   if (!sessionToken) {
     if (typeof window !== 'undefined') {
       window.location.replace('/login');

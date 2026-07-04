@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { getSupabase, getUserRoleAndPrant, isSupabaseConfigured } from '../lib/supabase';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { getFirebaseAuth } from '../lib/firebaseClient';
+import { getUserRoleAndPrantFromUser, isFirebaseConfigured } from '../lib/firebase';
 
 export type LoginRole = 'member' | 'director' | 'prant';
 
@@ -27,18 +28,30 @@ const TOKEN_STORAGE_KEY = 'abgp-auth-token';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function applySessionUser(sessionUser: { id: string; email?: string }, role: string | null, prant: string | null): AuthUser | null {
+function applySessionUser(
+  sessionUser: { email?: string | null },
+  role: string | null,
+  prant: string | null
+): AuthUser | null {
   const email = sessionUser.email ?? '';
   const r = (role === 'director' || role === 'prant' ? role : 'member') as LoginRole;
   return { role: r, email, prant: prant ?? undefined };
 }
 
+async function syncFirebaseUser(firebaseUser: User): Promise<{ user: AuthUser; token: string } | null> {
+  const { role, prant } = await getUserRoleAndPrantFromUser(firebaseUser);
+  const token = await firebaseUser.getIdToken();
+  const user = applySessionUser(firebaseUser, role, prant);
+  if (!user) return null;
+  return { user, token };
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const useSupabase = isSupabaseConfigured();
-  const [authLoading, setAuthLoading] = useState(useSupabase);
+  const useFirebase = isFirebaseConfigured();
+  const [authLoading, setAuthLoading] = useState(useFirebase);
 
   const [user, setUser] = useState<AuthUser | null>(() => {
-    if (useSupabase) return null;
+    if (useFirebase) return null;
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) return JSON.parse(stored) as AuthUser;
@@ -47,63 +60,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return null;
   });
-  const [token, setToken] = useState<string | null>(() => (useSupabase ? null : localStorage.getItem(TOKEN_STORAGE_KEY)));
+  const [token, setToken] = useState<string | null>(() =>
+    useFirebase ? null : localStorage.getItem(TOKEN_STORAGE_KEY)
+  );
 
   useEffect(() => {
-    if (!useSupabase) {
+    if (!useFirebase) {
       setAuthLoading(false);
       return;
     }
-    const supabase = getSupabase();
-    if (!supabase) {
+    const auth = getFirebaseAuth();
+    if (!auth) {
       setAuthLoading(false);
       return;
     }
+
     let cancelled = false;
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (cancelled) return;
-      if (session?.user) {
-        setToken(session.access_token ?? null);
-        getUserRoleAndPrant(session.user.id).then(({ role, prant }) => {
-          if (cancelled) return;
-          const u = applySessionUser(session.user, role, prant);
-          setUser(u);
-        });
+      if (firebaseUser) {
+        try {
+          const synced = await syncFirebaseUser(firebaseUser);
+          if (cancelled || !synced) return;
+          setUser(synced.user);
+          setToken(synced.token);
+        } catch {
+          if (!cancelled) {
+            setUser(null);
+            setToken(null);
+          }
+        }
       } else {
         setUser(null);
         setToken(null);
       }
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
-      if (cancelled) return;
-      if (session?.user) {
-        setToken(session.access_token ?? null);
-        getUserRoleAndPrant(session.user.id).then(({ role, prant }) => {
-          if (cancelled) return;
-          setUser(applySessionUser(session.user, role, prant));
-        });
-      } else {
-        setUser(null);
-        setToken(null);
-      }
-    });
+
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      unsubscribe();
     };
-  }, [useSupabase]);
+  }, [useFirebase]);
 
   useEffect(() => {
-    if (useSupabase || !user) return;
+    if (useFirebase || !user) return;
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-  }, [useSupabase, user]);
+  }, [useFirebase, user]);
 
   useEffect(() => {
-    if (useSupabase) return;
+    if (useFirebase) return;
     if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
     else localStorage.removeItem(TOKEN_STORAGE_KEY);
-  }, [useSupabase, token]);
+  }, [useFirebase, token]);
 
   const login = useCallback((userData: AuthUser, authToken?: string) => {
     setUser(userData);
@@ -111,13 +120,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(() => {
-    if (useSupabase) {
-      const supabase = getSupabase();
-      supabase?.auth.signOut();
+    if (useFirebase) {
+      const auth = getFirebaseAuth();
+      if (auth) signOut(auth);
     }
     setUser(null);
     setToken(null);
-  }, [useSupabase]);
+  }, [useFirebase]);
 
   const updateUser = useCallback((updates: Partial<AuthUser>) => {
     setUser((prev) => (prev ? { ...prev, ...updates } : null));

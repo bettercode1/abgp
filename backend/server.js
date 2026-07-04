@@ -31,7 +31,7 @@ app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   // For now, return a 410 to match the previous behavior, but ensure it's a JSON response
   res.status(410).json({
-    error: 'Login is via Supabase. Use the app login page with your Supabase account.',
+    error: 'Login is via Firebase. Use the app login page with your Firebase account.',
   });
 });
 
