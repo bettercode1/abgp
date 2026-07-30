@@ -442,6 +442,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </Button>
               <Button
                 component={RouterLink}
+                to="/login?tab=register"
+                variant="contained"
+                color="primary"
+                size="small"
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: { xs: 1.6, sm: 2.2 },
+                }}
+              >
+                {t('header.becomeMember', 'Become a Member')}
+              </Button>
+              <Button
+                component={RouterLink}
                 to={isAuthenticated ? '/panel' : '/login'}
                 variant="contained"
                 color="primary"
