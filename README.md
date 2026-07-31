@@ -1,156 +1,200 @@
 # Akhil Bhartiya Grahak Panchayat (ABGP) Portal
 
-A modern, government-style, multilingual React + Material UI homepage for Akhil Bhartiya Grahak Panchayat (ABGP) that reflects Indian Government website UX patterns and GIGW principles.
+Official web portal for **Akhil Bhartiya Grahak Panchayat (ABGP)** — a multilingual, government-style platform for public outreach, membership, donations, petitions, and role-based admin operations.
 
-## Features
+**Live site:** [https://abgpindia.in](https://abgpindia.in)
 
-- **Modern React + TypeScript** - Built with React 18, TypeScript, and Vite
-- **Material UI v5** - Comprehensive UI component library
-- **Multilingual Support** - English and Hindi (हिंदी) using i18next
-- **Multiple Theme Variants** - 5 different themes:
-  - Classic Tricolor Theme (Government-style with Indian tricolor inspiration)
-  - Modern Minimal Theme
-  - High-Contrast Accessibility Theme
-  - Traditional Maroon-Gold Theme
-  - Dark Mode Theme
-- **Accessibility Features**:
-  - WCAG-compliant color contrast
-  - Keyboard navigation support
-  - Skip-to-content links
-  - Font size controls (A-, A, A+)
-  - Contrast mode toggle
-  - ARIA labels and semantic HTML
-- **Responsive Design** - Mobile-first approach with responsive breakpoints
-- **Government-Style UX** - Follows Indian Government website patterns
+---
 
-## Project Structure
+## What this project delivers
 
-```
-src/
-├── components/
-│   ├── sections/          # Page sections (Hero, Jago, Activities, etc.)
-│   ├── ThemeSwitcher.tsx
-│   ├── LanguageSwitcher.tsx
-│   ├── GlobalLoader.tsx
-│   ├── FontSizeControls.tsx
-│   └── ContrastToggle.tsx
-├── layouts/
-│   └── MainLayout.tsx     # Main layout with header, nav, footer
-├── pages/
-│   └── HomePage.tsx       # Homepage composition
-├── theme/
-│   └── themes.ts          # Theme definitions
-├── i18n/
-│   └── index.ts           # i18next configuration and translations
-├── App.tsx                # Main app component
-└── main.tsx               # Entry point
-```
+### Public portal
+- Home and informational pages (About, Activities, Membership, Media, Contact, FAQ, Constitution, Court Decisions, Gallery, and more)
+- Multilingual support (English, Hindi, and additional Indian languages)
+- Accessibility controls (font size, contrast, keyboard-friendly navigation)
+- Responsive design for desktop and mobile
+- Header actions: **Donate**, **Become a Member**, **Login**
 
-## Getting Started
+### Membership
+- New member registration with online payment (₹100)
+- Existing member login / lookup
+- Membership renewal flow
+- Payment success and failure pages
+- Membership records linked to payment status
+
+### Donations
+- Online donation form and Razorpay checkout
+- Donation payment verification and status tracking
+- Admin visibility of donation records
+
+### Petitions
+- Public petition listing and support
+- Director create / update / delete petitions
+
+### Complaints & content
+- Public complaint submission
+- Director-side complaint management
+- Content management for news and related sections
+
+### Role-based access
+| Role | Entry | Purpose |
+|------|--------|---------|
+| **Admin (Director)** | `/login/admin` | Full dashboard — members, payments, donations, petitions, prants, reports, PDFs |
+| **Prant** | `/login/prant` | Prant-scoped dashboard — relevant members, reports, allowed content |
+| **Member** | `/login` | Existing member sign-in / renewal |
+
+### Prant & Director operations
+- Prant contacts and management
+- Annual report submission (Prant) and review (Director)
+- PDF upload with title/subject (Director) and controlled visibility
+- Payment overview for memberships
+
+---
+
+## Tech overview
+
+| Layer | Stack |
+|-------|--------|
+| Frontend | React 18, TypeScript, Vite, Material UI, i18next |
+| Backend | Node.js, Express |
+| Database | PostgreSQL |
+| Auth | Firebase Authentication (Director / Prant) |
+| Payments | Razorpay (membership + donations) |
+
+---
+
+## Getting started (local)
 
 ### Prerequisites
+- Node.js 18+
+- npm
+- PostgreSQL access (or VPS DB via allowed network / tunnel)
+- Configured `.env` files (see below)
 
-- Node.js 18+ and npm/yarn/pnpm
+### Install
 
-### Installation
-
-1. Install dependencies:
 ```bash
 npm install
+cd backend && npm install && cd ..
 ```
 
-2. Start development server:
+### Environment
+
+1. Copy examples and fill values:
+   - Root: `.env.example` → `.env` (Firebase web config / optional `VITE_API_URL`)
+   - Backend: `backend/.env.example` → `backend/.env` (Database, Firebase Admin, Razorpay)
+
+2. For **local frontend**, leave `VITE_API_URL` unset so Vite proxies `/api` → `localhost:3001`.
+
+3. Never commit `.env` or `backend/.env`. Secrets stay on the server / local only.
+
+### Run
+
 ```bash
+# Frontend + backend together
 npm run dev
 ```
 
-3. Build for production:
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
+
+Useful scripts:
 ```bash
+npm run build      # production frontend build
+npm run preview    # preview production build
+npm run lint
+```
+
+---
+
+## Important routes
+
+| Path | Description |
+|------|-------------|
+| `/` | Homepage |
+| `/donate` | Donation form |
+| `/login` | Member login |
+| `/login?tab=register` | New member registration (**Become a Member**) |
+| `/login/admin` | Director / Admin login |
+| `/login/prant` | Prant login |
+| `/panel` | Authenticated dashboard (Director / Prant) |
+| `/payment/success` | Payment success |
+| `/payment/failure` | Payment failure |
+
+---
+
+## Backend API (high level)
+
+Base URL (local): `http://localhost:3001`
+
+| Area | Paths |
+|------|--------|
+| Health | `/health`, `/api/payment/health`, `/api/donation/health` |
+| Auth | `/api/auth/*`, member login/lookup |
+| Payments | `/api/payment/*` |
+| Donations | `/api/donation/*` |
+| Petitions | `/api/petitions/*` |
+| Prants | `/api/prants/*` |
+| Content | `/api/content` |
+| Complaints | `/api/complaints` |
+| Annual reports | `/api/prant-annual-reports` |
+
+Director/Prant protected routes require a Firebase Bearer token.
+
+More database/API detail: see `backend/README.md`.
+
+---
+
+## Production deploy (Contabo VPS)
+
+App path on server: `/home/deploy/apps/ABGP/abgp`
+
+```bash
+cd /home/deploy/apps/ABGP/abgp
+git pull origin main
+npm install          # if dependencies changed
 npm run build
+# Backend (if API code changed):
+sudo pm2 restart abgp-backend
+sudo pm2 save
 ```
 
-4. Preview production build:
+Verify:
 ```bash
-npm run preview
+curl -s http://127.0.0.1:3001/health
+curl -s http://127.0.0.1:3001/api/payment/health
 ```
 
-## Key Sections
+---
 
-### Hero Section
-- ABGP mission and identity
-- Founder information
-- Timeline highlights
-- Call-to-action buttons
+## Project structure (simplified)
 
-### Jago Grahak Jago Section
-- Awareness tiles grid
-- Consumer education modules
-- Campaigns and programs
+```
+├── src/                 # Frontend (pages, components, layouts, i18n, theme)
+├── backend/             # Express API, payments, donations, migrations
+├── public/              # Static assets
+├── package.json         # Frontend + concurrent dev scripts
+└── .env.example         # Frontend env template
+```
 
-### Activities Section
-- Core activity types (Sanghatan, Jaagaran, Aandolan, Margadarshan Seva)
-- Key sectors (Annam, Vastra, Aavas, Aarogya, Shikshana, Vyavahaar)
+---
 
-### About & History Section
-- Organization overview
-- Historical timeline
-- Brand protection information
+## Accessibility & browser support
 
-### Membership Section
-- Membership benefits
-- Constitution preview
-- Registration information
+- WCAG-oriented contrast, focus, and semantic structure
+- Font size and language controls in the UI
+- Supported: latest Chrome, Firefox, Safari, Edge
 
-### Media Section
-- News, Events, Blogs, Videos tabs
-- Latest updates from ABGP
+---
 
-### Contact Section
-- Office addresses (Delhi and Pune)
-- Key contact information
-- Contact form
+## License / ownership
 
-## Customization
+Created for **Akhil Bhartiya Grahak Panchayat (ABGP)**.
 
-### Themes
-Themes can be customized in `src/theme/themes.ts`. User theme preferences are saved in localStorage.
-
-### Translations
-Translations for English and Hindi are in `src/i18n/index.ts`. Add new keys following the existing pattern.
-
-### Routes
-Currently, only the homepage route (`/`) is implemented. Future routes can be added in `src/App.tsx`:
-- `/about` - About ABGP page
-- `/activities` - Activities page
-- `/membership` - Membership and Constitution page
-- `/media` - Media page
-- `/blogs` - Blogs page
-- `/contact` - Contact page
-
-## Accessibility
-
-The application follows WCAG 2.1 guidelines:
-- High contrast color schemes
-- Keyboard navigation
-- Screen reader support
-- Focus indicators
-- Semantic HTML structure
-- ARIA labels
-
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## License
-
-This project is created for Akhil Bhartiya Grahak Panchayat (ABGP).
+---
 
 ## Notes
 
-- The Razorpay membership/donation link is integrated: `https://pages.razorpay.com/ABGPmembership`
-- Contact information matches the actual ABGP contact details
-- All content is based on the ABGP website structure and information
-
+- Membership fee is configured server-side (default ₹100).
+- Razorpay Key ID / Secret must be a matching Live pair on production.
+- Admin and Prant accounts are managed in Firebase; do not store live passwords in this README.
