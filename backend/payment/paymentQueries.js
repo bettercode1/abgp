@@ -173,6 +173,14 @@ function buildInsightsFilter(filters = {}) {
     clauses.push(`UPPER(TRIM(member_type)) = UPPER(TRIM($${i++}))`);
     params.push(String(filters.member_type));
   }
+  if (filters.q) {
+    const q = `%${String(filters.q).trim().toLowerCase()}%`;
+    clauses.push(
+      `(LOWER(COALESCE(full_name, '')) LIKE $${i} OR LOWER(COALESCE(email, '')) LIKE $${i} OR COALESCE(phone_no, '') LIKE $${i})`
+    );
+    params.push(q);
+    i += 1;
+  }
 
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   return { where, params, nextIndex: i };
@@ -196,6 +204,9 @@ async function getPaymentInsights(filters = {}) {
        COUNT(*) FILTER (WHERE UPPER(payment_status) = 'FAILED')::int AS failed_count,
        COUNT(*) FILTER (WHERE UPPER(payment_status) = 'SUCCESS' AND UPPER(COALESCE(member_type, 'NEW')) = 'NEW')::int AS new_success_count,
        COUNT(*) FILTER (WHERE UPPER(payment_status) = 'SUCCESS' AND UPPER(COALESCE(member_type, 'NEW')) = 'EXISTING')::int AS renewal_success_count,
+       COUNT(DISTINCT LOWER(TRIM(email))) FILTER (
+         WHERE UPPER(payment_status) = 'SUCCESS' AND email IS NOT NULL AND TRIM(email) <> ''
+       )::int AS unique_success_members,
        COALESCE(SUM(amount) FILTER (WHERE UPPER(payment_status) = 'SUCCESS'), 0)::bigint AS success_amount_paise,
        COALESCE(AVG(amount) FILTER (WHERE UPPER(payment_status) = 'SUCCESS'), 0)::float AS avg_success_amount_paise
      FROM abgp.payments
@@ -284,6 +295,7 @@ async function getPaymentInsights(filters = {}) {
       failed_count: summary.failed_count || 0,
       new_success_count: summary.new_success_count || 0,
       renewal_success_count: summary.renewal_success_count || 0,
+      unique_success_members: summary.unique_success_members || 0,
       success_amount_paise: Number(summary.success_amount_paise || 0),
       avg_success_amount_paise: Math.round(Number(summary.avg_success_amount_paise || 0)),
     },

@@ -580,6 +580,7 @@ export interface PaymentInsightsSummary {
   failed_count: number;
   new_success_count: number;
   renewal_success_count: number;
+  unique_success_members: number;
   success_amount_paise: number;
   avg_success_amount_paise: number;
 }
@@ -644,6 +645,7 @@ export interface PaymentInsightsParams {
   state?: string;
   status?: string;
   member_type?: string;
+  q?: string;
   page?: number;
   pageSize?: number;
 }
@@ -659,6 +661,7 @@ export async function fetchPaymentInsights(
   if (params.state) qs.set('state', params.state);
   if (params.status) qs.set('status', params.status);
   if (params.member_type) qs.set('member_type', params.member_type);
+  if (params.q) qs.set('q', params.q);
   if (params.page) qs.set('page', String(params.page));
   if (params.pageSize) qs.set('pageSize', String(params.pageSize));
   const query = qs.toString();

@@ -1585,13 +1585,7 @@ export const PanelPage: React.FC = () => {
               <>
                 <DirectorDashboardSection
                   token={token}
-                  members={members}
                   complaintsCount={getAllComplaintsRecentFirst().length}
-                  onRefreshMembers={() => {
-                    if (token) refetchMembersFromApi();
-                    else setMembers(getMembers());
-                  }}
-                  onOpenMemberComplaints={(m) => setComplaintsDialogMember(m)}
                   onNavigate={handlePanelNavigate}
                 />
                 {complaintsDialogMember && (() => {

@@ -429,6 +429,7 @@ async function getPaymentInsightsHandler(req, res) {
       member_type,
       page,
       pageSize,
+      q,
     } = req.query || {};
 
     const filters = {
@@ -438,6 +439,7 @@ async function getPaymentInsightsHandler(req, res) {
       state: state ? String(state).trim() : undefined,
       status: status ? String(status).trim() : undefined,
       member_type: member_type ? String(member_type).trim() : undefined,
+      q: q ? String(q).trim().slice(0, 100) : undefined,
       page,
       pageSize,
     };
@@ -459,6 +461,7 @@ async function getPaymentInsightsHandler(req, res) {
           failed_count: 0,
           new_success_count: 0,
           renewal_success_count: 0,
+          unique_success_members: 0,
           success_amount_paise: 0,
           avg_success_amount_paise: 0,
         },

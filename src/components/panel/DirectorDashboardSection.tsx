@@ -31,10 +31,10 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchDonationsList,
   fetchPaymentInsights,
+  type DbMembershipPayment,
+  type PaymentInsightsResponse,
   type PaymentInsightsSummary,
 } from '../../lib/api';
-import type { Member } from '../../lib/memberRegistry';
-import { PRANT_KEYS } from '../../lib/prantKeys';
 import { prantKeyToDisplayName } from '../../lib/prantDisplayNames';
 import {
   panelPaperSx,
@@ -45,10 +45,7 @@ import type { PanelView } from '../DashboardSidebar';
 
 interface DirectorDashboardSectionProps {
   token: string | null;
-  members: Member[];
   complaintsCount: number;
-  onRefreshMembers: () => void;
-  onOpenMemberComplaints: (member: { name: string; email: string }) => void;
   onNavigate: (view: PanelView) => void;
 }
 
@@ -84,13 +81,24 @@ function formatInrAmount(amount: number): string {
   })}`;
 }
 
+function formatRowDate(row: DbMembershipPayment): string {
+  const raw = row.payment_date || row.created_at;
+  return new Date(raw).toLocaleString(undefined, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 function StatCard({
   label,
   value,
+  hint,
   onClick,
 }: {
   label: string;
   value: string;
+  hint?: string;
   onClick?: () => void;
 }) {
   const theme = useTheme();
@@ -101,6 +109,7 @@ function StatCard({
       sx={{
         ...panelPaperSx(theme, { borderAccent: 'primary' }),
         cursor: onClick ? 'pointer' : 'default',
+        height: '100%',
         '&:hover': onClick ? { bgcolor: 'action.hover' } : undefined,
       }}
     >
@@ -114,16 +123,18 @@ function StatCard({
       <Typography variant="h5" fontWeight={700} sx={{ mt: 0.5 }}>
         {value}
       </Typography>
+      {hint ? (
+        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+          {hint}
+        </Typography>
+      ) : null}
     </Paper>
   );
 }
 
 export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> = ({
   token,
-  members,
   complaintsCount,
-  onRefreshMembers,
-  onOpenMemberComplaints,
   onNavigate,
 }) => {
   const { t } = useTranslation();
@@ -131,18 +142,16 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [period, setPeriod] = useState<PeriodPreset>('30d');
-  const [summary, setSummary] = useState<PaymentInsightsSummary | null>(null);
-  const [liveCapturedCount, setLiveCapturedCount] = useState(0);
-  const [liveCapturedAmount, setLiveCapturedAmount] = useState(0);
-  const [liveFailedCount, setLiveFailedCount] = useState(0);
-  const [liveAvailable, setLiveAvailable] = useState(false);
-  const [dbOk, setDbOk] = useState(true);
+  const [overview, setOverview] = useState<PaymentInsightsResponse | null>(null);
+  const [listData, setListData] = useState<PaymentInsightsResponse | null>(null);
   const [donationSuccessCount, setDonationSuccessCount] = useState(0);
   const [donationSuccessAmount, setDonationSuccessAmount] = useState(0);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [search, setSearch] = useState('');
+  const [searchApplied, setSearchApplied] = useState('');
   const [prant, setPrant] = useState('');
   const [memberKind, setMemberKind] = useState<'all' | 'new' | 'existing'>('all');
   const [from, setFrom] = useState('');
@@ -150,57 +159,36 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  const membersOnly = useMemo(
-    () => members.filter((m) => m.role === 'member'),
-    [members]
-  );
+  const periodRange = useMemo(() => rangeForPeriod(period), [period]);
 
-  const loadSummary = useCallback(async () => {
+  const loadOverview = useCallback(async () => {
     if (!token) {
-      setSummary(null);
-      setLiveAvailable(false);
+      setOverview(null);
       setDonationSuccessCount(0);
       setDonationSuccessAmount(0);
       return;
     }
-    setSummaryLoading(true);
-    setSummaryError('');
-    const range = rangeForPeriod(period);
+    setLoading(true);
+    setError('');
     try {
       const [insights, donations] = await Promise.all([
         fetchPaymentInsights(token, {
-          from: range.from,
-          to: range.to,
+          from: periodRange.from,
+          to: periodRange.to,
           page: 1,
           pageSize: 1,
         }),
         fetchDonationsList(token).catch(() => []),
       ]);
-      setSummary(insights.summary);
-      setDbOk(insights.source?.database_ok !== false);
-      if (insights.live?.available) {
-        setLiveAvailable(true);
-        setLiveCapturedCount(insights.live.summary.captured_count);
-        setLiveCapturedAmount(insights.live.summary.captured_amount_paise);
-        setLiveFailedCount(insights.live.summary.failed_count);
-      } else {
-        setLiveAvailable(false);
-        setLiveCapturedCount(0);
-        setLiveCapturedAmount(0);
-        setLiveFailedCount(0);
-        if (insights.live?.error) {
-          setSummaryError(insights.live.error);
-        }
-      }
+      setOverview(insights);
 
-      const fromTs = range.from ? new Date(`${range.from}T00:00:00`).getTime() : null;
-      const toTs = range.to ? new Date(`${range.to}T23:59:59`).getTime() : null;
+      const fromTs = periodRange.from ? new Date(`${periodRange.from}T00:00:00`).getTime() : null;
+      const toTs = periodRange.to ? new Date(`${periodRange.to}T23:59:59`).getTime() : null;
       let dCount = 0;
       let dAmount = 0;
       for (const d of donations) {
         if (String(d.payment_status).toUpperCase() !== 'SUCCESS') continue;
-        const raw = d.payment_date || d.created_at;
-        const ts = new Date(raw).getTime();
+        const ts = new Date(d.payment_date || d.created_at).getTime();
         if (fromTs != null && ts < fromTs) continue;
         if (toTs != null && ts > toTs) continue;
         dCount += 1;
@@ -209,50 +197,72 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
       setDonationSuccessCount(dCount);
       setDonationSuccessAmount(dAmount);
     } catch (err) {
-      setSummaryError(err instanceof Error ? err.message : t('panel.dashboardSummaryError'));
+      setError(err instanceof Error ? err.message : t('panel.dashboardSummaryError'));
     } finally {
-      setSummaryLoading(false);
+      setLoading(false);
     }
-  }, [token, period, t]);
+  }, [token, periodRange.from, periodRange.to, t]);
+
+  const loadMemberPayments = useCallback(async () => {
+    if (!token) {
+      setListData(null);
+      return;
+    }
+    setListLoading(true);
+    try {
+      const memberType =
+        memberKind === 'new' ? 'NEW' : memberKind === 'existing' ? 'EXISTING' : undefined;
+      const result = await fetchPaymentInsights(token, {
+        from: from || undefined,
+        to: to || undefined,
+        prant: prant || undefined,
+        status: 'SUCCESS',
+        member_type: memberType,
+        q: searchApplied || undefined,
+        page: page + 1,
+        pageSize: rowsPerPage,
+      });
+      setListData(result);
+    } catch (err) {
+      setListData(null);
+      setError(err instanceof Error ? err.message : t('panel.dashboardSummaryError'));
+    } finally {
+      setListLoading(false);
+    }
+  }, [token, from, to, prant, memberKind, searchApplied, page, rowsPerPage, t]);
 
   useEffect(() => {
-    void loadSummary();
-  }, [loadSummary]);
+    void loadOverview();
+  }, [loadOverview]);
 
-  const filteredMembers = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const fromTs = from ? new Date(`${from}T00:00:00`).getTime() : null;
-    const toTs = to ? new Date(`${to}T23:59:59`).getTime() : null;
+  useEffect(() => {
+    void loadMemberPayments();
+  }, [loadMemberPayments]);
 
-    return membersOnly.filter((m) => {
-      if (prant && (m.prant || '') !== prant) return false;
-      if (memberKind === 'new' && !m.isNewMember) return false;
-      if (memberKind === 'existing' && m.isNewMember) return false;
-      if (fromTs != null || toTs != null) {
-        const ts = new Date(m.addedAt).getTime();
-        if (fromTs != null && ts < fromTs) return false;
-        if (toTs != null && ts > toTs) return false;
-      }
-      if (!q) return true;
-      const name = (m.name || '').toLowerCase();
-      const email = m.email.toLowerCase();
-      const prantLabel = m.prant ? prantKeyToDisplayName(m.prant).toLowerCase() : '';
-      return name.includes(q) || email.includes(q) || prantLabel.includes(q);
-    });
-  }, [membersOnly, search, prant, memberKind, from, to]);
+  const summary: PaymentInsightsSummary | null = overview?.summary ?? null;
+  const live = overview?.live;
+  const liveOk = Boolean(live?.available);
+  const dbOk = overview?.source?.database_ok !== false;
 
-  const pageRows = filteredMembers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  /** Prefer DB totals when connected; otherwise live Razorpay. */
+  const successCount = dbOk
+    ? summary?.success_count ?? 0
+    : live?.summary.captured_count ?? 0;
+  const successAmount = dbOk
+    ? summary?.success_amount_paise ?? 0
+    : live?.summary.captured_amount_paise ?? 0;
+  const failedOrPending = dbOk
+    ? (summary?.pending_count ?? 0) + (summary?.failed_count ?? 0)
+    : live?.summary.failed_count ?? 0;
+  const membersCount = dbOk
+    ? summary?.unique_success_members ?? 0
+    : live?.summary.captured_count ?? 0;
 
-  const prantFilterOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const m of membersOnly) {
-      if (m.prant) set.add(m.prant);
-    }
-    for (const k of PRANT_KEYS) set.add(k);
-    return Array.from(set).sort((a, b) =>
-      prantKeyToDisplayName(a).localeCompare(prantKeyToDisplayName(b))
-    );
-  }, [membersOnly]);
+  const prantOptions = listData?.filter_options.prants?.length
+    ? listData.filter_options.prants
+    : overview?.filter_options.prants || [];
+
+  const rows = listData?.rows || [];
 
   return (
     <Stack spacing={2}>
@@ -268,7 +278,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
               {t('panel.dashboardTitle')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {t('panel.dashboardHint')}
+              {t('panel.dashboardHintLive')}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -288,10 +298,10 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
             <Button
               variant="outlined"
               size="small"
-              startIcon={summaryLoading ? <CircularProgress size={14} /> : <RefreshIcon />}
+              startIcon={loading || listLoading ? <CircularProgress size={14} /> : <RefreshIcon />}
               onClick={() => {
-                onRefreshMembers();
-                void loadSummary();
+                void loadOverview();
+                void loadMemberPayments();
               }}
               sx={{ textTransform: 'none' }}
             >
@@ -301,58 +311,45 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
         </Stack>
       </Paper>
 
-      {summaryError ? <Alert severity="warning">{summaryError}</Alert> : null}
-      {liveAvailable ? (
+      {error ? <Alert severity="warning">{error}</Alert> : null}
+      {dbOk ? (
         <Alert severity="success" sx={{ py: 0.5 }}>
-          {t('panel.dashboardLiveBadge')}
+          {t('panel.dashboardLiveDbBadge')}
         </Alert>
-      ) : null}
-      {!dbOk ? (
+      ) : liveOk ? (
         <Alert severity="info" sx={{ py: 0.5 }}>
-          {t('panel.dashboardDbOfflineHint')}
+          {t('panel.dashboardLiveBadge')}
         </Alert>
       ) : null}
 
       <Grid container spacing={1.5}>
         <Grid item xs={6} sm={4} md={2}>
-          <StatCard label={t('panel.dashboardMembers')} value={String(membersOnly.length)} />
+          <StatCard
+            label={t('panel.dashboardMembers')}
+            value={loading ? '…' : membersCount.toLocaleString('en-IN')}
+            hint={t('panel.dashboardMembersHint')}
+          />
         </Grid>
         <Grid item xs={6} sm={4} md={2}>
           <StatCard
             label={t('panel.dashboardPaymentsSuccess')}
-            value={
-              summaryLoading
-                ? '…'
-                : String(liveAvailable ? liveCapturedCount : summary?.success_count ?? 0)
-            }
+            value={loading ? '…' : successCount.toLocaleString('en-IN')}
             onClick={() => onNavigate('insights')}
           />
         </Grid>
         <Grid item xs={6} sm={4} md={2}>
           <StatCard
             label={t('panel.dashboardPaymentsAmount')}
-            value={
-              summaryLoading
-                ? '…'
-                : formatInrPaise(
-                    liveAvailable ? liveCapturedAmount : summary?.success_amount_paise ?? 0
-                  )
-            }
+            value={loading ? '…' : formatInrPaise(successAmount)}
             onClick={() => onNavigate('insights')}
           />
         </Grid>
         <Grid item xs={6} sm={4} md={2}>
           <StatCard
             label={
-              liveAvailable
-                ? t('panel.dashboardPaymentsFailedLive')
-                : t('panel.dashboardPaymentsPending')
+              dbOk ? t('panel.dashboardPaymentsPendingFailed') : t('panel.dashboardPaymentsFailedLive')
             }
-            value={
-              summaryLoading
-                ? '…'
-                : String(liveAvailable ? liveFailedCount : summary?.pending_count ?? 0)
-            }
+            value={loading ? '…' : failedOrPending.toLocaleString('en-IN')}
             onClick={() => onNavigate('insights')}
           />
         </Grid>
@@ -360,9 +357,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
           <StatCard
             label={t('panel.dashboardDonations')}
             value={
-              summaryLoading
-                ? '…'
-                : `${donationSuccessCount} · ${formatInrAmount(donationSuccessAmount)}`
+              loading ? '…' : `${donationSuccessCount} · ${formatInrAmount(donationSuccessAmount)}`
             }
             onClick={() => onNavigate('donations')}
           />
@@ -373,8 +368,11 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
       </Grid>
 
       <Paper elevation={0} sx={panelPaperSx(theme, { overflow: 'visible' })}>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 0.5 }}>
           {t('panel.dashboardMembersSection')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          {t('panel.dashboardMembersSectionHint')}
         </Typography>
 
         <Grid container spacing={1.5} sx={{ mb: 2 }}>
@@ -384,9 +382,12 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
               size="small"
               placeholder={t('panel.searchMembers')}
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setSearchApplied(search.trim());
+                  setPage(0);
+                }
               }}
               InputProps={{
                 startAdornment: (
@@ -396,6 +397,19 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
                 ),
               }}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => {
+                setSearchApplied(search.trim());
+                setPage(0);
+              }}
+              sx={{ textTransform: 'none', height: 40 }}
+            >
+              {t('panel.dashboardSearch')}
+            </Button>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
@@ -410,7 +424,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
                 }}
               >
                 <MenuItem value="">{t('panel.insightsAll')}</MenuItem>
-                {prantFilterOptions.map((p) => (
+                {prantOptions.map((p) => (
                   <MenuItem key={p} value={p}>
                     {prantKeyToDisplayName(p)}
                   </MenuItem>
@@ -467,36 +481,44 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
         </Grid>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <Chip size="small" color="primary" label={filteredMembers.length.toLocaleString()} />
+          <Chip
+            size="small"
+            color="primary"
+            label={(listData?.pagination.total ?? 0).toLocaleString('en-IN')}
+          />
           <Typography variant="body2" color="text.secondary">
-            {t('panel.dashboardMatchingMembers')}
+            {t('panel.dashboardMatchingPayments')}
           </Typography>
+          {listLoading ? <CircularProgress size={16} /> : null}
         </Stack>
 
-        {filteredMembers.length === 0 ? (
+        {!dbOk ? (
+          <Alert severity="warning">{t('panel.dashboardMembersNeedDb')}</Alert>
+        ) : rows.length === 0 && !listLoading ? (
           <Typography variant="body2" color="text.secondary">
-            {t('panel.noMembers')}
+            {t('panel.dashboardMembersEmpty')}
           </Typography>
         ) : isMobile ? (
           <Stack spacing={1}>
-            {pageRows.map((m) => (
-              <Paper key={m.id} variant="outlined" sx={{ p: 1.5 }}>
-                <Typography fontWeight={600}>{m.name || m.email}</Typography>
+            {rows.map((row) => (
+              <Paper key={row.id} variant="outlined" sx={{ p: 1.5 }}>
+                <Typography fontWeight={600}>{row.full_name}</Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  {m.email}
+                  {row.email} · {row.phone_no}
                 </Typography>
                 <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
-                  {m.prant ? <Chip size="small" label={prantKeyToDisplayName(m.prant)} /> : null}
+                  <Chip size="small" label={prantKeyToDisplayName(row.prant)} />
                   <Chip
                     size="small"
-                    color={m.isNewMember ? 'success' : 'default'}
-                    label={m.isNewMember ? t('panel.dashboardKindNew') : t('panel.dashboardKindExisting')}
+                    color={row.member_type === 'EXISTING' ? 'default' : 'success'}
+                    label={
+                      row.member_type === 'EXISTING'
+                        ? t('panel.dashboardKindExisting')
+                        : t('panel.dashboardKindNew')
+                    }
                   />
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    label={new Date(m.addedAt).toLocaleDateString()}
-                  />
+                  <Chip size="small" variant="outlined" label={formatRowDate(row)} />
+                  <Chip size="small" label={formatInrPaise(row.amount)} />
                 </Stack>
               </Paper>
             ))}
@@ -507,48 +529,44 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
               <TableHead>
                 <TableRow>
                   <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColName')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>Email</TableCell>
+                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>Email / Phone</TableCell>
                   <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColPrant')}</TableCell>
+                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColState')}</TableCell>
                   <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.dashboardMemberKind')}</TableCell>
                   <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColDate')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL} />
+                  <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
+                    {t('panel.insightsColAmount')}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pageRows.map((m) => (
-                  <TableRow key={m.id} hover>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{m.name || '—'}</TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{m.email}</TableCell>
+                {rows.map((row) => (
+                  <TableRow key={row.id} hover>
+                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.full_name}</TableCell>
                     <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      {m.prant ? prantKeyToDisplayName(m.prant) : '—'}
+                      <Typography variant="body2">{row.email}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {row.phone_no}
+                      </Typography>
                     </TableCell>
+                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
+                      {prantKeyToDisplayName(row.prant)}
+                    </TableCell>
+                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.state}</TableCell>
                     <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
                       <Chip
                         size="small"
-                        color={m.isNewMember ? 'success' : 'default'}
+                        color={row.member_type === 'EXISTING' ? 'default' : 'success'}
                         label={
-                          m.isNewMember
-                            ? t('panel.dashboardKindNew')
-                            : t('panel.dashboardKindExisting')
+                          row.member_type === 'EXISTING'
+                            ? t('panel.dashboardKindExisting')
+                            : t('panel.dashboardKindNew')
                         }
                       />
                     </TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      {new Date(m.addedAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      <Button
-                        size="small"
-                        sx={{ textTransform: 'none' }}
-                        onClick={() =>
-                          onOpenMemberComplaints({
-                            name: m.name || m.email,
-                            email: m.email,
-                          })
-                        }
-                      >
-                        {t('panel.viewComplaints')}
-                      </Button>
+                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{formatRowDate(row)}</TableCell>
+                    <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
+                      {formatInrPaise(row.amount)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -559,7 +577,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
 
         <TablePagination
           component="div"
-          count={filteredMembers.length}
+          count={listData?.pagination.total ?? 0}
           page={page}
           onPageChange={(_, next) => setPage(next)}
           rowsPerPage={rowsPerPage}
@@ -567,7 +585,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
             setRowsPerPage(parseInt(e.target.value, 10));
             setPage(0);
           }}
-          rowsPerPageOptions={[10, 25, 50]}
+          rowsPerPageOptions={[10, 25, 50, 100]}
         />
       </Paper>
     </Stack>
