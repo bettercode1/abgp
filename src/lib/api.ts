@@ -573,6 +573,99 @@ export async function fetchMembershipPaymentsOverview(
   return fetchJson<MembershipPaymentsOverview>(`${API_BASE}/payment/admin/overview`, token);
 }
 
+export interface PaymentInsightsSummary {
+  total_count: number;
+  success_count: number;
+  pending_count: number;
+  failed_count: number;
+  new_success_count: number;
+  renewal_success_count: number;
+  success_amount_paise: number;
+  avg_success_amount_paise: number;
+}
+
+export interface PaymentInsightsByDate {
+  day: string;
+  count: number;
+  success_count: number;
+  success_amount_paise: number;
+}
+
+export interface PaymentInsightsByPrant {
+  prant: string;
+  count: number;
+  success_count: number;
+  success_amount_paise: number;
+}
+
+export interface PaymentInsightsByStatus {
+  status: string;
+  count: number;
+  amount_paise: number;
+}
+
+export interface PaymentInsightsResponse {
+  summary: PaymentInsightsSummary;
+  by_date: PaymentInsightsByDate[];
+  by_prant: PaymentInsightsByPrant[];
+  by_status: PaymentInsightsByStatus[];
+  filter_options: { prants: string[]; states: string[] };
+  rows: DbMembershipPayment[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  source?: {
+    database_ok: boolean;
+    database_error: string | null;
+    live_ok: boolean;
+  };
+  live?: {
+    available: boolean;
+    payments: RazorpayPaymentSummary[];
+    summary: {
+      total_count: number;
+      captured_count: number;
+      failed_count: number;
+      authorized_count: number;
+      captured_amount_paise: number;
+    };
+    dashboard_url: string;
+    error: string | null;
+  };
+}
+
+export interface PaymentInsightsParams {
+  from?: string;
+  to?: string;
+  prant?: string;
+  state?: string;
+  status?: string;
+  member_type?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function fetchPaymentInsights(
+  token: string,
+  params: PaymentInsightsParams = {}
+): Promise<PaymentInsightsResponse> {
+  const qs = new URLSearchParams();
+  if (params.from) qs.set('from', params.from);
+  if (params.to) qs.set('to', params.to);
+  if (params.prant) qs.set('prant', params.prant);
+  if (params.state) qs.set('state', params.state);
+  if (params.status) qs.set('status', params.status);
+  if (params.member_type) qs.set('member_type', params.member_type);
+  if (params.page) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
+  const query = qs.toString();
+  const url = `${API_BASE}/payment/admin/insights${query ? `?${query}` : ''}`;
+  return fetchJson<PaymentInsightsResponse>(url, token);
+}
+
 export interface DbDonation {
   id: string;
   donation_amount: string | number;

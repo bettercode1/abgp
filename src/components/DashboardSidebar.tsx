@@ -14,7 +14,8 @@ import {
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  BarChart,
+
+  Insights as InsightsIcon,
   Folder,
   Lock,
   PictureAsPdf,
@@ -23,6 +24,7 @@ import {
   Menu as MenuIcon,
   Payments,
   VolunteerActivism,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import type { DirectorSectionKey } from '../lib/directorContent';
@@ -32,6 +34,7 @@ const DRAWER_WIDTH = 260;
 export type PanelView =
   | 'profile'
   | 'analytics'
+  | 'insights'
   | 'membership-payments'
   | 'donations'
   | 'content'
@@ -120,28 +123,50 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       </Box>
 
       <List component="nav" sx={{ flex: 1, py: 1, px: 1.5 }}>
-        {/* Dashboard / Profile */}
-        <ListItemButton
-          selected={activeView === 'profile'}
-          onClick={() => onNavigate('profile')}
-          sx={{
-            borderRadius: 1,
-            mb: 0.5,
-            '&.Mui-selected': {
-              bgcolor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              '&:hover': { bgcolor: theme.palette.primary.dark },
-              '& .MuiListItemIcon-root': { color: 'inherit' },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <DashboardIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('panel.sidebarDashboard')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
-        </ListItemButton>
+        {/* Dashboard home (Director) / Profile (Prant) */}
+        {isDirector ? (
+          <ListItemButton
+            selected={activeView === 'analytics'}
+            onClick={() => onNavigate('analytics')}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              '&.Mui-selected': {
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                '& .MuiListItemIcon-root': { color: 'inherit' },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <DashboardIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('panel.sidebarDashboard')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+          </ListItemButton>
+        ) : (
+          <ListItemButton
+            selected={activeView === 'profile'}
+            onClick={() => onNavigate('profile')}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              '&.Mui-selected': {
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                '& .MuiListItemIcon-root': { color: 'inherit' },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <DashboardIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('panel.sidebarDashboard')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+          </ListItemButton>
+        )}
 
-        {/* ANALYTICS (Director only) */}
+        {/* Records (Director only) */}
         {isDirector && (
           <>
             <Typography
@@ -159,8 +184,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               {t('panel.sidebarCategoryAnalytics')}
             </Typography>
             <ListItemButton
-              selected={activeView === 'analytics'}
-              onClick={() => onNavigate('analytics')}
+              selected={activeView === 'insights'}
+              onClick={() => onNavigate('insights')}
               sx={{
                 borderRadius: 1,
                 mb: 0.5,
@@ -173,9 +198,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               }}
             >
               <ListItemIcon sx={{ minWidth: 40 }}>
-                <BarChart fontSize="small" />
+                <InsightsIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary={t('panel.analytics')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+              <ListItemText primary={t('panel.insights')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
             </ListItemButton>
             <ListItemButton
               selected={activeView === 'membership-payments'}
@@ -214,6 +239,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <VolunteerActivism fontSize="small" />
               </ListItemIcon>
               <ListItemText primary={t('panel.donations')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'profile'}
+              onClick={() => onNavigate('profile')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.sidebarAccount')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
             </ListItemButton>
           </>
         )}

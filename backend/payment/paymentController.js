@@ -18,6 +18,7 @@ const {
   getPaymentDetailsByOrderId,
   setPaymentRazorpayOrderId,
   listPayments,
+  getPaymentInsights,
   createPaymentRecordFromOrderNotes,
 } = require('./paymentQueries');
 const { findMemberForLogin, normalizePhone, updateExistingMemberPaymentDate } = require('../member/memberAuthQueries');
@@ -412,6 +413,162 @@ async function getPaymentsOverview(req, res) {
   }
 }
 
+/**
+ * GET /api/payment/admin/insights — Director: filtered membership payment analytics.
+ * Query: from, to, prant, state, status, member_type, page, pageSize
+ * Always includes live Razorpay recent payments when keys are configured.
+ */
+async function getPaymentInsightsHandler(req, res) {
+  try {
+    const {
+      from,
+      to,
+      prant,
+      state,
+      status,
+      member_type,
+      page,
+      pageSize,
+    } = req.query || {};
+
+    const filters = {
+      from: from ? String(from).slice(0, 10) : undefined,
+      to: to ? String(to).slice(0, 10) : undefined,
+      prant: prant ? String(prant).trim() : undefined,
+      state: state ? String(state).trim() : undefined,
+      status: status ? String(status).trim() : undefined,
+      member_type: member_type ? String(member_type).trim() : undefined,
+      page,
+      pageSize,
+    };
+
+    let dbData = null;
+    let dbError = null;
+    try {
+      dbData = await getPaymentInsights(filters);
+    } catch (err) {
+      console.error('[payment/admin/insights] database', err.message || err);
+      dbError = err && err.code === '42P01'
+        ? 'Payments table missing on this database.'
+        : (err.message || 'Database unavailable');
+      dbData = {
+        summary: {
+          total_count: 0,
+          success_count: 0,
+          pending_count: 0,
+          failed_count: 0,
+          new_success_count: 0,
+          renewal_success_count: 0,
+          success_amount_paise: 0,
+          avg_success_amount_paise: 0,
+        },
+        by_date: [],
+        by_prant: [],
+        by_status: [],
+        filter_options: { prants: [], states: [] },
+        rows: [],
+        pagination: {
+          page: Math.max(parseInt(String(page), 10) || 1, 1),
+          pageSize: Math.min(Math.max(parseInt(String(pageSize), 10) || 25, 1), 100),
+          total: 0,
+          totalPages: 1,
+        },
+      };
+    }
+
+    let live = {
+      available: false,
+      payments: [],
+      summary: {
+        total_count: 0,
+        captured_count: 0,
+        failed_count: 0,
+        authorized_count: 0,
+        captured_amount_paise: 0,
+      },
+      dashboard_url: getRazorpayDashboardPaymentsUrl(),
+      error: null,
+    };
+
+    try {
+      const razorpayItems = await fetchRecentRazorpayPayments(100);
+      const fromTs = filters.from ? new Date(`${filters.from}T00:00:00`).getTime() / 1000 : null;
+      const toTs = filters.to ? new Date(`${filters.to}T23:59:59`).getTime() / 1000 : null;
+
+      const payments = razorpayItems
+        .map((p) => ({
+          payment_id: p.id,
+          order_id: p.order_id,
+          amount: p.amount,
+          currency: p.currency,
+          status: p.status,
+          method: p.method,
+          email: p.email,
+          contact: p.contact,
+          created_at: p.created_at,
+        }))
+        .filter((p) => {
+          if (fromTs != null && Number(p.created_at) < fromTs) return false;
+          if (toTs != null && Number(p.created_at) > toTs) return false;
+          if (filters.status) {
+            const want = String(filters.status).toUpperCase();
+            const st = String(p.status || '').toLowerCase();
+            if (want === 'SUCCESS' && !(st === 'captured' || st === 'authorized')) return false;
+            if (want === 'FAILED' && st !== 'failed') return false;
+            if (want === 'PENDING' && !(st === 'created' || st === 'attempted')) return false;
+          }
+          return true;
+        });
+
+      let captured_count = 0;
+      let failed_count = 0;
+      let authorized_count = 0;
+      let captured_amount_paise = 0;
+      for (const p of payments) {
+        const st = String(p.status || '').toLowerCase();
+        if (st === 'captured') {
+          captured_count += 1;
+          captured_amount_paise += Number(p.amount) || 0;
+        } else if (st === 'authorized') {
+          authorized_count += 1;
+        } else if (st === 'failed') {
+          failed_count += 1;
+        }
+      }
+
+      live = {
+        available: true,
+        payments,
+        summary: {
+          total_count: payments.length,
+          captured_count,
+          failed_count,
+          authorized_count,
+          captured_amount_paise,
+        },
+        dashboard_url: getRazorpayDashboardPaymentsUrl(),
+        error: null,
+      };
+    } catch (err) {
+      console.error('[payment/admin/insights] razorpay live', err.message || err);
+      live.error = isRazorpayError(err) ? formatRazorpayError(err) : (err.message || 'Razorpay unavailable');
+    }
+
+    return res.json({
+      ...dbData,
+      source: {
+        database_ok: !dbError,
+        database_error: dbError,
+        live_ok: live.available,
+      },
+      live,
+    });
+  } catch (err) {
+    console.error('[payment/admin/insights]', err);
+    return res.status(500).json({ error: 'Failed to load payment insights' });
+  }
+}
+
 module.exports = {
   createOrder,
   createRenewalOrder,
@@ -419,4 +576,5 @@ module.exports = {
   paymentFailed,
   getMembershipFee,
   getPaymentsOverview,
+  getPaymentInsightsHandler,
 };

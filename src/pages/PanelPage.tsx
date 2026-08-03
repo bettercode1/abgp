@@ -24,7 +24,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
   InputAdornment,
   Dialog,
   DialogTitle,
@@ -36,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, Search, Refresh, Close, Message as MessageIcon, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
+import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -47,10 +46,9 @@ import {
   type DirectorPdfArticle,
   type DirectorSectionContent,
 } from '../lib/directorContent';
-import { getMembers, deleteMember, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
+import { getMembers, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
 import {
   addMemberViaApi,
-  deleteMemberViaApi,
   fetchPrantsFromApi,
   changePrantPassword,
   isApiConfigured,
@@ -58,7 +56,6 @@ import {
   saveContentViaApi,
   addComplaintViaApi,
   fetchComplaintsFromApi,
-  deleteComplaintViaApi,
   fetchPetitionsFromApi,
   createPetitionViaApi,
   updatePetitionViaApi,
@@ -74,6 +71,8 @@ import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
 import { MembershipPaymentsSection } from '../components/panel/MembershipPaymentsSection';
 import { DonationsSection } from '../components/panel/DonationsSection';
+import { InsightsSection } from '../components/panel/InsightsSection';
+import { DirectorDashboardSection } from '../components/panel/DirectorDashboardSection';
 import {
   PANEL_CONTENT_PY,
   PANEL_CONTENT_PX,
@@ -82,7 +81,6 @@ import {
   panelPaperSx,
   panelTableContainerSx,
   panelMobileCardSx,
-  panelPaginationSx,
   panelTopBarTitleSx,
 } from '../lib/panelLayout';
 
@@ -205,9 +203,6 @@ export const PanelPage: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [videoTitle, setVideoTitle] = useState('');
   const [members, setMembers] = useState<Member[]>(() => getMembers());
-  const [analyticsPage, setAnalyticsPage] = useState(0);
-  const [analyticsRowsPerPage, setAnalyticsRowsPerPage] = useState(25);
-  const [analyticsSearch, setAnalyticsSearch] = useState('');
   const [complaintsDialogMember, setComplaintsDialogMember] = useState<{ name: string; email: string } | null>(null);
   const [prantPasswords, setPrantPasswords] = useState<Record<string, string>>(loadPrantPasswords);
   const [prantProfiles, setPrantProfiles] = useState<Record<string, PrantProfile>>(loadPrantProfiles);
@@ -223,6 +218,15 @@ export const PanelPage: React.FC = () => {
   const [prantsFetchError, setPrantsFetchError] = useState<string | null>(null);
   const [panelView, setPanelView] = useState<PanelView>('profile');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const defaultViewAppliedRef = React.useRef(false);
+
+  useEffect(() => {
+    if (!user || defaultViewAppliedRef.current) return;
+    defaultViewAppliedRef.current = true;
+    if (user.role === 'director') {
+      setPanelView('analytics');
+    }
+  }, [user]);
 
   useEffect(() => {
     setSidebarOpen(!isPanelMobile);
@@ -837,58 +841,6 @@ export const PanelPage: React.FC = () => {
     navigate('/login');
   };
 
-  const handleDeleteMember = async (id: string) => {
-    if (token && user?.role === 'director') {
-      try {
-        await deleteMemberViaApi(token, id);
-        await refetchMembersFromApi();
-      } catch (error) {
-        if (isAuthTokenMissingError(error)) {
-          handleMissingAuthToken();
-          return;
-        }
-        setMembers(getMembers());
-      }
-    } else {
-      deleteMember(id);
-      setMembers(getMembers());
-    }
-    setAnalyticsPage(0);
-  };
-  
-  const handleDeleteComplaint = async (id: string) => {
-    if (token && user?.role === 'director') {
-      try {
-        await deleteComplaintViaApi(token, id);
-        // Refresh complaints if they are stored in state somewhere, or just trigger a refresh
-        // For now, let's assume we need to refresh the members/complaints view
-        await refetchMembersFromApi(); 
-      } catch (error) {
-        console.error('Failed to delete complaint:', error);
-      }
-    } else {
-      // Local storage fallback (if any)
-      const raw = localStorage.getItem('abgp-complaints');
-      if (raw) {
-        const list = JSON.parse(raw);
-        const filtered = list.filter((c: any) => {
-          // If the item has an ID (API style), use it. Otherwise use index.
-          // In localStorage, we might not have unique IDs per complaint.
-          // For simplicity, we skip local delete if no ID.
-          return c.id !== id;
-        });
-        localStorage.setItem('abgp-complaints', JSON.stringify(filtered));
-        setMembers(getMembers());
-      }
-    }
-  };
-
-  const openComplaintsDialog = useCallback((member: Member) => {
-    const name = member.name || member.email;
-    const email = member.email;
-    setComplaintsDialogMember({ name, email });
-  }, []);
-
   useEffect(() => {
     if (complaintsDialogMember) {
       const el = document.getElementById('member-complaints-view');
@@ -944,19 +896,6 @@ export const PanelPage: React.FC = () => {
         .sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     } catch {
       return apiMatch as any;
-    }
-  };
-
-  const getComplaintCountForEmail = (email: string): number => {
-    try {
-      const raw = localStorage.getItem('abgp-complaints');
-      if (!raw) return 0;
-      const list = JSON.parse(raw) as Array<{ memberEmail?: string; contact?: string }>;
-      if (!Array.isArray(list)) return 0;
-      const lower = normalizeEmail(email);
-      return list.filter((c) => normalizeEmail(c.memberEmail || c.contact || '') === lower).length;
-    } catch {
-      return 0;
     }
   };
 
@@ -1171,25 +1110,6 @@ export const PanelPage: React.FC = () => {
     }
   };
 
-  const analyticsMembersOnly = members.filter((m) => m.role === 'member');
-  const analyticsFiltered = analyticsMembersOnly.filter((m) => {
-    const q = analyticsSearch.trim().toLowerCase();
-    if (!q) return true;
-    const matchName = (m.name ?? '').toLowerCase().includes(q);
-    const matchEmail = m.email.toLowerCase().includes(q);
-    return matchName || matchEmail;
-  });
-  const analyticsTotal = analyticsFiltered.length;
-  const analyticsPageStart = analyticsPage * analyticsRowsPerPage;
-  const analyticsPageEnd = Math.min(analyticsPageStart + analyticsRowsPerPage, analyticsTotal);
-  const analyticsPageMembers = analyticsFiltered.slice(analyticsPageStart, analyticsPageEnd);
-
-  const handleAnalyticsPageChange = (_: unknown, newPage: number) => setAnalyticsPage(newPage);
-  const handleAnalyticsRowsPerPageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAnalyticsRowsPerPage(parseInt(e.target.value, 10));
-    setAnalyticsPage(0);
-  };
-
   const isComplaintCategory = (s: string): s is ComplaintCategory =>
     COMPLAINT_CATEGORIES.includes(s as ComplaintCategory);
 
@@ -1352,8 +1272,9 @@ export const PanelPage: React.FC = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" color="text.primary" noWrap sx={panelTopBarTitleSx}>
-              {panelView === 'profile' && (isPrant ? t('panel.prantTitle') : t('panel.directorTitle'))}
-              {panelView === 'analytics' && t('panel.analytics')}
+              {panelView === 'profile' && (isPrant ? t('panel.prantTitle') : t('panel.sidebarAccount'))}
+              {panelView === 'analytics' && t('panel.dashboardTitle')}
+              {panelView === 'insights' && t('panel.insights')}
               {panelView === 'membership-payments' && t('panel.membershipPayments')}
               {panelView === 'donations' && t('panel.donations')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
@@ -1659,319 +1580,75 @@ export const PanelPage: React.FC = () => {
             </Paper>
                 )}
 
-            {/* Analytics (Director only) */}
+            {/* Dashboard (Director only) — members + summary; payments stay on Insights */}
             {panelView === 'analytics' && isDirector && (
-              <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'secondary', overflow: 'visible' })}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 1 }}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 0 }}>
-                    {t('panel.membersCount')}: <Chip label={analyticsMembersOnly.length.toLocaleString()} color="primary" size="small" />
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<Refresh />}
-                    onClick={() => { if (token) refetchMembersFromApi(); else setMembers(getMembers()); }}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    {t('panel.refreshList')}
-                  </Button>
-                </Box>
-                {(() => {
-                  const recent = getAllComplaintsRecentFirst().slice(0, 50);
-                  return recent.length > 0 ? (
-                    <Box sx={{ mb: 1.5 }}>
-                      <Typography variant="subtitle2" fontWeight={600} color="text.secondary" gutterBottom>
-                        {t('panel.recentComplaints')}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                        {t('panel.recentComplaintsDesc')}
-                      </Typography>
-                      <Stack spacing={1} sx={{ maxHeight: 220, overflow: 'auto', pr: 0.5 }}>
-                        {recent.map((c, i) => (
-                          <Paper key={i} variant="outlined" sx={{ p: 1.5 }}>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
-                              <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="secondary" variant="outlined" />
-                              <Typography variant="caption" color="text.secondary">
-                                {c.at ? new Date(c.at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
-                              </Typography>
-                              {(c.memberEmail || c.contact) && (
-                                <Typography variant="caption" noWrap title={c.memberEmail || c.contact}>
-                                  {c.memberEmail || c.contact}
-                                </Typography>
-                              )}
-                            </Box>
-                            {c.message && <Typography variant="body2" sx={{ mt: 0.5 }} noWrap>{c.message}</Typography>}
-                          </Paper>
-                        ))}
-                      </Stack>
+              <>
+                <DirectorDashboardSection
+                  token={token}
+                  members={members}
+                  complaintsCount={getAllComplaintsRecentFirst().length}
+                  onRefreshMembers={() => {
+                    if (token) refetchMembersFromApi();
+                    else setMembers(getMembers());
+                  }}
+                  onOpenMemberComplaints={(m) => setComplaintsDialogMember(m)}
+                  onNavigate={handlePanelNavigate}
+                />
+                {complaintsDialogMember && (() => {
+                  const list = getComplaintsForEmail(complaintsDialogMember.email);
+                  const formatFormValue = (v: unknown): string => {
+                    if (v === null || v === undefined) return '—';
+                    if (typeof v === 'boolean') return v ? t('common.yes') : t('common.no');
+                    if (Array.isArray(v)) return v.map(String).join(', ');
+                    return String(v);
+                  };
+                  const getFormDataLabel = (category: string, key: string): string => {
+                    if (isComplaintCategory(category)) {
+                      const keyPath = `complaint.${category}.${key}`;
+                      const translated = t(keyPath);
+                      if (translated !== keyPath) return translated;
+                    }
+                    return key.replace(/([A-Z])/g, ' $1').replace(/^./, (ch) => ch.toUpperCase()).trim();
+                  };
+                  const isEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((val || '').trim());
+                  const formRow = (label: string, value: string, options?: { link?: 'email' }) => (
+                    <Box key={label} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.25, sm: 2 }, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ minWidth: { sm: 140 }, fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
+                      <Typography variant="body2" component={options?.link === 'email' && isEmail(value) ? 'a' : 'span'} href={options?.link === 'email' && isEmail(value) ? `mailto:${value.trim()}` : undefined} sx={{ flex: 1, wordBreak: 'break-word', ...(options?.link === 'email' && isEmail(value) ? { color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } } : {}) }}>{value || '—'}</Typography>
                     </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{t('panel.noComplaintsYet')}</Typography>
                   );
-                })()}
-                {analyticsMembersOnly.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    {t('panel.noMembers')}
-                  </Typography>
-                ) : (
-                  <>
-                    <Grid container spacing={2} sx={{ mb: 2 }}>
-                      <Grid item xs={12} sm={6} md={4}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          placeholder={t('panel.searchMembers')}
-                          value={analyticsSearch}
-                          onChange={(e) => { setAnalyticsSearch(e.target.value); setAnalyticsPage(0); }}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <Search fontSize="small" />
-                              </InputAdornment>
-                            ),
-                          }}
-                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                        />
-                      </Grid>
-                    </Grid>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                      {t('panel.showingXtoY', { from: analyticsTotal === 0 ? 0 : analyticsPageStart + 1, to: analyticsPageEnd, total: analyticsTotal.toLocaleString() })}
-                    </Typography>
-                    {isPanelMobile ? (
-                      <Stack spacing={1}>
-                        {analyticsPageMembers.map((m) => {
-                          const complaintCount = getComplaintCountForEmail(m.email);
-                          return (
-                            <Paper key={m.id} variant="outlined" sx={panelMobileCardSx}>
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
-                                <Typography variant="subtitle2" fontWeight={600} sx={{ flex: 1, minWidth: 0 }} noWrap>
-                                  {m.name || m.email}
-                                </Typography>
-                                <Chip
-                                  label={m.isNewMember ? t('panel.newMemberLabel') : t('panel.existingMemberLabel')}
-                                  size="small"
-                                  color={m.isNewMember ? 'primary' : 'default'}
-                                  variant="outlined"
-                                  sx={{ height: 22, fontSize: '0.7rem' }}
-                                />
-                              </Box>
-                              <Typography variant="caption" color="text.secondary" display="block" noWrap>
-                                {m.email}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" display="block">
-                                {m.addedAt
-                                  ? new Date(m.addedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                                  : '—'}
-                              </Typography>
-                              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 0.25 }}>
-                                <Button size="small" variant="contained" onClick={() => openComplaintsDialog(m)} sx={{ textTransform: 'none', flex: 1, minWidth: 0 }}>
-                                  {complaintCount} {t('panel.complaints').toLowerCase()} · {t('panel.open')}
-                                </Button>
-                                <Button
-                                  size="small"
-                                  color="error"
-                                  variant="outlined"
-                                  startIcon={<Delete />}
-                                  onClick={() => handleDeleteMember(m.id)}
-                                  sx={{ textTransform: 'none' }}
-                                >
-                                  {t('panel.deleteMember')}
-                                </Button>
+                  return (
+                    <Paper elevation={2} sx={{ mt: 2, p: 2, borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle1" fontWeight={700}>
+                          {t('panel.complaintsFromMember', { name: complaintsDialogMember.name })}
+                        </Typography>
+                        <Button size="small" onClick={() => setComplaintsDialogMember(null)} sx={{ textTransform: 'none' }}>
+                          Close
+                        </Button>
+                      </Box>
+                      {list.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">{t('panel.noComplaintsYet')}</Typography>
+                      ) : (
+                        <Stack spacing={1.5}>
+                          {list.map((c, i) => (
+                            <Paper key={i} variant="outlined" sx={{ p: 1.5 }}>
+                              <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} sx={{ mb: 1 }} />
+                              <Stack>
+                                {formRow(t('panel.message'), c.message || '—')}
+                                {formRow(t('panel.contact'), c.contact || '—', { link: 'email' })}
+                                {c.formData && Object.keys(c.formData).length > 0 && Object.entries(c.formData).map(([k, v]) =>
+                                  formRow(getFormDataLabel(c.category || '', k), formatFormValue(v))
+                                )}
                               </Stack>
                             </Paper>
-                          );
-                        })}
-                      </Stack>
-                    ) : (
-                    <TableContainer
-                      component={Paper}
-                      variant="outlined"
-                      sx={{
-                        ...panelTableContainerSx(),
-                        maxHeight: 420,
-                        overflow: 'auto',
-                      }}
-                    >
-                      <Table size="small" stickyHeader sx={{ minWidth: 700 }}>
-                        <TableHead>
-                          <TableRow>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberName')}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberEmail')}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.dateAdded')}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover' }}>{t('panel.memberType')}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover', width: 160 }} align="center">{t('panel.complaints')}</TableCell>
-                            <TableCell sx={{ fontWeight: 600, bgcolor: 'action.hover', width: 120 }} align="right">{t('panel.deleteMember')}</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {analyticsPageMembers.map((m) => {
-                              const complaintCount = getComplaintCountForEmail(m.email);
-                              return (
-                            <TableRow key={m.id} hover>
-                              <TableCell sx={{ maxWidth: 180 }} title={m.name || m.email}>
-                                <Typography variant="body2" noWrap>{m.name || m.email}</Typography>
-                              </TableCell>
-                              <TableCell sx={{ maxWidth: 200 }}>
-                                <Typography variant="body2" noWrap title={m.email}>{m.email}</Typography>
-                              </TableCell>
-                              <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                <Typography variant="body2">
-                                  {m.addedAt ? new Date(m.addedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={m.isNewMember ? t('panel.newMemberLabel') : t('panel.existingMemberLabel')}
-                                  size="small"
-                                  color={m.isNewMember ? 'primary' : 'default'}
-                                  variant="outlined"
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                                  <Typography variant="body2" fontWeight={600} color={complaintCount > 0 ? 'secondary.main' : 'text.secondary'}>
-                                    {complaintCount} {t('panel.complaints').toLowerCase()}
-                                  </Typography>
-                                  <Box
-                                    component="button"
-                                    type="button"
-                                    onClick={() => openComplaintsDialog(m)}
-                                    sx={{
-                                      padding: '6px 16px',
-                                      fontSize: '0.875rem',
-                                      fontWeight: 600,
-                                      color: 'primary.contrastText',
-                                      bgcolor: 'primary.main',
-                                      border: 'none',
-                                      borderRadius: 1,
-                                      cursor: 'pointer',
-                                      textTransform: 'none',
-                                      fontFamily: 'inherit',
-                                      '&:hover': { bgcolor: 'primary.dark' },
-                                    }}
-                                  >
-                                    {t('panel.open')}
-                                  </Box>
-                                </Stack>
-                              </TableCell>
-                              <TableCell align="right">
-                                <Button
-                                  size="small"
-                                  color="error"
-                                  variant="outlined"
-                                  startIcon={<Delete />}
-                                  onClick={() => handleDeleteMember(m.id)}
-                                  sx={{ textTransform: 'none' }}
-                                >
-                                  {t('panel.deleteMember')}
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ); })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                    )}
-                    <TablePagination
-                      component="div"
-                      count={analyticsTotal}
-                      page={analyticsPage}
-                      onPageChange={handleAnalyticsPageChange}
-                      rowsPerPage={analyticsRowsPerPage}
-                      onRowsPerPageChange={handleAnalyticsRowsPerPageChange}
-                      rowsPerPageOptions={isPanelMobile ? [10, 25, 50] : [10, 25, 50, 100, 250]}
-                      labelRowsPerPage={t('panel.rowsPerPage')}
-                      sx={panelPaginationSx}
-                    />
-                    {complaintsDialogMember && (() => {
-                      const list = getComplaintsForEmail(complaintsDialogMember.email);
-                      const formatFormValue = (v: unknown): string => {
-                        if (v === null || v === undefined) return '—';
-                        if (typeof v === 'boolean') return v ? t('common.yes') : t('common.no');
-                        if (Array.isArray(v)) return v.map(String).join(', ');
-                        return String(v);
-                      };
-                      const getFormDataLabel = (category: string, key: string): string => {
-                        if (isComplaintCategory(category)) {
-                          const keyPath = `complaint.${category}.${key}`;
-                          const translated = t(keyPath);
-                          if (translated !== keyPath) return translated;
-                        }
-                        return key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
-                      };
-                      const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s || '').trim());
-                      const formRow = (label: string, value: string, options?: { link?: 'email' }) => (
-                        <Box key={label} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.25, sm: 2 }, py: 1.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-of-type': { borderBottom: 'none' } }}>
-                          <Typography variant="caption" color="text.secondary" sx={{ minWidth: { sm: 140 }, fontWeight: 600, flexShrink: 0 }}>{label}</Typography>
-                          <Typography variant="body2" component={options?.link === 'email' && isEmail(value) ? 'a' : 'span'} href={options?.link === 'email' && isEmail(value) ? `mailto:${value.trim()}` : undefined} sx={{ flex: 1, wordBreak: 'break-word', ...(options?.link === 'email' && isEmail(value) ? { color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } } : {}) }}>{value || '—'}</Typography>
-                        </Box>
-                      );
-                      return (
-                        <Paper elevation={3} sx={{ mt: 3, overflow: 'hidden', borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: theme.shadows[4] }} id="member-complaints-view">
-                          <Box sx={{ background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`, color: 'primary.contrastText', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              <Support sx={{ fontSize: 28, opacity: 0.95 }} />
-                              <Box>
-                                <Typography variant="h6" fontWeight={700} sx={{ color: 'inherit', lineHeight: 1.3 }}>
-                                  {t('panel.complaintsFromMember', { name: complaintsDialogMember.name })}
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
-                                  {list.length} {list.length === 1 ? t('panel.complaintOne') : t('panel.complaintsCount')}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            <IconButton size="medium" onClick={() => setComplaintsDialogMember(null)} sx={{ color: 'inherit', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} aria-label={t('panel.close')}>
-                              <Close />
-                            </IconButton>
-                          </Box>
-                          <Box sx={{ p: 3 }}>
-                            {list.length === 0 ? (
-                              <Typography color="text.secondary">{t('panel.noComplaints')}</Typography>
-                            ) : (
-                              <Stack spacing={3}>
-                                {list.map((c, i) => (
-                                  <Paper key={i} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
-                                    <Box sx={{ px: 2.5, py: 1.5, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                                      <Typography variant="subtitle2" color="primary" fontWeight={600}>
-                                        {t('panel.complaintForm')} #{i + 1}
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Chip size="small" label={isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category} color="primary" variant="outlined" sx={{ fontWeight: 500 }} />
-                                        <IconButton size="small" color="error" onClick={() => c.id && handleDeleteComplaint(c.id)} title={t('panel.deleteMember')}>
-                                          <Delete fontSize="small" />
-                                        </IconButton>
-                                      </Box>
-                                    </Box>
-                                    <Box sx={{ p: 2.5 }}>
-                                      {c.message && (
-                                        <Box sx={{ mb: 2, p: 2, borderRadius: 1.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider' }}>
-                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
-                                            <MessageIcon fontSize="small" color="action" />
-                                            <Typography variant="caption" fontWeight={600} color="text.secondary">{t('panel.message')}</Typography>
-                                          </Box>
-                                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{c.message}</Typography>
-                                        </Box>
-                                      )}
-                                      <Stack spacing={0} sx={{ '& > div': { minHeight: 40 } }}>
-                                        {formRow(t('panel.subject'), isComplaintCategory(c.category) ? t(`complaint.category.${c.category}`) : c.category)}
-                                        {formRow(t('panel.dateTime'), c.at ? new Date(c.at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—')}
-                                        {formRow(t('panel.contact'), c.contact || '—', { link: 'email' })}
-                                        {c.formData && Object.keys(c.formData).length > 0 && Object.entries(c.formData).map(([k, v]) =>
-                                          formRow(getFormDataLabel(c.category || '', k), formatFormValue(v))
-                                        )}
-                                      </Stack>
-                                    </Box>
-                                  </Paper>
-                                ))}
-                              </Stack>
-                            )}
-                          </Box>
-                        </Paper>
-                      );
-                    })()}
-                  </>
-                )}
-              </Paper>
+                          ))}
+                        </Stack>
+                      )}
+                    </Paper>
+                  );
+                })()}
+              </>
             )}
 
             {/* Prant logins (Director only) */}
@@ -2531,6 +2208,10 @@ export const PanelPage: React.FC = () => {
 
             {panelView === 'membership-payments' && isDirector && (
               <MembershipPaymentsSection token={token} />
+            )}
+
+            {panelView === 'insights' && isDirector && (
+              <InsightsSection token={token} />
             )}
 
             {panelView === 'donations' && isDirector && (
