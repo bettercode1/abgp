@@ -406,6 +406,27 @@ async function createPaymentRecordFromOrderNotes(orderId, rzOrder, amountFallbac
   });
 }
 
+/** Hard cap on rows for a single CSV export (avoid unbounded memory use). */
+const EXPORT_ROW_LIMIT = 20000;
+
+/**
+ * All rows matching Insights filters — no pagination — for report export (CSV).
+ */
+async function getPaymentExportRows(filters = {}) {
+  const { where, params, nextIndex } = buildInsightsFilter(filters);
+  const result = await pool.query(
+    `SELECT id, full_name, gender, enrollment_remark, member_type, state, district, prant,
+            location_details, pincode, phone_no, email, razorpay_order_id, razorpay_payment_id,
+            amount, currency, payment_status, payment_date, created_at
+     FROM abgp.payments
+     ${where}
+     ORDER BY COALESCE(payment_date, created_at) DESC, id DESC
+     LIMIT $${nextIndex}`,
+    [...params, EXPORT_ROW_LIMIT]
+  );
+  return result.rows;
+}
+
 module.exports = {
   createPaymentRecord,
   updatePaymentSuccess,
@@ -418,5 +439,6 @@ module.exports = {
   setPaymentRazorpayOrderId,
   listPayments,
   getPaymentInsights,
+  getPaymentExportRows,
   createPaymentRecordFromOrderNotes,
 };

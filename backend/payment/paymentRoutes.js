@@ -8,6 +8,7 @@ const {
   getMembershipFee,
   getPaymentsOverview,
   getPaymentInsightsHandler,
+  exportPaymentsHandler,
 } = require('./paymentController');
 const { buildPaymentHealth } = require('./paymentHealth');
 
@@ -35,5 +36,6 @@ router.post('/payment-failed', paymentFailed);
 
 router.get('/admin/overview', requireAuth, requireDirector, getPaymentsOverview);
 router.get('/admin/insights', requireAuth, requireDirector, getPaymentInsightsHandler);
+router.get('/admin/export', requireAuth, requireDirector, exportPaymentsHandler);
 
 module.exports = router;

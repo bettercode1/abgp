@@ -19,6 +19,7 @@ const {
   setPaymentRazorpayOrderId,
   listPayments,
   getPaymentInsights,
+  getPaymentExportRows,
   createPaymentRecordFromOrderNotes,
 } = require('./paymentQueries');
 const { findMemberForLogin, normalizePhone, updateExistingMemberPaymentDate } = require('../member/memberAuthQueries');
@@ -581,6 +582,117 @@ async function getPaymentInsightsHandler(req, res) {
   }
 }
 
+/** Escape a value for a CSV cell (quote if it contains comma, quote, or newline). */
+function csvCell(value) {
+  const s = value === null || value === undefined ? '' : String(value);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function formatCsvDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatCsvTime(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+/**
+ * GET /api/payment/admin/export — Director: CSV report of membership payments.
+ * Accepts the same filters as /admin/insights (from, to, prant, state, status, member_type, q).
+ */
+async function exportPaymentsHandler(req, res) {
+  try {
+    const { from, to, prant, state, status, member_type, q } = req.query || {};
+    const filters = {
+      from: from ? String(from).slice(0, 10) : undefined,
+      to: to ? String(to).slice(0, 10) : undefined,
+      prant: prant ? String(prant).trim() : undefined,
+      state: state ? String(state).trim() : undefined,
+      status: status ? String(status).trim() : undefined,
+      member_type: member_type ? String(member_type).trim() : undefined,
+      q: q ? String(q).trim().slice(0, 100) : undefined,
+    };
+
+    const rows = await getPaymentExportRows(filters);
+
+    const headers = [
+      'Date',
+      'Time',
+      'Full Name',
+      'Email',
+      'Phone',
+      'Gender',
+      'Member Type',
+      'Enrollment Remark',
+      'State',
+      'District',
+      'Prant',
+      'Address',
+      'Pincode',
+      'Amount (INR)',
+      'Currency',
+      'Payment Status',
+      'Order ID',
+      'Payment ID',
+    ];
+
+    const lines = [headers.map(csvCell).join(',')];
+    for (const row of rows) {
+      const rawDate = row.payment_date || row.created_at;
+      lines.push(
+        [
+          formatCsvDate(rawDate),
+          formatCsvTime(rawDate),
+          row.full_name,
+          row.email,
+          row.phone_no,
+          row.gender,
+          row.member_type,
+          row.enrollment_remark,
+          row.state,
+          row.district,
+          row.prant,
+          row.location_details,
+          row.pincode,
+          ((Number(row.amount) || 0) / 100).toFixed(2),
+          row.currency || 'INR',
+          row.payment_status,
+          row.razorpay_order_id,
+          row.razorpay_payment_id,
+        ]
+          .map(csvCell)
+          .join(',')
+      );
+    }
+
+    const csv = `\uFEFF${lines.join('\r\n')}`;
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="abgp-membership-payments-${dateStamp}.csv"`
+    );
+    return res.status(200).send(csv);
+  } catch (err) {
+    console.error('[payment/admin/export]', err);
+    if (err && err.code === '42P01') {
+      return res.status(503).json({
+        error: 'Payments table missing on this database. Run backend/migrations/005_payments_table.sql',
+      });
+    }
+    return res.status(500).json({ error: 'Failed to generate report' });
+  }
+}
+
 module.exports = {
   createOrder,
   createRenewalOrder,
@@ -589,4 +701,5 @@ module.exports = {
   getMembershipFee,
   getPaymentsOverview,
   getPaymentInsightsHandler,
+  exportPaymentsHandler,
 };

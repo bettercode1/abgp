@@ -27,8 +27,10 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import {
+  downloadPaymentsReport,
   fetchDonationsList,
   fetchPaymentInsights,
   type DbMembershipPayment,
@@ -149,6 +151,7 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState('');
+  const [downloading, setDownloading] = useState(false);
 
   const [search, setSearch] = useState('');
   const [searchApplied, setSearchApplied] = useState('');
@@ -238,6 +241,31 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   useEffect(() => {
     void loadMemberPayments();
   }, [loadMemberPayments]);
+
+  const handleDownloadReport = useCallback(async () => {
+    if (!token) {
+      setError(t('panel.dashboardSummaryError'));
+      return;
+    }
+    setDownloading(true);
+    setError('');
+    try {
+      const memberType =
+        memberKind === 'new' ? 'NEW' : memberKind === 'existing' ? 'EXISTING' : undefined;
+      await downloadPaymentsReport(token, {
+        from: from || undefined,
+        to: to || undefined,
+        prant: prant || undefined,
+        status: 'SUCCESS',
+        member_type: memberType,
+        q: searchApplied || undefined,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('panel.reportDownloadError'));
+    } finally {
+      setDownloading(false);
+    }
+  }, [token, from, to, prant, memberKind, searchApplied, t]);
 
   const summary: PaymentInsightsSummary | null = overview?.summary ?? null;
   const live = overview?.live;
@@ -368,12 +396,33 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
       </Grid>
 
       <Paper elevation={0} sx={panelPaperSx(theme, { overflow: 'visible' })}>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 0.5 }}>
-          {t('panel.dashboardMembersSection')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          {t('panel.dashboardMembersSectionHint')}
-        </Typography>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ sm: 'flex-start' }}
+          spacing={1}
+          sx={{ mb: 0.5 }}
+        >
+          <Box>
+            <Typography variant="subtitle1" fontWeight={700}>
+              {t('panel.dashboardMembersSection')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('panel.dashboardMembersSectionHint')}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={downloading ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon />}
+            onClick={() => void handleDownloadReport()}
+            disabled={downloading || !token}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+          >
+            {t('panel.downloadReport')}
+          </Button>
+        </Stack>
+        <Box sx={{ mb: 1.5 }} />
 
         <Grid container spacing={1.5} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={6} md={3}>

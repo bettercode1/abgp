@@ -413,6 +413,8 @@ const resources = {
       'panel.insightsTypeNew': 'New',
       'panel.insightsTypeRenewal': 'Renewal',
       'panel.insightsRefresh': 'Refresh',
+      'panel.downloadReport': 'Download Report',
+      'panel.reportDownloadError': 'Could not download the report. Please try again.',
       'panel.insightsAuthRequired': 'Sign in as director to view insights.',
       'panel.insightsLoadError': 'Could not load payment insights.',
       'panel.insightsSuccessCount': 'Successful payments',

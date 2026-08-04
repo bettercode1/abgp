@@ -669,6 +669,50 @@ export async function fetchPaymentInsights(
   return fetchJson<PaymentInsightsResponse>(url, token);
 }
 
+/**
+ * Download a CSV report of membership payments matching the given filters.
+ * Triggers a browser file download (auth token sent as a header, so a plain <a href> won't work).
+ */
+export async function downloadPaymentsReport(
+  token: string,
+  params: PaymentInsightsParams = {}
+): Promise<void> {
+  const qs = new URLSearchParams();
+  if (params.from) qs.set('from', params.from);
+  if (params.to) qs.set('to', params.to);
+  if (params.prant) qs.set('prant', params.prant);
+  if (params.state) qs.set('state', params.state);
+  if (params.status) qs.set('status', params.status);
+  if (params.member_type) qs.set('member_type', params.member_type);
+  if (params.q) qs.set('q', params.q);
+  const query = qs.toString();
+  const url = `${API_BASE}/payment/admin/export${query ? `?${query}` : ''}`;
+
+  const authToken = (await getAccessToken()) ?? token ?? null;
+  const res = await fetch(url, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const filename = match?.[1] || `abgp-membership-payments-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+}
+
 export interface DbDonation {
   id: string;
   donation_amount: string | number;
