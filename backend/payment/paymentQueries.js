@@ -115,6 +115,54 @@ async function getPaymentDetailsByOrderId(razorpay_order_id) {
   return result.rows[0] || null;
 }
 
+/** Full row for receipt PDF / welcome email after SUCCESS. */
+async function getPaymentReceiptRowByOrderId(razorpay_order_id) {
+  const result = await pool.query(
+    `SELECT id, full_name, gender, state, district, prant, location_details,
+            email, phone_no, enrollment_remark, member_type, payment_status,
+            razorpay_order_id, razorpay_payment_id, amount, currency,
+            payment_date, updated_at, receipt_email_sent_at
+     FROM abgp.payments WHERE razorpay_order_id = $1`,
+    [razorpay_order_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function wasReceiptEmailSent(razorpay_order_id) {
+  try {
+    const result = await pool.query(
+      `SELECT receipt_email_sent_at IS NOT NULL AS sent
+       FROM abgp.payments WHERE razorpay_order_id = $1`,
+      [razorpay_order_id]
+    );
+    return Boolean(result.rows[0]?.sent);
+  } catch (err) {
+    if (err && err.code === '42703') {
+      return false;
+    }
+    throw err;
+  }
+}
+
+async function markReceiptEmailSent(razorpay_order_id) {
+  try {
+    await pool.query(
+      `UPDATE abgp.payments
+       SET receipt_email_sent_at = NOW(), updated_at = NOW()
+       WHERE razorpay_order_id = $1 AND receipt_email_sent_at IS NULL`,
+      [razorpay_order_id]
+    );
+  } catch (err) {
+    if (err && err.code === '42703') {
+      console.warn(
+        '[payments] receipt_email_sent_at column missing — run backend/migrations/010_receipt_email_sent.sql'
+      );
+      return;
+    }
+    throw err;
+  }
+}
+
 async function setPaymentRazorpayOrderId(paymentId, razorpay_order_id) {
   const result = await pool.query(
     `UPDATE abgp.payments
@@ -364,6 +412,9 @@ module.exports = {
   updatePaymentFailed,
   getPaymentByOrderId,
   getPaymentDetailsByOrderId,
+  getPaymentReceiptRowByOrderId,
+  wasReceiptEmailSent,
+  markReceiptEmailSent,
   setPaymentRazorpayOrderId,
   listPayments,
   getPaymentInsights,

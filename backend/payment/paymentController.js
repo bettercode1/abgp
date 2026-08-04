@@ -26,6 +26,7 @@ const { computeMembershipStatus } = require('../member/memberAuthService');
 
 const { validatePaymentForm } = require('./validators');
 const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
+const { sendMembershipReceiptIfNeeded } = require('./sendMembershipReceipt');
 
 /** Razorpay receipt max length is 40 characters. */
 function buildReceipt(phoneNo) {
@@ -263,6 +264,9 @@ async function verifyPayment(req, res) {
     }
 
     if (existing.payment_status === 'SUCCESS') {
+      sendMembershipReceiptIfNeeded(orderId).catch((receiptErr) => {
+        console.warn('[payment/verify-payment] receipt email retry failed', orderId, receiptErr);
+      });
       return res.status(200).json({ success: true, message: 'Already verified' });
     }
 
@@ -312,6 +316,11 @@ async function verifyPayment(req, res) {
       orderId,
       details?.enrollment_remark || '—'
     );
+
+    sendMembershipReceiptIfNeeded(orderId).catch((receiptErr) => {
+      console.warn('[payment/verify-payment] receipt email failed (non-fatal)', orderId, receiptErr);
+    });
+
     return res.status(200).json({
       success: true,
       payment_id: updated.id,
