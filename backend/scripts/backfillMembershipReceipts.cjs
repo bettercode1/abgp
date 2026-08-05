@@ -7,22 +7,34 @@
  *
  * Usage:
  *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01 --dry-run
- *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01
- *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01 --limit=200   (send only the next 200 unsent, run daily)
+ *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01                (uses safe default limit, see DEFAULT_LIMIT below)
+ *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01 --limit=80    (send only the next 80 unsent, run daily)
  *   node scripts/backfillMembershipReceipts.cjs --from=2026-08-01 --limit=3     (small sanity-check batch)
+ *
+ * Note: membership@abgpindia.in is a newly created GoDaddy/Titan mailbox, which
+ * has a temporary reduced sending limit (observed to fail around ~95/day while
+ * new). DEFAULT_LIMIT is set below that ceiling as a safety net in case --limit
+ * is forgotten. The script also auto-stops early if it detects repeated
+ * "exceeded a sending limit" throttling from the SMTP server, so remaining
+ * rows are left unsent (and untouched) for tomorrow's run instead of wasting
+ * time hammering a throttled mailbox.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { pool } = require('../db');
 const { isSmtpConfigured } = require('../payment/receiptConfig');
 const { sendMembershipReceiptIfNeeded } = require('../payment/sendMembershipReceipt');
 
+const DEFAULT_LIMIT = 80;
+const CONSECUTIVE_FAILURE_STOP_THRESHOLD = 3;
+
 function parseArgs(argv) {
-  const args = { from: '2026-08-01', dryRun: false, delayMs: 1500, limit: null };
+  const args = { from: '2026-08-01', dryRun: false, delayMs: 1500, limit: DEFAULT_LIMIT };
   for (const arg of argv) {
     if (arg === '--dry-run') args.dryRun = true;
     else if (arg.startsWith('--from=')) args.from = arg.slice('--from='.length);
     else if (arg.startsWith('--delay-ms=')) args.delayMs = parseInt(arg.slice('--delay-ms='.length), 10) || 1500;
-    else if (arg.startsWith('--limit=')) args.limit = parseInt(arg.slice('--limit='.length), 10) || null;
+    else if (arg.startsWith('--limit=')) args.limit = parseInt(arg.slice('--limit='.length), 10) || DEFAULT_LIMIT;
+    else if (arg === '--no-limit') args.limit = null;
   }
   return args;
 }
@@ -81,6 +93,8 @@ async function main() {
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  let consecutiveSendFailures = 0;
+  let stoppedEarly = false;
 
   for (let i = 0; i < rows.length; i += 1) {
     const row = rows[i];
@@ -89,14 +103,30 @@ async function main() {
       const outcome = await sendMembershipReceiptIfNeeded(row.razorpay_order_id);
       if (outcome.sent) {
         sent += 1;
+        consecutiveSendFailures = 0;
         console.log('sent');
       } else {
         skipped += 1;
         console.log(`skipped (${outcome.reason || 'unknown'})`);
+        if (outcome.reason === 'send_failed') {
+          consecutiveSendFailures += 1;
+        } else {
+          consecutiveSendFailures = 0;
+        }
       }
     } catch (err) {
       failed += 1;
+      consecutiveSendFailures += 1;
       console.log(`FAILED (${err instanceof Error ? err.message : err})`);
+    }
+
+    if (consecutiveSendFailures >= CONSECUTIVE_FAILURE_STOP_THRESHOLD) {
+      console.log(
+        `\nStopping early after ${consecutiveSendFailures} consecutive send failures — likely SMTP throttling ` +
+          '(e.g. "exceeded a sending limit"). Remaining rows are untouched and will be retried on the next run.'
+      );
+      stoppedEarly = true;
+      break;
     }
 
     if (i < rows.length - 1) {
@@ -109,6 +139,9 @@ async function main() {
   console.log(`Sent:          ${sent}`);
   console.log(`Skipped:       ${skipped}`);
   console.log(`Failed:        ${failed}`);
+  if (stoppedEarly) {
+    console.log('Stopped early: yes (SMTP throttling detected)');
+  }
 
   await pool.end();
 }
