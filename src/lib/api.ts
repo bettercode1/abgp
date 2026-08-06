@@ -213,6 +213,7 @@ export interface ApiComplaint {
   category?: string;
   formData?: any;
   message?: string;
+  assignedPrantKey?: string;
   at: string;
 }
 
@@ -244,6 +245,84 @@ export async function deleteComplaintViaApi(token: string, id: string): Promise<
   await fetchJson<void>(`${API_BASE}/complaints/${id}`, token, {
     method: 'DELETE',
   }, true);
+}
+
+export interface AdminComplaintsListParams {
+  from?: string;
+  to?: string;
+  category?: string;
+  prant?: string;
+  q?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AdminComplaintsListResponse {
+  complaints: ApiComplaint[];
+  filter_options: { categories: string[]; prants: string[] };
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+function buildComplaintsQuery(params: AdminComplaintsListParams): string {
+  const qs = new URLSearchParams();
+  if (params.from) qs.set('from', params.from);
+  if (params.to) qs.set('to', params.to);
+  if (params.category) qs.set('category', params.category);
+  if (params.prant) qs.set('prant', params.prant);
+  if (params.q) qs.set('q', params.q);
+  if (params.page) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
+  return qs.toString();
+}
+
+export async function fetchComplaintsAdminList(
+  token: string,
+  params: AdminComplaintsListParams = {}
+): Promise<AdminComplaintsListResponse> {
+  const query = buildComplaintsQuery(params);
+  const url = `${API_BASE}/complaints/admin/list${query ? `?${query}` : ''}`;
+  return fetchJson<AdminComplaintsListResponse>(url, token, {}, true);
+}
+
+/**
+ * Download a CSV report of complaints matching the given filters.
+ * Triggers a browser file download (auth token sent as a header, so a plain <a href> won't work).
+ */
+export async function downloadComplaintsReport(
+  token: string,
+  params: AdminComplaintsListParams = {}
+): Promise<void> {
+  const query = buildComplaintsQuery(params);
+  const url = `${API_BASE}/complaints/admin/export${query ? `?${query}` : ''}`;
+
+  const authToken = (await getAccessToken()) ?? token ?? null;
+  const res = await fetch(url, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const filename = match?.[1] || `abgp-complaints-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
 }
 
 export async function fetchPetitionsFromApi(): Promise<ApiPetition[]> {

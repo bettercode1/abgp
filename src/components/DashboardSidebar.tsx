@@ -25,6 +25,7 @@ import {
   Payments,
   VolunteerActivism,
   Person as PersonIcon,
+  ReportProblem,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import type { DirectorSectionKey } from '../lib/directorContent';
@@ -37,6 +38,7 @@ export type PanelView =
   | 'insights'
   | 'membership-payments'
   | 'donations'
+  | 'complaints'
   | 'content'
   | 'prant-logins'
   | 'prant-pdfs'
@@ -239,6 +241,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <VolunteerActivism fontSize="small" />
               </ListItemIcon>
               <ListItemText primary={t('panel.donations')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+            </ListItemButton>
+            <ListItemButton
+              selected={activeView === 'complaints'}
+              onClick={() => onNavigate('complaints')}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  '& .MuiListItemIcon-root': { color: 'inherit' },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <ReportProblem fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('panel.complaintsNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
             </ListItemButton>
             <ListItemButton
               selected={activeView === 'profile'}

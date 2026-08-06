@@ -72,6 +72,7 @@ import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar
 import { MembershipPaymentsSection } from '../components/panel/MembershipPaymentsSection';
 import { DonationsSection } from '../components/panel/DonationsSection';
 import { InsightsSection } from '../components/panel/InsightsSection';
+import { ComplaintsSection } from '../components/panel/ComplaintsSection';
 import { DirectorDashboardSection } from '../components/panel/DirectorDashboardSection';
 import {
   PANEL_CONTENT_PY,
@@ -1277,6 +1278,7 @@ export const PanelPage: React.FC = () => {
               {panelView === 'insights' && t('panel.insights')}
               {panelView === 'membership-payments' && t('panel.membershipPayments')}
               {panelView === 'donations' && t('panel.donations')}
+              {panelView === 'complaints' && t('panel.complaintsNav')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
               {panelView === 'prant-pdfs' && t('panel.prantPdfsPageTitle')}
@@ -2210,6 +2212,10 @@ export const PanelPage: React.FC = () => {
 
             {panelView === 'donations' && isDirector && (
               <DonationsSection token={token} />
+            )}
+
+            {panelView === 'complaints' && isDirector && (
+              <ComplaintsSection token={token} />
             )}
 
             {/* Content: section selector + Add Image / Text / Video */}
