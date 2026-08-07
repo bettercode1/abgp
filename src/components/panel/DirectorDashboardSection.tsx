@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -21,6 +24,8 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useMediaQuery,
   useTheme,
@@ -28,12 +33,16 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { useTranslation } from 'react-i18next';
 import {
   downloadPaymentsReport,
   fetchDonationsList,
   fetchPaymentInsights,
   type DbMembershipPayment,
+  type PaymentInsightsByPrant,
   type PaymentInsightsResponse,
   type PaymentInsightsSummary,
 } from '../../lib/api';
@@ -52,6 +61,15 @@ interface DirectorDashboardSectionProps {
 }
 
 type PeriodPreset = '7d' | '30d' | 'all';
+type MemberViewMode = 'flat' | 'byPrant';
+
+const PRANT_MEMBERS_PAGE_SIZE = 100;
+
+interface PrantMembersCacheEntry {
+  rows: DbMembershipPayment[];
+  total: number;
+  loading: boolean;
+}
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -90,6 +108,107 @@ function formatRowDate(row: DbMembershipPayment): string {
     month: 'short',
     year: 'numeric',
   });
+}
+
+function memberTypeLabel(row: DbMembershipPayment, t: (key: string) => string): string {
+  return row.member_type === 'EXISTING' ? t('panel.dashboardKindExisting') : t('panel.dashboardKindNew');
+}
+
+function MembersList({
+  rows,
+  showPrantColumn,
+  isMobile,
+  t,
+}: {
+  rows: DbMembershipPayment[];
+  showPrantColumn: boolean;
+  isMobile: boolean;
+  t: (key: string) => string;
+}) {
+  if (rows.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        {t('panel.prantMembersEmpty')}
+      </Typography>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <Stack spacing={1}>
+        {rows.map((row) => (
+          <Paper key={row.id} variant="outlined" sx={{ p: 1.5 }}>
+            <Typography fontWeight={600}>{row.full_name}</Typography>
+            <Typography variant="caption" color="text.secondary" display="block">
+              {row.email} · {row.phone_no}
+            </Typography>
+            <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
+              {showPrantColumn ? <Chip size="small" label={prantKeyToDisplayName(row.prant)} /> : null}
+              <Chip
+                size="small"
+                color={row.member_type === 'EXISTING' ? 'default' : 'success'}
+                label={memberTypeLabel(row, t)}
+              />
+              <Chip size="small" variant="outlined" label={formatRowDate(row)} />
+              <Chip size="small" label={formatInrPaise(row.amount)} />
+            </Stack>
+          </Paper>
+        ))}
+      </Stack>
+    );
+  }
+
+  return (
+    <TableContainer sx={panelTableContainerSx()}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColName')}</TableCell>
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL}>Email / Phone</TableCell>
+            {showPrantColumn ? (
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColPrant')}</TableCell>
+            ) : null}
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColState')}</TableCell>
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.dashboardMemberKind')}</TableCell>
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColDate')}</TableCell>
+            <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
+              {t('panel.insightsColAmount')}
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id} hover>
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.full_name}</TableCell>
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
+                <Typography variant="body2">{row.email}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {row.phone_no}
+                </Typography>
+              </TableCell>
+              {showPrantColumn ? (
+                <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
+                  {prantKeyToDisplayName(row.prant)}
+                </TableCell>
+              ) : null}
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.state}</TableCell>
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
+                <Chip
+                  size="small"
+                  color={row.member_type === 'EXISTING' ? 'default' : 'success'}
+                  label={memberTypeLabel(row, t)}
+                />
+              </TableCell>
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{formatRowDate(row)}</TableCell>
+              <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
+                {formatInrPaise(row.amount)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 }
 
 function StatCard({
@@ -161,8 +280,30 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   const [to, setTo] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [viewMode, setViewMode] = useState<MemberViewMode>('flat');
+  const [byPrantData, setByPrantData] = useState<PaymentInsightsByPrant[]>([]);
+  const [byPrantLoading, setByPrantLoading] = useState(false);
+  const [expandedPrant, setExpandedPrant] = useState<string | false>(false);
+  const [prantMembersCache, setPrantMembersCache] = useState<Record<string, PrantMembersCacheEntry>>({});
 
   const periodRange = useMemo(() => rangeForPeriod(period), [period]);
+
+  const memberTypeFilter = useMemo(
+    () => (memberKind === 'new' ? 'NEW' : memberKind === 'existing' ? 'EXISTING' : undefined),
+    [memberKind]
+  );
+
+  const listFilters = useMemo(
+    () => ({
+      from: from || undefined,
+      to: to || undefined,
+      prant: prant || undefined,
+      status: 'SUCCESS' as const,
+      member_type: memberTypeFilter,
+      q: searchApplied || undefined,
+    }),
+    [from, to, prant, memberTypeFilter, searchApplied]
+  );
 
   const loadOverview = useCallback(async () => {
     if (!token) {
@@ -207,21 +348,14 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   }, [token, periodRange.from, periodRange.to, t]);
 
   const loadMemberPayments = useCallback(async () => {
-    if (!token) {
-      setListData(null);
+    if (!token || viewMode !== 'flat') {
+      if (!token) setListData(null);
       return;
     }
     setListLoading(true);
     try {
-      const memberType =
-        memberKind === 'new' ? 'NEW' : memberKind === 'existing' ? 'EXISTING' : undefined;
       const result = await fetchPaymentInsights(token, {
-        from: from || undefined,
-        to: to || undefined,
-        prant: prant || undefined,
-        status: 'SUCCESS',
-        member_type: memberType,
-        q: searchApplied || undefined,
+        ...listFilters,
         page: page + 1,
         pageSize: rowsPerPage,
       });
@@ -232,7 +366,64 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
     } finally {
       setListLoading(false);
     }
-  }, [token, from, to, prant, memberKind, searchApplied, page, rowsPerPage, t]);
+  }, [token, listFilters, page, rowsPerPage, viewMode, t]);
+
+  const loadByPrantSummary = useCallback(async () => {
+    if (!token || viewMode !== 'byPrant') {
+      if (!token) setByPrantData([]);
+      return;
+    }
+    setByPrantLoading(true);
+    try {
+      const result = await fetchPaymentInsights(token, {
+        ...listFilters,
+        page: 1,
+        pageSize: 1,
+      });
+      setByPrantData((result.by_prant || []).filter((item) => item.success_count > 0));
+    } catch (err) {
+      setByPrantData([]);
+      setError(err instanceof Error ? err.message : t('panel.dashboardSummaryError'));
+    } finally {
+      setByPrantLoading(false);
+    }
+  }, [token, listFilters, viewMode, t]);
+
+  const loadPrantMembers = useCallback(
+    async (prantKey: string) => {
+      if (!token) return;
+      setPrantMembersCache((prev) => ({
+        ...prev,
+        [prantKey]: {
+          rows: prev[prantKey]?.rows ?? [],
+          total: prev[prantKey]?.total ?? 0,
+          loading: true,
+        },
+      }));
+      try {
+        const result = await fetchPaymentInsights(token, {
+          ...listFilters,
+          prant: prantKey,
+          page: 1,
+          pageSize: PRANT_MEMBERS_PAGE_SIZE,
+        });
+        setPrantMembersCache((prev) => ({
+          ...prev,
+          [prantKey]: {
+            rows: result.rows,
+            total: result.pagination.total,
+            loading: false,
+          },
+        }));
+      } catch {
+        setPrantMembersCache((prev) => ({
+          ...prev,
+          [prantKey]: { rows: [], total: 0, loading: false },
+        }));
+      }
+    },
+    [token, listFilters]
+  );
 
   useEffect(() => {
     void loadOverview();
@@ -242,6 +433,20 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
     void loadMemberPayments();
   }, [loadMemberPayments]);
 
+  useEffect(() => {
+    void loadByPrantSummary();
+  }, [loadByPrantSummary]);
+
+  useEffect(() => {
+    setPrantMembersCache({});
+    if (viewMode === 'byPrant' && prant) {
+      setExpandedPrant(prant);
+      void loadPrantMembers(prant);
+    } else {
+      setExpandedPrant(false);
+    }
+  }, [listFilters, viewMode, prant, loadPrantMembers]);
+
   const handleDownloadReport = useCallback(async () => {
     if (!token) {
       setError(t('panel.dashboardSummaryError'));
@@ -250,22 +455,39 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
     setDownloading(true);
     setError('');
     try {
-      const memberType =
-        memberKind === 'new' ? 'NEW' : memberKind === 'existing' ? 'EXISTING' : undefined;
       await downloadPaymentsReport(token, {
-        from: from || undefined,
-        to: to || undefined,
-        prant: prant || undefined,
-        status: 'SUCCESS',
-        member_type: memberType,
-        q: searchApplied || undefined,
+        ...listFilters,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('panel.reportDownloadError'));
     } finally {
       setDownloading(false);
     }
-  }, [token, from, to, prant, memberKind, searchApplied, t]);
+  }, [token, listFilters, t]);
+
+  const handlePrantAccordionChange = useCallback(
+    (prantKey: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpandedPrant(isExpanded ? prantKey : false);
+      if (isExpanded) {
+        const cached = prantMembersCache[prantKey];
+        if (!cached?.rows.length && !cached?.loading) {
+          void loadPrantMembers(prantKey);
+        }
+      }
+    },
+    [loadPrantMembers, prantMembersCache]
+  );
+
+  const handleRefreshMembers = useCallback(() => {
+    void loadOverview();
+    if (viewMode === 'flat') {
+      void loadMemberPayments();
+    } else {
+      setPrantMembersCache({});
+      setExpandedPrant(false);
+      void loadByPrantSummary();
+    }
+  }, [loadOverview, viewMode, loadMemberPayments, loadByPrantSummary]);
 
   const summary: PaymentInsightsSummary | null = overview?.summary ?? null;
   const live = overview?.live;
@@ -291,6 +513,13 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
     : overview?.filter_options.prants || [];
 
   const rows = listData?.rows || [];
+  const visibleByPrant = prant
+    ? byPrantData.filter((item) => item.prant === prant)
+    : byPrantData;
+
+  const handleViewModeChange = (_event: React.MouseEvent<HTMLElement>, next: MemberViewMode | null) => {
+    if (next) setViewMode(next);
+  };
 
   return (
     <Stack spacing={2}>
@@ -326,11 +555,10 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
             <Button
               variant="outlined"
               size="small"
-              startIcon={loading || listLoading ? <CircularProgress size={14} /> : <RefreshIcon />}
-              onClick={() => {
-                void loadOverview();
-                void loadMemberPayments();
-              }}
+              startIcon={
+                loading || listLoading || byPrantLoading ? <CircularProgress size={14} /> : <RefreshIcon />
+              }
+              onClick={handleRefreshMembers}
               sx={{ textTransform: 'none' }}
             >
               {t('panel.refreshList')}
@@ -529,113 +757,166 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
           </Grid>
         </Grid>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <Chip
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          justifyContent="space-between"
+          sx={{ mb: 1.5 }}
+        >
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
             size="small"
-            color="primary"
-            label={(listData?.pagination.total ?? 0).toLocaleString('en-IN')}
-          />
-          <Typography variant="body2" color="text.secondary">
-            {t('panel.dashboardMatchingPayments')}
-          </Typography>
-          {listLoading ? <CircularProgress size={16} /> : null}
+            sx={{ flexWrap: 'wrap' }}
+          >
+            <ToggleButton value="flat" sx={{ textTransform: 'none', gap: 0.5 }}>
+              <ViewListIcon fontSize="small" />
+              {t('panel.viewAllMembers')}
+            </ToggleButton>
+            <ToggleButton value="byPrant" sx={{ textTransform: 'none', gap: 0.5 }}>
+              <AccountTreeIcon fontSize="small" />
+              {t('panel.viewByPrant')}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+          {viewMode === 'flat' ? (
+            <>
+              <Chip
+                size="small"
+                color="primary"
+                label={(listData?.pagination.total ?? 0).toLocaleString('en-IN')}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {t('panel.dashboardMatchingPayments')}
+              </Typography>
+              {listLoading ? <CircularProgress size={16} /> : null}
+            </>
+          ) : (
+            <>
+              <Chip size="small" color="primary" label={visibleByPrant.length.toLocaleString('en-IN')} />
+              <Typography variant="body2" color="text.secondary">
+                {t('panel.prantGroupsCount', { count: visibleByPrant.length })}
+              </Typography>
+              {byPrantLoading ? <CircularProgress size={16} /> : null}
+            </>
+          )}
         </Stack>
 
         {!dbOk ? (
           <Alert severity="warning">{t('panel.dashboardMembersNeedDb')}</Alert>
+        ) : viewMode === 'byPrant' ? (
+          byPrantLoading && visibleByPrant.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress size={28} />
+            </Box>
+          ) : visibleByPrant.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t('panel.dashboardMembersEmpty')}
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {visibleByPrant.map((item) => {
+                const prantKey = item.prant;
+                const cache = prantMembersCache[prantKey];
+                const isExpanded = expandedPrant === prantKey;
+                return (
+                  <Accordion
+                    key={prantKey}
+                    expanded={isExpanded}
+                    onChange={handlePrantAccordionChange(prantKey)}
+                    disableGutters
+                    sx={{
+                      '&:before': { display: 'none' },
+                      border: 1,
+                      borderColor: 'divider',
+                      borderRadius: '8px !important',
+                      overflow: 'hidden',
+                      '&.Mui-expanded': { my: 0 },
+                    }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={0.5}
+                        alignItems={{ sm: 'center' }}
+                        sx={{ width: '100%', pr: 1 }}
+                      >
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ flex: 1 }}>
+                          {prantKeyToDisplayName(prantKey)}
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                          <Chip
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            label={t('panel.prantMemberCount', { count: item.success_count })}
+                          />
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            label={formatInrPaise(item.success_amount_paise)}
+                          />
+                        </Stack>
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0, bgcolor: 'action.hover' }}>
+                      {!cache || cache.loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
+                          <CircularProgress size={24} />
+                          <Typography variant="body2" color="text.secondary" sx={{ ml: 1.5 }}>
+                            {t('panel.prantMembersLoading')}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <>
+                          {cache && cache.total > cache.rows.length ? (
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                              {t('panel.prantMembersTruncated', {
+                                shown: cache.rows.length,
+                                total: cache.total,
+                              })}
+                            </Typography>
+                          ) : null}
+                          <MembersList
+                            rows={cache.rows}
+                            showPrantColumn={false}
+                            isMobile={isMobile}
+                            t={t}
+                          />
+                        </>
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
+            </Stack>
+          )
         ) : rows.length === 0 && !listLoading ? (
           <Typography variant="body2" color="text.secondary">
             {t('panel.dashboardMembersEmpty')}
           </Typography>
-        ) : isMobile ? (
-          <Stack spacing={1}>
-            {rows.map((row) => (
-              <Paper key={row.id} variant="outlined" sx={{ p: 1.5 }}>
-                <Typography fontWeight={600}>{row.full_name}</Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
-                  {row.email} · {row.phone_no}
-                </Typography>
-                <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
-                  <Chip size="small" label={prantKeyToDisplayName(row.prant)} />
-                  <Chip
-                    size="small"
-                    color={row.member_type === 'EXISTING' ? 'default' : 'success'}
-                    label={
-                      row.member_type === 'EXISTING'
-                        ? t('panel.dashboardKindExisting')
-                        : t('panel.dashboardKindNew')
-                    }
-                  />
-                  <Chip size="small" variant="outlined" label={formatRowDate(row)} />
-                  <Chip size="small" label={formatInrPaise(row.amount)} />
-                </Stack>
-              </Paper>
-            ))}
-          </Stack>
         ) : (
-          <TableContainer sx={panelTableContainerSx()}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColName')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>Email / Phone</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColPrant')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColState')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.dashboardMemberKind')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{t('panel.insightsColDate')}</TableCell>
-                  <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
-                    {t('panel.insightsColAmount')}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id} hover>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.full_name}</TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      <Typography variant="body2">{row.email}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {row.phone_no}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      {prantKeyToDisplayName(row.prant)}
-                    </TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{row.state}</TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>
-                      <Chip
-                        size="small"
-                        color={row.member_type === 'EXISTING' ? 'default' : 'success'}
-                        label={
-                          row.member_type === 'EXISTING'
-                            ? t('panel.dashboardKindExisting')
-                            : t('panel.dashboardKindNew')
-                        }
-                      />
-                    </TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL}>{formatRowDate(row)}</TableCell>
-                    <TableCell sx={PANEL_TABLE_COMPACT_CELL} align="right">
-                      {formatInrPaise(row.amount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <MembersList rows={rows} showPrantColumn isMobile={isMobile} t={t} />
         )}
 
-        <TablePagination
-          component="div"
-          count={listData?.pagination.total ?? 0}
-          page={page}
-          onPageChange={(_, next) => setPage(next)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          rowsPerPageOptions={[10, 25, 50, 100]}
-        />
+        {viewMode === 'flat' ? (
+          <TablePagination
+            component="div"
+            count={listData?.pagination.total ?? 0}
+            page={page}
+            onPageChange={(_, next) => setPage(next)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+          />
+        ) : null}
       </Paper>
     </Stack>
   );

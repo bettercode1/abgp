@@ -206,8 +206,12 @@ function buildInsightsFilter(filters = {}) {
     params.push(filters.to);
   }
   if (filters.prant) {
-    clauses.push(`LOWER(TRIM(prant)) = LOWER(TRIM($${i++}))`);
-    params.push(String(filters.prant));
+    if (String(filters.prant).toLowerCase() === 'unknown') {
+      clauses.push(`(prant IS NULL OR TRIM(prant) = '')`);
+    } else {
+      clauses.push(`LOWER(TRIM(prant)) = LOWER(TRIM($${i++}))`);
+      params.push(String(filters.prant));
+    }
   }
   if (filters.state) {
     clauses.push(`LOWER(TRIM(state)) = LOWER(TRIM($${i++}))`);

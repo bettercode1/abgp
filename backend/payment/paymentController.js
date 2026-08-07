@@ -28,6 +28,7 @@ const { computeMembershipStatus } = require('../member/memberAuthService');
 const { validatePaymentForm } = require('./validators');
 const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
 const { sendMembershipReceiptIfNeeded } = require('./sendMembershipReceipt');
+const { prantKeyToDisplayName } = require('../lib/prantDisplayNames');
 
 /** Razorpay receipt max length is 40 characters. */
 function buildReceipt(phoneNo) {
@@ -622,9 +623,13 @@ async function exportPaymentsHandler(req, res) {
       q: q ? String(q).trim().slice(0, 100) : undefined,
     };
 
-    const rows = await getPaymentExportRows(filters);
+    const [rows, insights] = await Promise.all([
+      getPaymentExportRows(filters),
+      getPaymentInsights({ ...filters, page: 1, pageSize: 1 }),
+    ]);
+    const byPrant = insights.by_prant || [];
 
-    const headers = [
+    const memberHeaders = [
       'Date',
       'Time',
       'Full Name',
@@ -635,7 +640,6 @@ async function exportPaymentsHandler(req, res) {
       'Enrollment Remark',
       'State',
       'District',
-      'Prant',
       'Address',
       'Pincode',
       'Amount (INR)',
@@ -645,33 +649,73 @@ async function exportPaymentsHandler(req, res) {
       'Payment ID',
     ];
 
-    const lines = [headers.map(csvCell).join(',')];
-    for (const row of rows) {
-      const rawDate = row.payment_date || row.created_at;
+    const lines = [];
+
+    lines.push(csvCell('Prant-wise Summary'));
+    lines.push(
+      ['Prant', 'Total Records', 'Successful Members', 'Total Amount (INR)'].map(csvCell).join(',')
+    );
+    for (const item of byPrant) {
       lines.push(
         [
-          formatCsvDate(rawDate),
-          formatCsvTime(rawDate),
-          row.full_name,
-          row.email,
-          row.phone_no,
-          row.gender,
-          row.member_type,
-          row.enrollment_remark,
-          row.state,
-          row.district,
-          row.prant,
-          row.location_details,
-          row.pincode,
-          ((Number(row.amount) || 0) / 100).toFixed(2),
-          row.currency || 'INR',
-          row.payment_status,
-          row.razorpay_order_id,
-          row.razorpay_payment_id,
+          prantKeyToDisplayName(item.prant),
+          item.count,
+          item.success_count,
+          ((Number(item.success_amount_paise) || 0) / 100).toFixed(2),
         ]
           .map(csvCell)
           .join(',')
       );
+    }
+
+    lines.push('');
+    lines.push(csvCell('Member Details by Prant'));
+
+    const rowsByPrant = new Map();
+    for (const row of rows) {
+      const key = row.prant && String(row.prant).trim() ? String(row.prant).trim() : 'unknown';
+      if (!rowsByPrant.has(key)) rowsByPrant.set(key, []);
+      rowsByPrant.get(key).push(row);
+    }
+
+    const prantOrder = byPrant.map((p) => p.prant);
+    for (const key of rowsByPrant.keys()) {
+      if (!prantOrder.includes(key)) prantOrder.push(key);
+    }
+
+    for (const prantKey of prantOrder) {
+      const prantRows = rowsByPrant.get(prantKey);
+      if (!prantRows || prantRows.length === 0) continue;
+
+      lines.push('');
+      lines.push(csvCell(`Prant: ${prantKeyToDisplayName(prantKey)}`));
+      lines.push(memberHeaders.map(csvCell).join(','));
+      for (const row of prantRows) {
+        const rawDate = row.payment_date || row.created_at;
+        lines.push(
+          [
+            formatCsvDate(rawDate),
+            formatCsvTime(rawDate),
+            row.full_name,
+            row.email,
+            row.phone_no,
+            row.gender,
+            row.member_type,
+            row.enrollment_remark,
+            row.state,
+            row.district,
+            row.location_details,
+            row.pincode,
+            ((Number(row.amount) || 0) / 100).toFixed(2),
+            row.currency || 'INR',
+            row.payment_status,
+            row.razorpay_order_id,
+            row.razorpay_payment_id,
+          ]
+            .map(csvCell)
+            .join(',')
+        );
+      }
     }
 
     const csv = `\uFEFF${lines.join('\r\n')}`;
