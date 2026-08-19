@@ -26,8 +26,8 @@ jobs:
           script: |
             set -euo pipefail
             cd /home/deploy/apps/ABGP/abgp
-            git fetch origin main
-            git checkout main
-            git pull --ff-only origin main
-            chmod +x scripts/deploy-production.sh
-            APP_DIR=/home/deploy/apps/ABGP/abgp bash scripts/deploy-production.sh
+            sudo -u deploy git fetch origin main
+            sudo -u deploy git checkout main
+            sudo -u deploy git pull --ff-only origin main
+            sudo -u deploy chmod +x scripts/deploy-production.sh
+            APP_DIR=/home/deploy/apps/ABGP/abgp APP_USER=deploy bash scripts/deploy-production.sh
