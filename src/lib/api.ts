@@ -830,3 +830,109 @@ export async function deleteDonationViaApi(token: string, id: string): Promise<v
     { method: 'DELETE' }
   );
 }
+
+export type {
+  ActivityCategory,
+  ActivityStatus,
+  ActivityMedia,
+  ApiActivity,
+} from './activities';
+
+import type { ActivityCategory, ActivityStatus, ActivityMedia, ApiActivity } from './activities';
+
+export interface PublicActivitiesResponse {
+  activities: ApiActivity[];
+  filterOptions: { prants: string[]; categories: ActivityCategory[] };
+}
+
+export async function fetchPublicActivities(params: {
+  category?: ActivityCategory;
+  prant?: string;
+} = {}): Promise<PublicActivitiesResponse> {
+  const qs = new URLSearchParams();
+  if (params.category) qs.set('category', params.category);
+  if (params.prant) qs.set('prant', params.prant);
+  const query = qs.toString();
+  const url = `${API_BASE}/activities/public${query ? `?${query}` : ''}`;
+  return fetchJson<PublicActivitiesResponse>(url, '', {}, false);
+}
+
+export async function fetchActivitiesAdmin(
+  token: string,
+  params: { status?: ActivityStatus; category?: ActivityCategory } = {}
+): Promise<ApiActivity[]> {
+  const qs = new URLSearchParams();
+  if (params.status) qs.set('status', params.status);
+  if (params.category) qs.set('category', params.category);
+  const query = qs.toString();
+  const data = await fetchJson<{ activities: ApiActivity[] }>(
+    `${API_BASE}/activities${query ? `?${query}` : ''}`,
+    token
+  );
+  return data.activities;
+}
+
+export interface CreateActivityPayload {
+  title: string;
+  description?: string;
+  category: ActivityCategory;
+  images?: ActivityMedia[];
+  videos?: ActivityMedia[];
+  eventDate?: string;
+  location?: string;
+}
+
+export async function createActivityViaApi(
+  token: string,
+  payload: CreateActivityPayload
+): Promise<ApiActivity> {
+  const data = await fetchJson<{ activity: ApiActivity }>(`${API_BASE}/activities`, token, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, true);
+  return data.activity;
+}
+
+export async function updateActivityViaApi(
+  token: string,
+  id: string,
+  payload: CreateActivityPayload
+): Promise<ApiActivity> {
+  const data = await fetchJson<{ activity: ApiActivity }>(
+    `${API_BASE}/activities/${encodeURIComponent(id)}`,
+    token,
+    { method: 'PUT', body: JSON.stringify(payload) },
+    true
+  );
+  return data.activity;
+}
+
+export async function approveActivityViaApi(token: string, id: string): Promise<ApiActivity> {
+  const data = await fetchJson<{ activity: ApiActivity }>(
+    `${API_BASE}/activities/${encodeURIComponent(id)}/approve`,
+    token,
+    { method: 'PATCH' },
+    true
+  );
+  return data.activity;
+}
+
+export async function rejectActivityViaApi(token: string, id: string): Promise<ApiActivity> {
+  const data = await fetchJson<{ activity: ApiActivity }>(
+    `${API_BASE}/activities/${encodeURIComponent(id)}/reject`,
+    token,
+    { method: 'PATCH' },
+    true
+  );
+  return data.activity;
+}
+
+export async function deleteActivityViaApi(token: string, id: string): Promise<void> {
+  await fetchJson<void>(
+    `${API_BASE}/activities/${encodeURIComponent(id)}`,
+    token,
+    { method: 'DELETE' },
+    true
+  );
+}
+

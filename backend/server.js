@@ -15,6 +15,7 @@ const membersRouter = require('./routes/members');
 const prantsRouter = require('./routes/prants');
 const petitionsRouter = require('./routes/petitions');
 const prantAnnualReportsRouter = require('./routes/prantAnnualReports');
+const activitiesRouter = require('./routes/activities');
 const paymentRouter = require('./payment/paymentRoutes');
 const donationRouter = require('./donation/donationRoutes');
 const memberAuthRouter = require('./member/memberAuthRoutes');
@@ -44,6 +45,7 @@ app.use('/api/members', membersRouter);
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
 app.use('/api/petitions', petitionsRouter);
 app.use('/api/prant-annual-reports', requireAuth, prantAnnualReportsRouter);
+app.use('/api/activities', activitiesRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/donation', donationRouter);
 

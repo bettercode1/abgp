@@ -26,6 +26,7 @@ import {
   VolunteerActivism,
   Person as PersonIcon,
   ReportProblem,
+  Campaign,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import type { DirectorSectionKey } from '../lib/directorContent';
@@ -44,7 +45,8 @@ export type PanelView =
   | 'prant-pdfs'
   | 'prant-director-docs'
   | 'prant-annual-report'
-  | 'prant-annual-reports';
+  | 'prant-annual-reports'
+  | 'activities';
 
 export interface DashboardSidebarProps {
   activeView: PanelView;
@@ -348,6 +350,29 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             })}
           </List>
         </Collapse>
+
+        {(isDirector || isPrant) && (
+          <ListItemButton
+            selected={activeView === 'activities'}
+            onClick={() => onNavigate('activities')}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              mt: 0.5,
+              '&.Mui-selected': {
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                '& .MuiListItemIcon-root': { color: 'inherit' },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <Campaign fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('panel.activitiesNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+          </ListItemButton>
+        )}
 
         {/* Prant: director PDFs + annual report (below Content) */}
         {isPrant && (

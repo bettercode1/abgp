@@ -43,6 +43,11 @@ as_app git -C "$APP_DIR" fetch origin "$BRANCH"
 as_app git -C "$APP_DIR" checkout "$BRANCH"
 as_app git -C "$APP_DIR" pull --ff-only origin "$BRANCH"
 
+if [ -f "$APP_DIR/backend/migrations/011_activities.sql" ]; then
+  log "Applying activities migration (idempotent)"
+  as_app_bash "cd backend && node scripts/run-migration.cjs migrations/011_activities.sql"
+fi
+
 log "Installing frontend dependencies"
 as_app_bash "npm ci"
 

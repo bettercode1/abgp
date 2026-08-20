@@ -73,6 +73,7 @@ import { MembershipPaymentsSection } from '../components/panel/MembershipPayment
 import { DonationsSection } from '../components/panel/DonationsSection';
 import { InsightsSection } from '../components/panel/InsightsSection';
 import { ComplaintsSection } from '../components/panel/ComplaintsSection';
+import { ActivitiesPanelSection } from '../components/panel/ActivitiesPanelSection';
 import { DirectorDashboardSection } from '../components/panel/DirectorDashboardSection';
 import {
   PANEL_CONTENT_PY,
@@ -1279,6 +1280,7 @@ export const PanelPage: React.FC = () => {
               {panelView === 'membership-payments' && t('panel.membershipPayments')}
               {panelView === 'donations' && t('panel.donations')}
               {panelView === 'complaints' && t('panel.complaintsNav')}
+              {panelView === 'activities' && t('panel.activitiesNav')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
               {panelView === 'prant-pdfs' && t('panel.prantPdfsPageTitle')}
@@ -2216,6 +2218,10 @@ export const PanelPage: React.FC = () => {
 
             {panelView === 'complaints' && isDirector && (
               <ComplaintsSection token={token} />
+            )}
+
+            {(panelView === 'activities') && (isDirector || isPrant) && (
+              <ActivitiesPanelSection token={token} isDirector={isDirector} />
             )}
 
             {/* Content: section selector + Add Image / Text / Video */}
