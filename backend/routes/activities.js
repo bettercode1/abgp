@@ -185,14 +185,15 @@ router.post('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
       return res.status(400).json({ error: 'Prant key missing on account' });
     }
     const status = isDirector ? 'approved' : 'pending';
+    const submittedByEmail = req.user.email || null;
+    const approvedAt = status === 'approved' ? new Date() : null;
+    const approvedByEmail = status === 'approved' ? submittedByEmail : null;
 
     const result = await pool.query(
       `INSERT INTO abgp.activities
          (title, description, category, owner_type, prant_key, submitted_by_email,
           images, videos, event_date, location, status, approved_at, approved_by_email)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::date, $10, $11,
-               CASE WHEN $11 = 'approved' THEN NOW() ELSE NULL END,
-               CASE WHEN $11 = 'approved' THEN $6 ELSE NULL END)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::date, $10, $11, $12, $13)
        RETURNING id, title, description, category, owner_type, prant_key, submitted_by_email,
                  images, videos, event_date, location, status, approved_at, approved_by_email,
                  created_at, updated_at`,
@@ -202,12 +203,14 @@ router.post('/', requireAuth, requireDirectorOrPrant, async (req, res) => {
         parsed.category,
         ownerType,
         prantKey,
-        req.user.email || null,
+        submittedByEmail,
         JSON.stringify(parsed.images),
         JSON.stringify(parsed.videos),
         parsed.eventDate,
         parsed.location,
         status,
+        approvedAt,
+        approvedByEmail,
       ]
     );
 
