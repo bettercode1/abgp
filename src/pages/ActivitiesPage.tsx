@@ -239,7 +239,7 @@ export const ActivitiesPage: React.FC = () => {
               {t('activities.memo.text')}
             </Typography>
             <Card sx={{ borderRadius: 4, overflow: 'hidden', mb: 4 }}>
-              <CardMedia component="img" image={submission} alt="Memorandum Submission" sx={{ maxHeight: 400, objectFit: 'cover' }} />
+              <CardMedia component="img" image={submission} alt={t('activities.memorandumAlt')} sx={{ maxHeight: 400, objectFit: 'cover' }} />
               <CardContent>
                 <Typography variant="caption" color="text.secondary">
                   {t('activities.memo.caption')}

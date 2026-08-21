@@ -9,6 +9,8 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:clean": "powershell -ExecutionPolicy Bypass -File ./clean-vite-cache.ps1 && vite",
     "build": "tsc && vite build",
+    "i18n:check": "node scripts/compare-i18n-keys.cjs",
+    "i18n:fill": "node scripts/fill-i18n-gaps.cjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "clean": "powershell -ExecutionPolicy Bypass -File ./clean-vite-cache.ps1"
@@ -33,6 +35,7 @@
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "@vitalets/google-translate-api": "^9.2.1",
     "@vitejs/plugin-react": "^4.2.1",
     "concurrently": "^9.2.1",
     "eslint": "^8.55.0",

@@ -94,9 +94,9 @@ export const ComplaintCategoryFields: React.FC<ComplaintCategoryFieldsProps> = (
           {field('restaurantName', 'complaint.food.restaurantName', 'text', true)}
           <TextField select fullWidth size="small" label={t('complaint.food.orderType')} value={(formData.orderType as string) || ''} onChange={(e) => onUpdate('orderType', e.target.value)} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}>
             <MenuItem value="">{t('login.select')}</MenuItem>
-            <MenuItem value="dinein">Dine-in</MenuItem>
-            <MenuItem value="online">Online</MenuItem>
-            <MenuItem value="takeaway">Takeaway</MenuItem>
+            <MenuItem value="dinein">{t('complaint.food.orderType.dinein')}</MenuItem>
+            <MenuItem value="online">{t('complaint.orderType.online')}</MenuItem>
+            <MenuItem value="takeaway">{t('complaint.orderType.takeaway')}</MenuItem>
           </TextField>
           {field('billNumber', 'complaint.food.billNumber')}
           <Typography variant="subtitle2" color="text.secondary">{t('complaint.food.issue')}</Typography>
@@ -181,9 +181,9 @@ export const ComplaintCategoryFields: React.FC<ComplaintCategoryFieldsProps> = (
           {field('sinceWhen', 'complaint.society.sinceWhen')}
           <TextField select fullWidth size="small" label={t('complaint.society.urgency')} value={(formData.urgency as string) || ''} onChange={(e) => onUpdate('urgency', e.target.value)} variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}>
             <MenuItem value="">{t('login.select')}</MenuItem>
-            <MenuItem value="low">Low</MenuItem>
-            <MenuItem value="medium">Medium</MenuItem>
-            <MenuItem value="high">High</MenuItem>
+            <MenuItem value="low">{t('complaint.priority.low')}</MenuItem>
+            <MenuItem value="medium">{t('complaint.priority.medium')}</MenuItem>
+            <MenuItem value="high">{t('complaint.priority.high')}</MenuItem>
           </TextField>
           {field('description', 'complaint.description', 'text', true)}
         </Stack>

@@ -57,7 +57,7 @@ export const AdminLoginPage: React.FC = () => {
 
         if (role !== 'director') {
           await signOut(auth);
-          setError('This account is not authorized for admin access.');
+          setError(t('login.notAuthorizedAdmin'));
           setToastOpen(true);
           return;
         }
@@ -77,7 +77,7 @@ export const AdminLoginPage: React.FC = () => {
         return;
       }
 
-      setError('Firebase auth is not configured. Set VITE_FIREBASE_* in your .env file.');
+      setError(t('login.firebaseNotConfigured'));
       setToastOpen(true);
     } catch (submitError) {
       const code = submitError && typeof submitError === 'object' && 'code' in submitError
@@ -99,10 +99,10 @@ export const AdminLoginPage: React.FC = () => {
   return (
     <AuthLayout
       accent="admin"
-      title="ABGP Admin Access"
-      subtitle="Secure login for national dashboard operations and content control."
+      title={t('login.adminPortalTitle')}
+      subtitle={t('login.adminPortalSubtitle')}
     >
-      <AuthCard title="Admin Login" subtitle="Authorized access only">
+      <AuthCard title={t('login.adminLoginCardTitle')} subtitle={t('login.adminLoginCardSubtitle')}>
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <TextField
@@ -161,7 +161,7 @@ export const AdminLoginPage: React.FC = () => {
                 boxShadow: '0 6px 16px rgba(91,36,122,0.2)',
               }}
             >
-              {isSubmitting ? t('login.pleaseWait') : 'Sign in as Admin'}
+              {isSubmitting ? t('login.pleaseWait') : t('login.signInAsAdmin')}
             </Button>
           </Stack>
         </Box>

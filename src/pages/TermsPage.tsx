@@ -187,35 +187,35 @@ export const TermsPage: React.FC = () => {
       </Typography>
 
       <Typography variant="h6" gutterBottom fontWeight={600} sx={{ mt: 3 }}>
-        VOTING POWERS OF THE MEMBERS
+        {t('constitution.votingPowersTitle')}
       </Typography>
       <Typography variant="body1" paragraph>
-        All the members except Invitee Members who are enrolled in the register of members at the beginning of the year or up to a particular date in a year as decided by the National Executive committee from time to time, are entitled to vote.
+        {t('constitution.votingPowersContent')}
       </Typography>
 
       <Typography variant="h6" gutterBottom fontWeight={600}>
-        CESSATION OF MEMBERSHIP
+        {t('constitution.cessationTitle')}
       </Typography>
       <Typography variant="body1" paragraph>
-        A member, who indulges in any activity against the aims and objects and/or carries on the activities in competition with the functions of the panchayat or in any way damages its goodwill shall be liable to be terminated as a member of General Body. The decision in this regard shall be taken after providing an opportunity to the member concerned for offering his explanation to the National Executive Committee and the decision taken by it in this regard shall be final and absolutely binding upon such member.
+        {t('constitution.cessationContent')}
       </Typography>
 
       <Typography variant="h5" gutterBottom fontWeight={600} sx={{ mt: 4 }}>
-        MEMBERSHIP FEES STRUCTURE
+        {t('constitution.feesStructureTitle')}
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
-        (As decided in the general body meeting held on 21st Sept, 2014 at Bhubaneshwar. Subject to review and change from time to time.)
+        {t('constitution.feesStructureNote')}
       </Typography>
       <Box component="ul" sx={{ pl: 2, '& li': { mb: 1 } }}>
-        <li><Typography variant="body1">Fees for ordinary members/Active members: <strong>Rs. 100/- per year</strong></Typography></li>
-        <li><Typography variant="body1">Fees for life members: <strong>Rs. 5000/-, one time</strong></Typography></li>
-        <li><Typography variant="body1">Affiliation fees for organizations: <strong>Rs. 5000/- per year or 20% of the membership fees collected in the affiliated organization whichever is higher</strong></Typography></li>
+        <li><Typography variant="body1">{t('constitution.feesOrdinary')}</Typography></li>
+        <li><Typography variant="body1">{t('constitution.feesLife')}</Typography></li>
+        <li><Typography variant="body1">{t('constitution.feesAffiliation')}</Typography></li>
       </Box>
 
       <Divider sx={{ my: 4 }} />
 
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4, mb: 2 }}>
-        For complete details of all parts and sections, please contact the registered office.
+        {t('constitution.contactOfficeNote')}
       </Typography>
       
       <Typography variant="body2" color="text.secondary" align="center" fontWeight={600}>

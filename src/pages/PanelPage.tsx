@@ -1386,29 +1386,27 @@ export const PanelPage: React.FC = () => {
                       }}
                     >
                       <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1 }}>
-                        MAILBOX
+                        {t('panel.petitionMailbox')}
                       </Typography>
                       <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-                        {editingPetitionId ? 'Edit Petition Mail Draft' : 'Create Petition Mail Draft'}
+                        {editingPetitionId ? t('panel.petitionEditDraft') : t('panel.petitionCreateDraft')}
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.95 }}>
-                        {editingPetitionId
-                          ? 'Update petition details, then click Update Mail Petition.'
-                          : 'Compose petition details that users will send via their email app.'}
+                        {editingPetitionId ? t('panel.petitionEditHint') : t('panel.petitionCreateHint')}
                       </Typography>
                     </Box>
 
                     <Box component="form" onSubmit={handleSavePetition} sx={{ p: { xs: 2, md: 3 } }}>
                       <Stack spacing={2}>
                         <TextField
-                          label="Recipient Email(s)"
+                          label={t('panel.petitionRecipientEmails')}
                           type="text"
-                          placeholder="example@domain.com, another@domain.com"
+                          placeholder={t('panel.petitionRecipientPlaceholder')}
                           value={petitionTargetEmail}
                           onChange={(e) => setPetitionTargetEmail(e.target.value)}
                           required
                           fullWidth
-                          helperText="Multiple emails separated by comma"
+                          helperText={t('panel.petitionRecipientHelper')}
                         />
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                           <TextField
@@ -1472,7 +1470,7 @@ export const PanelPage: React.FC = () => {
 
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} flexWrap="wrap">
                           <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
-                            {editingPetitionId ? 'Update Mail Petition' : 'Save Mail Petition'}
+                            {editingPetitionId ? t('panel.petitionUpdateMail') : t('panel.petitionSaveMail')}
                           </Button>
                           {editingPetitionId ? (
                             <Button

@@ -69,7 +69,7 @@ export const PrantLoginPage: React.FC = () => {
 
         if (r !== 'prant' && r !== 'director') {
           await signOut(auth);
-          setLoginError('This account is not authorized for prant access.');
+          setLoginError(t('login.notAuthorizedPrant'));
           setToastOpen(true);
           setIsSubmitting(false);
           return;
@@ -107,7 +107,7 @@ export const PrantLoginPage: React.FC = () => {
       }
     }
 
-    setLoginError('Firebase auth is not configured. Set VITE_FIREBASE_* in your .env file.');
+    setLoginError(t('login.firebaseNotConfigured'));
     setToastOpen(true);
     setIsSubmitting(false);
   };
@@ -115,10 +115,10 @@ export const PrantLoginPage: React.FC = () => {
   return (
     <AuthLayout
       accent="prant"
-      title="ABGP Prant Portal"
-      subtitle="Sign in to manage prant content, member workflows, and annual reporting."
+      title={t('login.prantPortalTitle')}
+      subtitle={t('login.prantPortalSubtitle')}
     >
-      <AuthCard title="Prant Login" subtitle="Regional dashboard access">
+      <AuthCard title={t('login.prantLoginCardTitle')} subtitle={t('login.prantLoginCardSubtitle')}>
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <TextField
@@ -197,7 +197,7 @@ export const PrantLoginPage: React.FC = () => {
                 boxShadow: '0 6px 16px rgba(10,76,191,0.22)',
               }}
             >
-              {isSubmitting ? t('login.pleaseWait') : 'Sign in to Prant Panel'}
+              {isSubmitting ? t('login.pleaseWait') : t('login.signInToPrantPanel')}
             </Button>
           </Stack>
         </Box>

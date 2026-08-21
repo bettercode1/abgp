@@ -350,8 +350,8 @@ export const MemberLoginPage: React.FC = () => {
               },
             }}
           >
-            <Tab value="login" label="Member Login" />
-            <Tab value="register" label="New Registration" />
+            <Tab value="login" label={t('login.memberLoginTab')} />
+            <Tab value="register" label={t('login.newRegistrationTab')} />
           </Tabs>
         </Box>
         {activeTab === 'register' ? (
@@ -397,8 +397,8 @@ export const MemberLoginPage: React.FC = () => {
                 },
               }}
             >
-              <ToggleButton value="phone">Login with phone</ToggleButton>
-              <ToggleButton value="email">Login with Email</ToggleButton>
+              <ToggleButton value="phone">{t('login.loginWithPhone')}</ToggleButton>
+              <ToggleButton value="email">{t('login.loginWithEmail')}</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
@@ -476,16 +476,16 @@ export const MemberLoginPage: React.FC = () => {
             sx={loginGradientButtonSx(theme)}
           >
             {isLookingUp
-              ? 'Checking member records...'
+              ? t('login.checkingMemberRecords')
               : loginMode === 'phone'
-                ? 'Continue with Phone'
-                : 'Continue with Email'}
+                ? t('login.continueWithPhone')
+                : t('login.continueWithEmail')}
           </Button>
 
           {lookupMatches.length > 0 && (
             <Box sx={{ mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2, p: { xs: 1.25, sm: 1.75 } }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                Matching profiles
+                {t('login.matchingProfiles')}
               </Typography>
               {lookupMatches.map((match, idx) => (
                 <Box key={`${match.email}-${match.phone_no}-${idx}`} sx={{ py: 1.25 }}>

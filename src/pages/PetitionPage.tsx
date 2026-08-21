@@ -160,7 +160,7 @@ const PetitionDetailView: React.FC<{ petition: ApiPetition; onBack: () => void }
 
                 if (isExpired) {
                   return (
-                    <Chip label="This petition has ended" color="error" variant="filled" sx={{ fontWeight: 700, py: 2 }} />
+                    <Chip label={t('petitionDetail.ended')} color="error" variant="filled" sx={{ fontWeight: 700, py: 2 }} />
                   );
                 }
                 if (isNotStarted) {
