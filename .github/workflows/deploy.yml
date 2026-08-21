@@ -27,6 +27,6 @@ jobs:
             cd /home/deploy/apps/ABGP/abgp
             sudo -u deploy git fetch origin main
             sudo -u deploy git checkout main
-            sudo -u deploy git pull --ff-only origin main
+            sudo -u deploy git reset --hard origin/main
             sudo -u deploy chmod +x scripts/deploy-production.sh
             APP_DIR=/home/deploy/apps/ABGP/abgp APP_USER=deploy bash scripts/deploy-production.sh

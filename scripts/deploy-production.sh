@@ -35,13 +35,14 @@ cd "$APP_DIR" || die "App directory not found: $APP_DIR"
 [ -d .git ] || die "Not a git repo: $APP_DIR"
 
 if [ -n "$(as_app git -C "$APP_DIR" status --porcelain --untracked-files=no)" ]; then
-  die "Working tree has local edits. Fix or stash them on the VPS, then rerun."
+  log "Discarding local VPS edits (deploy always matches origin/$BRANCH)"
+  as_app git -C "$APP_DIR" reset --hard "origin/$BRANCH"
 fi
 
-log "Pulling $BRANCH as $APP_USER"
+log "Syncing $BRANCH as $APP_USER"
 as_app git -C "$APP_DIR" fetch origin "$BRANCH"
 as_app git -C "$APP_DIR" checkout "$BRANCH"
-as_app git -C "$APP_DIR" pull --ff-only origin "$BRANCH"
+as_app git -C "$APP_DIR" reset --hard "origin/$BRANCH"
 
 if [ -f "$APP_DIR/backend/migrations/011_activities.sql" ]; then
   log "Applying activities migration (idempotent)"
