@@ -2,6 +2,8 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+import { changeAppLanguage, normalizeLanguageCode } from '../i18n';
+
 const languages = [
   { code: 'en', nativeName: 'English' },
   { code: 'hi', nativeName: 'हिंदी' },
@@ -17,14 +19,11 @@ const languages = [
 export const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
   // Ensure we get the resolved language to properly highlight the active one
-  const currentCode = (i18n.resolvedLanguage || i18n.language?.split('-')[0] || 'en').split('-')[0];
+  const currentCode = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
 
   const handleLanguageChange = async (lng: string) => {
     if (lng === currentCode) return;
-    await i18n.changeLanguage(lng);
-    const nextLang = (i18n.resolvedLanguage || lng).split('-')[0];
-    localStorage.setItem('abgp-language', nextLang);
-    document.documentElement.lang = nextLang;
+    await changeAppLanguage(lng);
   };
 
   return (
