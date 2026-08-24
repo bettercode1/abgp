@@ -27,15 +27,14 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import {
-  downloadPaymentsReport,
   fetchPaymentInsights,
   type PaymentInsightsResponse,
 } from '../../lib/api';
 import { panelPaperSx, panelTableContainerSx, PANEL_TABLE_COMPACT_CELL } from '../../lib/panelLayout';
 import { prantKeyToDisplayName } from '../../lib/prantDisplayNames';
+import { MembershipReportDownloadMenu } from './MembershipReportDownloadMenu';
 
 interface InsightsSectionProps {
   token: string | null;
@@ -188,7 +187,18 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({ token }) => {
   const [data, setData] = useState<PaymentInsightsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [downloading, setDownloading] = useState(false);
+
+  const reportFilters = useMemo(
+    () => ({
+      from: from || undefined,
+      to: to || undefined,
+      prant: prant || undefined,
+      state: state || undefined,
+      status: status || undefined,
+      member_type: memberType || undefined,
+    }),
+    [from, to, prant, state, status, memberType]
+  );
 
   const applyPreset = (next: DatePreset) => {
     setPreset(next);
@@ -230,29 +240,6 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({ token }) => {
   useEffect(() => {
     void load();
   }, [load]);
-
-  const handleDownloadReport = useCallback(async () => {
-    if (!token) {
-      setError(t('panel.insightsAuthRequired'));
-      return;
-    }
-    setDownloading(true);
-    setError('');
-    try {
-      await downloadPaymentsReport(token, {
-        from: from || undefined,
-        to: to || undefined,
-        prant: prant || undefined,
-        state: state || undefined,
-        status: status || undefined,
-        member_type: memberType || undefined,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('panel.reportDownloadError'));
-    } finally {
-      setDownloading(false);
-    }
-  }, [token, from, to, prant, state, status, memberType, t]);
 
   const prantOptions = useMemo(() => {
     const fromApi = data?.filter_options.prants || [];
@@ -446,16 +433,13 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({ token }) => {
               </Button>
             </Grid>
             <Grid item xs={6} sm={4} md={2}>
-              <Button
+              <MembershipReportDownloadMenu
+                token={token}
+                filters={reportFilters}
                 fullWidth
-                variant="contained"
-                startIcon={downloading ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
-                onClick={() => void handleDownloadReport()}
-                disabled={downloading || !token}
-                sx={{ textTransform: 'none' }}
-              >
-                {t('panel.downloadReport')}
-              </Button>
+                size="medium"
+                onError={(message) => setError(message)}
+              />
             </Grid>
           </Grid>
         </Stack>

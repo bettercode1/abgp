@@ -32,13 +32,11 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
-import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { useTranslation } from 'react-i18next';
 import {
-  downloadPaymentsReport,
   fetchDonationsList,
   fetchPaymentInsights,
   type DbMembershipPayment,
@@ -47,6 +45,7 @@ import {
   type PaymentInsightsSummary,
 } from '../../lib/api';
 import { prantKeyToDisplayName } from '../../lib/prantDisplayNames';
+import { MembershipReportDownloadMenu } from './MembershipReportDownloadMenu';
 import {
   panelPaperSx,
   panelTableContainerSx,
@@ -270,7 +269,6 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState('');
-  const [downloading, setDownloading] = useState(false);
 
   const [search, setSearch] = useState('');
   const [searchApplied, setSearchApplied] = useState('');
@@ -447,24 +445,6 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
     }
   }, [listFilters, viewMode, prant, loadPrantMembers]);
 
-  const handleDownloadReport = useCallback(async () => {
-    if (!token) {
-      setError(t('panel.dashboardSummaryError'));
-      return;
-    }
-    setDownloading(true);
-    setError('');
-    try {
-      await downloadPaymentsReport(token, {
-        ...listFilters,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('panel.reportDownloadError'));
-    } finally {
-      setDownloading(false);
-    }
-  }, [token, listFilters, t]);
-
   const handlePrantAccordionChange = useCallback(
     (prantKey: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpandedPrant(isExpanded ? prantKey : false);
@@ -639,16 +619,11 @@ export const DirectorDashboardSection: React.FC<DirectorDashboardSectionProps> =
               {t('panel.dashboardMembersSectionHint')}
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={downloading ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon />}
-            onClick={() => void handleDownloadReport()}
-            disabled={downloading || !token}
-            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
-          >
-            {t('panel.downloadReport')}
-          </Button>
+          <MembershipReportDownloadMenu
+            token={token}
+            filters={listFilters}
+            onError={(message) => setError(message)}
+          />
         </Stack>
         <Box sx={{ mb: 1.5 }} />
 

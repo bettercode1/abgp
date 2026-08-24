@@ -29,6 +29,8 @@ const { validatePaymentForm } = require('./validators');
 const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
 const { sendMembershipReceiptIfNeeded } = require('./sendMembershipReceipt');
 const { prantKeyToDisplayName } = require('../lib/prantDisplayNames');
+const { PRANT_KEYS } = require('../lib/prantKeys');
+const { aggregatePaymentsByPrant } = require('../lib/prantNormalize');
 
 /** Razorpay receipt max length is 40 characters. */
 function buildReceipt(phoneNo) {
@@ -599,21 +601,15 @@ function formatCsvDate(value) {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function formatCsvTime(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-}
-
-/**
- * GET /api/payment/admin/export — Director: CSV report of membership payments.
- * Accepts the same filters as /admin/insights (from, to, prant, state, status, member_type, q).
- */
-async function exportPaymentsHandler(req, res) {
-  try {
-    const { from, to, prant, state, status, member_type, q } = req.query || {};
-    const filters = {
+function buildExportFilters(query) {
+  const scope = String(query?.scope || 'filtered').toLowerCase();
+  if (scope === 'full') {
+    return { scope: 'full', filters: { status: 'SUCCESS' } };
+  }
+  const { from, to, prant, state, status, member_type, q } = query || {};
+  return {
+    scope: 'filtered',
+    filters: {
       from: from ? String(from).slice(0, 10) : undefined,
       to: to ? String(to).slice(0, 10) : undefined,
       prant: prant ? String(prant).trim() : undefined,
@@ -621,32 +617,31 @@ async function exportPaymentsHandler(req, res) {
       status: status ? String(status).trim() : undefined,
       member_type: member_type ? String(member_type).trim() : undefined,
       q: q ? String(q).trim().slice(0, 100) : undefined,
-    };
+    },
+  };
+}
 
-    const [rows, insights] = await Promise.all([
-      getPaymentExportRows(filters),
-      getPaymentInsights({ ...filters, page: 1, pageSize: 1 }),
-    ]);
-    const byPrant = insights.by_prant || [];
+/**
+ * GET /api/payment/admin/export — Director: CSV report of membership payments.
+ * Query: scope=filtered|full, plus filters when scope=filtered (from, to, prant, state, status, member_type, q).
+ */
+async function exportPaymentsHandler(req, res) {
+  try {
+    const { scope, filters } = buildExportFilters(req.query);
+    const rows = await getPaymentExportRows(filters);
+    const byPrant = aggregatePaymentsByPrant(rows);
 
     const memberHeaders = [
       'Date',
-      'Time',
       'Full Name',
       'Email',
       'Phone',
       'Gender',
-      'Member Type',
-      'Enrollment Remark',
       'State',
       'District',
       'Address',
       'Pincode',
-      'Amount (INR)',
-      'Currency',
       'Payment Status',
-      'Order ID',
-      'Payment ID',
     ];
 
     const lines = [];
@@ -655,13 +650,29 @@ async function exportPaymentsHandler(req, res) {
     lines.push(
       ['Prant', 'Total Records', 'Successful Members', 'Total Amount (INR)'].map(csvCell).join(',')
     );
-    for (const item of byPrant) {
+
+    for (const prantKey of PRANT_KEYS) {
+      const stats = byPrant.get(prantKey);
       lines.push(
         [
-          prantKeyToDisplayName(item.prant),
-          item.count,
-          item.success_count,
-          ((Number(item.success_amount_paise) || 0) / 100).toFixed(2),
+          prantKeyToDisplayName(prantKey),
+          stats?.count || 0,
+          stats?.success_count || 0,
+          ((stats?.success_amount_paise || 0) / 100).toFixed(2),
+        ]
+          .map(csvCell)
+          .join(',')
+      );
+    }
+
+    const unknownStats = byPrant.get('unknown');
+    if (unknownStats && unknownStats.count > 0) {
+      lines.push(
+        [
+          prantKeyToDisplayName('unknown'),
+          unknownStats.count,
+          unknownStats.success_count,
+          ((unknownStats.success_amount_paise || 0) / 100).toFixed(2),
         ]
           .map(csvCell)
           .join(',')
@@ -671,21 +682,15 @@ async function exportPaymentsHandler(req, res) {
     lines.push('');
     lines.push(csvCell('Member Details by Prant'));
 
-    const rowsByPrant = new Map();
-    for (const row of rows) {
-      const key = row.prant && String(row.prant).trim() ? String(row.prant).trim() : 'unknown';
-      if (!rowsByPrant.has(key)) rowsByPrant.set(key, []);
-      rowsByPrant.get(key).push(row);
-    }
-
-    const prantOrder = byPrant.map((p) => p.prant);
-    for (const key of rowsByPrant.keys()) {
-      if (!prantOrder.includes(key)) prantOrder.push(key);
+    const prantOrder = [...PRANT_KEYS];
+    if (unknownStats && unknownStats.count > 0) {
+      prantOrder.push('unknown');
     }
 
     for (const prantKey of prantOrder) {
-      const prantRows = rowsByPrant.get(prantKey);
-      if (!prantRows || prantRows.length === 0) continue;
+      const stats = byPrant.get(prantKey);
+      const prantRows = stats?.rows || [];
+      if (prantRows.length === 0) continue;
 
       lines.push('');
       lines.push(csvCell(`Prant: ${prantKeyToDisplayName(prantKey)}`));
@@ -695,22 +700,15 @@ async function exportPaymentsHandler(req, res) {
         lines.push(
           [
             formatCsvDate(rawDate),
-            formatCsvTime(rawDate),
             row.full_name,
             row.email,
             row.phone_no,
             row.gender,
-            row.member_type,
-            row.enrollment_remark,
             row.state,
             row.district,
             row.location_details,
             row.pincode,
-            ((Number(row.amount) || 0) / 100).toFixed(2),
-            row.currency || 'INR',
             row.payment_status,
-            row.razorpay_order_id,
-            row.razorpay_payment_id,
           ]
             .map(csvCell)
             .join(',')
@@ -723,7 +721,7 @@ async function exportPaymentsHandler(req, res) {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="abgp-membership-payments-${dateStamp}.csv"`
+      `attachment; filename="abgp-membership-payments-${scope}-${dateStamp}.csv"`
     );
     return res.status(200).send(csv);
   } catch (err) {

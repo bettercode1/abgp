@@ -727,6 +727,7 @@ export interface PaymentInsightsParams {
   q?: string;
   page?: number;
   pageSize?: number;
+  scope?: 'filtered' | 'full';
 }
 
 export async function fetchPaymentInsights(
@@ -764,6 +765,7 @@ export async function downloadPaymentsReport(
   if (params.status) qs.set('status', params.status);
   if (params.member_type) qs.set('member_type', params.member_type);
   if (params.q) qs.set('q', params.q);
+  if (params.scope) qs.set('scope', params.scope);
   const query = qs.toString();
   const url = `${API_BASE}/payment/admin/export${query ? `?${query}` : ''}`;
 
