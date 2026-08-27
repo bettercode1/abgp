@@ -33,7 +33,7 @@ function getReceiptConfig() {
     fromEmail: envString('MEMBERSHIP_RECEIPT_FROM', envString('SMTP_USER')),
     fromName: envString('MEMBERSHIP_RECEIPT_FROM_NAME', 'Akhil Bhartiya Grahak Panchayat'),
     businessName: envString('ABGP_BUSINESS_NAME', 'Abgpindia'),
-    gstin: envString('ABGP_GSTIN'),
+    gstin: envString('ABGP_GSTIN', '07AACTA4218N1ZO'),
     websiteUrl: envString('ABGP_WEBSITE_URL', 'https://abgpindia.in').replace(/\/$/, ''),
     logoPath: path.join(__dirname, '..', 'assets', 'abgp-logo.jpg'),
     supportEmail: envString('ABGP_SUPPORT_EMAIL', 'vijaysagar1963@gmail.com'),

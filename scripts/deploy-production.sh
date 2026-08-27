@@ -44,6 +44,17 @@ as_app git -C "$APP_DIR" fetch origin "$BRANCH"
 as_app git -C "$APP_DIR" checkout "$BRANCH"
 as_app git -C "$APP_DIR" reset --hard "origin/$BRANCH"
 
+ENV_FILE="$APP_DIR/backend/.env"
+ABGP_GSTIN_VALUE='07AACTA4218N1ZO'
+if [ -f "$ENV_FILE" ]; then
+  if grep -q '^ABGP_GSTIN=' "$ENV_FILE"; then
+    as_app sed -i "s/^ABGP_GSTIN=.*/ABGP_GSTIN=$ABGP_GSTIN_VALUE/" "$ENV_FILE"
+  else
+    as_app bash -c "printf '\nABGP_GSTIN=%s\n' '$ABGP_GSTIN_VALUE' >> $(printf '%q' "$ENV_FILE")"
+  fi
+  log "Ensured ABGP_GSTIN=$ABGP_GSTIN_VALUE in backend/.env"
+fi
+
 if [ -f "$APP_DIR/backend/migrations/011_activities.sql" ]; then
   log "Applying activities migration (idempotent)"
   as_app_bash "cd backend && node scripts/run-migration.cjs migrations/011_activities.sql"
