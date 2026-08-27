@@ -40,6 +40,7 @@ export type PanelView =
   | 'membership-payments'
   | 'donations'
   | 'complaints'
+  | 'prant-complaints'
   | 'content'
   | 'prant-logins'
   | 'prant-pdfs'
@@ -371,6 +372,28 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <Campaign fontSize="small" />
             </ListItemIcon>
             <ListItemText primary={t('panel.activitiesNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+          </ListItemButton>
+        )}
+
+        {isPrant && (
+          <ListItemButton
+            selected={activeView === 'prant-complaints'}
+            onClick={() => onNavigate('prant-complaints')}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              '&.Mui-selected': {
+                bgcolor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                '& .MuiListItemIcon-root': { color: 'inherit' },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <ReportProblem fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('panel.prantComplaintsNav')} primaryTypographyProps={{ fontSize: '0.9rem' }} />
           </ListItemButton>
         )}
 

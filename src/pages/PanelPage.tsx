@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PaymentDialog } from '../components/PaymentDialog';
-import { Logout, Person, Email, Support, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
+import { Logout, Person, Email, AddPhotoAlternate, TextFields, Delete, Edit, VideoLibrary, Lock, Visibility, VisibilityOff, Menu as MenuIcon, CalendarToday, PictureAsPdf, AttachFile, Download } from '@mui/icons-material';
 import {
   loadDirectorContentBySection,
   saveDirectorContentBySection,
@@ -46,16 +46,15 @@ import {
   type DirectorPdfArticle,
   type DirectorSectionContent,
 } from '../lib/directorContent';
-import { getMembers, addMember, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
+import { getMembers, RAM_PATIL_EMAIL, type Member } from '../lib/memberRegistry';
 import {
-  addMemberViaApi,
   fetchPrantsFromApi,
   changePrantPassword,
   isApiConfigured,
   fetchContentViaApi,
   saveContentViaApi,
-  addComplaintViaApi,
-  fetchComplaintsFromApi,
+  fetchComplaintsAdminList,
+  fetchPrantComplaintsList,
   fetchPetitionsFromApi,
   createPetitionViaApi,
   updatePetitionViaApi,
@@ -66,13 +65,15 @@ import {
   submitPrantAnnualReportViaApi,
   type ApiPrantAnnualReport,
 } from '../lib/api';
-import { ComplaintCategoryFields, type ComplaintCategory } from '../components/ComplaintCategoryFields';
+import type { ComplaintCategory } from '../components/ComplaintCategoryFields';
 import { PRANT_KEYS } from '../lib/prantKeys';
 import { DashboardSidebar, type PanelView } from '../components/DashboardSidebar';
 import { MembershipPaymentsSection } from '../components/panel/MembershipPaymentsSection';
 import { DonationsSection } from '../components/panel/DonationsSection';
 import { InsightsSection } from '../components/panel/InsightsSection';
 import { ComplaintsSection } from '../components/panel/ComplaintsSection';
+import { MemberComplaintsSection } from '../components/panel/complaints/MemberComplaintsSection';
+import { PrantComplaintsSection } from '../components/panel/complaints/PrantComplaintsSection';
 import { ActivitiesPanelSection } from '../components/panel/ActivitiesPanelSection';
 import { DirectorDashboardSection } from '../components/panel/DirectorDashboardSection';
 import {
@@ -174,8 +175,6 @@ const roleLabels: Record<string, string> = {
   prant: 'Prant',
 };
 
-type HelpType = 'help' | 'complaint';
-
 export const PanelPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -183,15 +182,6 @@ export const PanelPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, token, isAuthenticated, authLoading, logout, updateUser } = useAuth();
   const [paymentOpen, setPaymentOpen] = useState(false);
-  const [helpType, setHelpType] = useState<HelpType>('help');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [contact, setContact] = useState('');
-  const [complaintFormData, setComplaintFormData] = useState<Record<string, string | string[] | boolean>>({});
-  const [complaintSubmitted, setComplaintSubmitted] = useState(false);
-  const [complaintPrantKey, setComplaintPrantKey] = useState<string>(() => user?.prant ?? '');
-  const [complaintPrantError, setComplaintPrantError] = useState<string>('');
-
   // Director content by section (blog, news, events, videos, gallery)
   const [directorContentBySection, setDirectorContentBySection] = useState(() => loadDirectorContentBySection());
   const [selectedSection, setSelectedSection] = useState<DirectorSectionKey>('blog');
@@ -303,13 +293,6 @@ export const PanelPage: React.FC = () => {
       // ignore
     }
   }, []);
-
-  // Keep complaint prant selection in sync with the logged-in user (when available).
-  useEffect(() => {
-    if (user?.prant) setComplaintPrantKey(user.prant);
-  }, [user?.prant]);
-
-
 
   const refetchMembersFromApi = useCallback(async () => {
     // DISABLED: /api/members route is currently disabled on backend
@@ -433,13 +416,32 @@ export const PanelPage: React.FC = () => {
     */
   }, [user?.role, token, refetchMembersFromApi]);
 
-  // Fetch complaints from API when analytics view is opened
+  // Load complaints for dashboard widgets (prant profile + director analytics)
   useEffect(() => {
-    if (panelView !== 'analytics' || !token || !isApiConfigured()) return;
-    fetchComplaintsFromApi(token)
-      .then((list) => setApiComplaints(list))
-      .catch((err) => console.error('Failed to fetch complaints:', err));
-  }, [panelView, token]);
+    if (!token || !isApiConfigured() || !user) return;
+
+    const shouldLoadPrantComplaints =
+      user.role === 'prant' && (panelView === 'profile' || panelView === 'analytics');
+    const shouldLoadDirectorComplaints = user.role === 'director' && panelView === 'analytics';
+
+    if (!shouldLoadPrantComplaints && !shouldLoadDirectorComplaints) return;
+
+    const load = async () => {
+      try {
+        if (shouldLoadDirectorComplaints) {
+          const result = await fetchComplaintsAdminList(token, { page: 1, pageSize: 200 });
+          setApiComplaints(result.complaints);
+          return;
+        }
+        const result = await fetchPrantComplaintsList(token, { page: 1, pageSize: 200 });
+        setApiComplaints(result.complaints);
+      } catch (err) {
+        console.error('Failed to fetch complaints:', err);
+      }
+    };
+
+    void load();
+  }, [panelView, token, user?.role]);
 
   // Prant annual reports (director inbox + prant submit view)
   useEffect(() => {
@@ -921,14 +923,17 @@ export const PanelPage: React.FC = () => {
   };
 
   const getAllComplaintsRecentFirst = (): StoredComplaint[] => {
+    const fromApi = [...apiComplaints].sort((a, b) => (b.at ?? '').localeCompare(a.at ?? ''));
     try {
       const raw = localStorage.getItem('abgp-complaints');
-      if (!raw) return [];
+      if (!raw) return fromApi as StoredComplaint[];
       const list = JSON.parse(raw) as StoredComplaint[];
-      if (!Array.isArray(list)) return [];
-      return [...list].reverse();
+      if (!Array.isArray(list)) return fromApi as StoredComplaint[];
+      return ([...fromApi, ...[...list].reverse()] as StoredComplaint[]).sort((a, b) =>
+        (b.at ?? '').localeCompare(a.at ?? '')
+      );
     } catch {
-      return [];
+      return fromApi as StoredComplaint[];
     }
   };
 
@@ -1115,104 +1120,6 @@ export const PanelPage: React.FC = () => {
   const isComplaintCategory = (s: string): s is ComplaintCategory =>
     COMPLAINT_CATEGORIES.includes(s as ComplaintCategory);
 
-  const handleComplaintFormUpdate = (key: string, value: string | string[] | boolean) => {
-    setComplaintFormData((prev) => ({ ...prev, [key]: value }));
-  };
-  const handleComplaintFormToggle = (key: string, option: string) => {
-    setComplaintFormData((prev) => {
-      const arr = (prev[key] as string[]) || [];
-      const next = arr.includes(option) ? arr.filter((x) => x !== option) : [...arr, option];
-      return { ...prev, [key]: next };
-    });
-  };
-
-  const handleHelpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isComplaintCategory(subject)) {
-      try {
-        const memberEmailVal = (user?.email || contact || '').trim().toLowerCase() || undefined;
-
-        const selectedPrantKey =
-          user?.role === 'prant'
-            ? (user.prant ?? complaintPrantKey)
-            : user?.role === 'member'
-              ? (user.prant ?? complaintPrantKey)
-              : complaintPrantKey;
-        const assignedPrantKey = normalizePrantKey(selectedPrantKey);
-
-        if (!assignedPrantKey) {
-          setComplaintPrantError(t('panel.prantListPrant') + ' is required');
-          return;
-        }
-
-        const payload = {
-          category: subject,
-          formData: complaintFormData,
-          message,
-          contact,
-          memberEmail: memberEmailVal,
-          assignedPrantKey,
-        };
-
-        // 1. Save to API if configured
-        if (token && isApiConfigured()) {
-          try {
-            await addComplaintViaApi(token, payload);
-          } catch (err) {
-            console.error('Failed to add complaint via API:', err);
-          }
-        }
-
-        // 2. Backup to localStorage (legacy)
-        const stored = JSON.parse(localStorage.getItem('abgp-complaints') || '[]');
-        stored.push({ ...payload, at: new Date().toISOString() });
-        localStorage.setItem('abgp-complaints', JSON.stringify(stored));
-
-        if (memberEmailVal && memberEmailVal.includes('@')) {
-          const existing = getMembers().some((m) => m.email.toLowerCase() === memberEmailVal);
-          if (!existing) {
-            const memberData = {
-              email: memberEmailVal,
-              name: user?.name || contact || memberEmailVal.split('@')[0],
-              role: 'member' as const,
-              prant: assignedPrantKey,
-            };
-            
-            if (token && isApiConfigured()) {
-              try {
-                await addMemberViaApi(token, memberData);
-              } catch (err) {
-                console.error('Failed to add member via API:', err);
-              }
-            }
-            
-            addMember({
-              ...memberData,
-              isNewMember: true,
-            });
-          }
-        }
-        setComplaintSubmitted(true);
-        setComplaintPrantError('');
-        setSubject('');
-        setComplaintFormData({});
-        setMessage('');
-        setContact('');
-        
-        // Refresh complaints list if on analytics view
-        if (panelView === 'analytics' && token) {
-          fetchComplaintsFromApi(token).then(setApiComplaints).catch(() => {});
-        }
-      } catch (err) {
-        console.error('Error submitting help/complaint:', err);
-      }
-      return;
-    }
-    setSubject('');
-    setMessage('');
-    setContact('');
-  };
-
   if (authLoading || !user) {
     return <Navigate to="/login" replace />;
   }
@@ -1280,6 +1187,7 @@ export const PanelPage: React.FC = () => {
               {panelView === 'membership-payments' && t('panel.membershipPayments')}
               {panelView === 'donations' && t('panel.donations')}
               {panelView === 'complaints' && t('panel.complaintsNav')}
+              {panelView === 'prant-complaints' && t('panel.prantComplaintsNav')}
               {panelView === 'activities' && t('panel.activitiesNav')}
               {panelView === 'content' && `${t('panel.sidebarContent')}: ${sectionLabels[effectiveSection]}`}
               {panelView === 'prant-logins' && t('panel.prantListTitle')}
@@ -2218,6 +2126,10 @@ export const PanelPage: React.FC = () => {
               <ComplaintsSection token={token} />
             )}
 
+            {panelView === 'prant-complaints' && isPrant && (
+              <PrantComplaintsSection token={token} prantKey={user?.prant} />
+            )}
+
             {(panelView === 'activities') && (isDirector || isPrant) && (
               <ActivitiesPanelSection token={token} isDirector={isDirector} />
             )}
@@ -2759,158 +2671,16 @@ export const PanelPage: React.FC = () => {
             </Button>
           </Paper>
 
-          {/* Help or Complain Card */}
-          <Paper elevation={1} sx={panelPaperSx(theme, { borderAccent: 'primary' })}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-              <Support color="primary" sx={{ fontSize: 24 }} />
-              <Typography variant="h6" fontWeight={700} color="primary">
-                {t('panel.helpOrComplain')}
-              </Typography>
-            </Box>
-            <Box component="form" onSubmit={handleHelpSubmit}>
-              <Stack spacing={2.5}>
-                <TextField
-                  select
-                  fullWidth
-                  label={t('panel.typeLabel')}
-                  value={helpType}
-                  onChange={(e) => setHelpType(e.target.value as HelpType)}
-                  variant="outlined"
-                  SelectProps={{
-                    MenuProps: {
-                      disableScrollLock: true,
-                      sx: { zIndex: 9999 },
-                      PaperProps: { sx: { maxHeight: 320 } },
-                    },
-                  }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                >
-                  <MenuItem value="help">{t('panel.typeHelp')}</MenuItem>
-                  <MenuItem value="complaint">{t('panel.typeComplaint')}</MenuItem>
-                </TextField>
-                <TextField
-                  select
-                  fullWidth
-                  label={t('panel.subject')}
-                  value={subject}
-                  onChange={(e) => {
-                    setSubject(e.target.value);
-                    setComplaintFormData({});
-                    setComplaintSubmitted(false);
-                  }}
-                  variant="outlined"
-                  required
-                  InputLabelProps={{ shrink: true }}
-                  SelectProps={{
-                    displayEmpty: true,
-                    renderValue: (v) => (v ? t(`complaint.category.${v}`) : t('login.select')),
-                    MenuProps: {
-                      disableScrollLock: true,
-                      sx: { zIndex: 9999 },
-                      PaperProps: { sx: { maxHeight: 320 } },
-                    },
-                  }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                >
-                  <MenuItem value="">{t('login.select')}</MenuItem>
-                  <MenuItem value="realEstate">{t('complaint.category.realEstate')}</MenuItem>
-                  <MenuItem value="food">{t('complaint.category.food')}</MenuItem>
-                  <MenuItem value="hospital">{t('complaint.category.hospital')}</MenuItem>
-                  <MenuItem value="transport">{t('complaint.category.transport')}</MenuItem>
-                  <MenuItem value="ecommerce">{t('complaint.category.ecommerce')}</MenuItem>
-                  <MenuItem value="society">{t('complaint.category.society')}</MenuItem>
-                  <MenuItem value="utility">{t('complaint.category.utility')}</MenuItem>
-                  <MenuItem value="education">{t('complaint.category.education')}</MenuItem>
-                  <MenuItem value="other">{t('complaint.category.other')}</MenuItem>
-                </TextField>
-                {subject && isComplaintCategory(subject) && (
-                  <>
-                    <TextField
-                      select
-                      fullWidth
-                      label={t('panel.prantListPrant')}
-                      value={user.prant ?? complaintPrantKey}
-                      onChange={(e) => {
-                        setComplaintPrantKey(e.target.value);
-                        setComplaintPrantError('');
-                      }}
-                      variant="outlined"
-                      required={!user.prant}
-                      disabled={Boolean(user.prant)}
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                    >
-                      <MenuItem value="">{t('login.select')}</MenuItem>
-                      {PRANT_KEYS.map((key) => (
-                        <MenuItem key={key} value={key}>
-                          {t(`prant.${key}`)}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    {complaintPrantError && (
-                      <Typography variant="body2" color="error.main" fontWeight={600} sx={{ mt: -1 }}>
-                        {complaintPrantError}
-                      </Typography>
-                    )}
-                    <ComplaintCategoryFields
-                      category={subject}
-                      formData={complaintFormData}
-                      onUpdate={handleComplaintFormUpdate}
-                      onToggleCheck={handleComplaintFormToggle}
-                    />
-                  </>
-                )}
-                {complaintSubmitted && (
-                  <Typography variant="body2" color="success.main" fontWeight={600}>
-                    {t('complaint.submitted')}
-                  </Typography>
-                )}
-                <TextField
-                  fullWidth
-                  label={t('panel.message')}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  required
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-                <TextField
-                  fullWidth
-                  label={t('panel.contact')}
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  variant="outlined"
-                  required
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  sx={{
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    py: 1.5,
-                    boxShadow: theme.shadows[4],
-                    '&:hover': {
-                      boxShadow: theme.shadows[8],
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {t('panel.submit')}
-                </Button>
-              </Stack>
-            </Box>
-          </Paper>
+          {/* Member complaints */}
+          <MemberComplaintsSection
+            token={token}
+            userEmail={user.email}
+            defaultContact={user.email}
+          />
         </Stack>
       </Container>
       <PaymentDialog open={paymentOpen} onClose={handlePaymentClose} />
-      
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}

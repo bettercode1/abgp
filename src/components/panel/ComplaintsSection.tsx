@@ -34,11 +34,14 @@ import { useTranslation } from 'react-i18next';
 import {
   downloadComplaintsReport,
   fetchComplaintsAdminList,
+  updateComplaintViaApi,
   type ApiComplaint,
   type AdminComplaintsListResponse,
+  type ComplaintStatus,
 } from '../../lib/api';
 import { panelPaperSx, panelTableContainerSx } from '../../lib/panelLayout';
 import { prantKeyToDisplayName } from '../../lib/prantDisplayNames';
+import { ComplaintAttachmentPreview, ComplaintStatusChip } from './complaints/ComplaintShared';
 
 interface ComplaintsSectionProps {
   token: string | null;
@@ -72,6 +75,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
   const [to, setTo] = useState('');
   const [category, setCategory] = useState('');
   const [prant, setPrant] = useState('');
+  const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -81,6 +85,9 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [selected, setSelected] = useState<ApiComplaint | null>(null);
+  const [statusDraft, setStatusDraft] = useState<ComplaintStatus>('submitted');
+  const [noteDraft, setNoteDraft] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) {
@@ -96,6 +103,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
         to: to || undefined,
         category: category || undefined,
         prant: prant || undefined,
+        status: status || undefined,
         q: q || undefined,
         page: page + 1,
         pageSize: rowsPerPage,
@@ -107,7 +115,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
     } finally {
       setLoading(false);
     }
-  }, [token, from, to, category, prant, q, page, rowsPerPage, t]);
+  }, [token, from, to, category, prant, status, q, page, rowsPerPage, t]);
 
   useEffect(() => {
     void load();
@@ -126,6 +134,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
         to: to || undefined,
         category: category || undefined,
         prant: prant || undefined,
+        status: status || undefined,
         q: q || undefined,
       });
     } catch (err) {
@@ -133,7 +142,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
     } finally {
       setDownloading(false);
     }
-  }, [token, from, to, category, prant, q, t]);
+  }, [token, from, to, category, prant, status, q, t]);
 
   const categoryOptions = data?.filter_options.categories || [];
   const prantOptions = data?.filter_options.prants || [];
@@ -215,6 +224,27 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
                   {prantOptions.map((p) => (
                     <MenuItem key={p} value={p}>
                       {prantKeyToDisplayName(p)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="complaints-status-label">{t('complaint.statusLabel')}</InputLabel>
+                <Select
+                  labelId="complaints-status-label"
+                  label={t('complaint.statusLabel')}
+                  value={status}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <MenuItem value="">{t('panel.insightsAll')}</MenuItem>
+                  {(data?.filter_options.statuses || ['submitted', 'in_review', 'resolved', 'closed']).map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {t(`complaint.status.${s}`)}
                     </MenuItem>
                   ))}
                 </Select>
@@ -316,18 +346,24 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
                     <TableCell>{t('panel.complaintsColCategory')}</TableCell>
                     <TableCell>{t('panel.complaintsColContact')}</TableCell>
                     <TableCell>{t('panel.complaintsColPrant')}</TableCell>
+                    <TableCell>{t('complaint.statusLabel')}</TableCell>
                     <TableCell>{t('panel.complaintsColMessage')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.complaints.map((c) => (
-                    <TableRow key={c.id} hover sx={{ cursor: 'pointer' }} onClick={() => setSelected(c)}>
+                    <TableRow key={c.id} hover sx={{ cursor: 'pointer' }} onClick={() => {
+                      setSelected(c);
+                      setStatusDraft((c.status as ComplaintStatus) || 'submitted');
+                      setNoteDraft(c.prantNotes || '');
+                    }}>
                       <TableCell>{formatComplaintDate(c.at)}</TableCell>
                       <TableCell>
                         <Chip size="small" label={categoryLabel(t, c.category)} />
                       </TableCell>
                       <TableCell>{c.memberEmail || c.contact || '—'}</TableCell>
                       <TableCell>{c.assignedPrantKey ? prantKeyToDisplayName(c.assignedPrantKey) : '—'}</TableCell>
+                      <TableCell><ComplaintStatusChip status={c.status} /></TableCell>
                       <TableCell sx={{ maxWidth: 320 }}>
                         <Typography variant="body2" noWrap>
                           {c.message || '—'}
@@ -355,7 +391,7 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
         </Paper>
       ) : null}
 
-      <Dialog open={Boolean(selected)} onClose={() => setSelected(null)} maxWidth="sm" fullWidth>
+      <Dialog open={Boolean(selected)} onClose={() => setSelected(null)} maxWidth="md" fullWidth>
         <DialogTitle>{t('panel.complaintsDetailsTitle')}</DialogTitle>
         <DialogContent dividers>
           {selected ? (
@@ -363,7 +399,13 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
               <Typography variant="caption" color="text.secondary">
                 {formatComplaintDate(selected.at)}
               </Typography>
-              <Chip size="small" label={categoryLabel(t, selected.category)} sx={{ alignSelf: 'flex-start' }} />
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Chip size="small" label={categoryLabel(t, selected.category)} />
+                <ComplaintStatusChip status={selected.status} />
+              </Stack>
+              <Typography variant="body2">
+                <strong>{t('login.state')} / {t('login.district')}:</strong> {selected.state || '—'}, {selected.district || '—'}
+              </Typography>
               <Typography variant="body2">
                 <strong>{t('panel.complaintsColContact')}:</strong> {selected.memberEmail || selected.contact || '—'}
               </Typography>
@@ -388,11 +430,53 @@ export const ComplaintsSection: React.FC<ComplaintsSectionProps> = ({ token }) =
                   {JSON.stringify(selected.formData, null, 2)}
                 </Box>
               ) : null}
+              <ComplaintAttachmentPreview token={token} attachments={selected.attachments} />
+              <FormControl fullWidth size="small">
+                <InputLabel>{t('complaint.statusLabel')}</InputLabel>
+                <Select
+                  label={t('complaint.statusLabel')}
+                  value={statusDraft}
+                  onChange={(e) => setStatusDraft(e.target.value as ComplaintStatus)}
+                >
+                  <MenuItem value="submitted">{t('complaint.status.submitted')}</MenuItem>
+                  <MenuItem value="in_review">{t('complaint.status.in_review')}</MenuItem>
+                  <MenuItem value="resolved">{t('complaint.status.resolved')}</MenuItem>
+                  <MenuItem value="closed">{t('complaint.status.closed')}</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                multiline
+                minRows={2}
+                label={t('complaint.prantNotesLabel')}
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+              />
             </Stack>
           ) : null}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSelected(null)}>{t('panel.complaintsDetailsClose')}</Button>
+          <Button
+            variant="contained"
+            disabled={!selected || saving || !token}
+            onClick={() => {
+              if (!selected || !token) return;
+              setSaving(true);
+              void updateComplaintViaApi(token, selected.id, {
+                status: statusDraft,
+                prantNotes: noteDraft,
+              })
+                .then((updated) => {
+                  setSelected(updated);
+                  void load();
+                })
+                .catch((err) => setError(err instanceof Error ? err.message : t('complaint.updateError')))
+                .finally(() => setSaving(false));
+            }}
+          >
+            {saving ? <CircularProgress size={18} color="inherit" /> : t('panel.save')}
+          </Button>
         </DialogActions>
       </Dialog>
     </Stack>

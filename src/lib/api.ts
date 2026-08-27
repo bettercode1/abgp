@@ -206,39 +206,155 @@ export async function deleteContentViaApi(
   }, true);
 }
 
+export type ComplaintStatus = 'submitted' | 'in_review' | 'resolved' | 'closed';
+
+export interface ComplaintAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  url: string;
+  size?: number;
+}
+
+export interface ComplaintAttachmentUpload {
+  name: string;
+  mimeType: string;
+  dataBase64: string;
+}
+
 export interface ApiComplaint {
   id: string;
   memberEmail?: string;
   contact?: string;
   category?: string;
-  formData?: any;
+  formData?: Record<string, unknown>;
   message?: string;
   assignedPrantKey?: string;
+  state?: string;
+  district?: string;
+  status?: ComplaintStatus;
+  attachments?: ComplaintAttachment[];
+  submittedByUid?: string;
+  prantNotes?: string;
+  handledBy?: string;
+  handledAt?: string;
   at: string;
+  updatedAt?: string;
 }
 
-export async function fetchComplaintsFromApi(token: string, memberEmail?: string): Promise<ApiComplaint[]> {
-  let url = `${API_BASE}/complaints`;
-  if (memberEmail) url += `?member_email=${encodeURIComponent(memberEmail)}`;
-  const data = await fetchJson<{ complaints: ApiComplaint[] }>(url, token, {}, true);
+export interface SubmitComplaintPayload {
+  memberEmail?: string;
+  contact?: string;
+  category: string;
+  formData?: Record<string, unknown>;
+  message?: string;
+  state: string;
+  district: string;
+  assignedPrantKey?: string;
+  attachments?: ComplaintAttachmentUpload[];
+}
+
+export async function fetchMyComplaints(token: string): Promise<ApiComplaint[]> {
+  const data = await fetchJson<{ complaints: ApiComplaint[] }>(
+    `${API_BASE}/complaints/mine`,
+    token,
+    {},
+    true
+  );
   return data.complaints;
 }
 
-export async function addComplaintViaApi(
+/** @deprecated Use fetchMyComplaints */
+export async function fetchComplaintsFromApi(token: string, _memberEmail?: string): Promise<ApiComplaint[]> {
+  return fetchMyComplaints(token);
+}
+
+export async function submitComplaintViaApi(
   token: string,
-  data: {
-    memberEmail?: string;
-    contact?: string;
-    category?: string;
-    formData?: any;
-    message?: string;
-  }
+  data: SubmitComplaintPayload
 ): Promise<ApiComplaint> {
   const res = await fetchJson<{ complaint: ApiComplaint }>(`${API_BASE}/complaints`, token, {
     method: 'POST',
     body: JSON.stringify(data),
   }, true);
   return res.complaint;
+}
+
+export async function addComplaintViaApi(
+  token: string,
+  data: SubmitComplaintPayload
+): Promise<ApiComplaint> {
+  return submitComplaintViaApi(token, data);
+}
+
+export async function updateComplaintViaApi(
+  token: string,
+  id: string,
+  data: { status?: ComplaintStatus; prantNotes?: string }
+): Promise<ApiComplaint> {
+  const res = await fetchJson<{ complaint: ApiComplaint }>(
+    `${API_BASE}/complaints/${encodeURIComponent(id)}`,
+    token,
+    { method: 'PATCH', body: JSON.stringify(data) },
+    true
+  );
+  return res.complaint;
+}
+
+export interface PrantComplaintsListParams {
+  from?: string;
+  to?: string;
+  category?: string;
+  status?: string;
+  q?: string;
+  page?: number;
+  pageSize?: number;
+  prant?: string;
+}
+
+export interface PrantComplaintsListResponse {
+  complaints: ApiComplaint[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export async function fetchPrantComplaintsList(
+  token: string,
+  params: PrantComplaintsListParams = {}
+): Promise<PrantComplaintsListResponse> {
+  const qs = new URLSearchParams();
+  if (params.from) qs.set('from', params.from);
+  if (params.to) qs.set('to', params.to);
+  if (params.category) qs.set('category', params.category);
+  if (params.status) qs.set('status', params.status);
+  if (params.q) qs.set('q', params.q);
+  if (params.page) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
+  if (params.prant) qs.set('prant', params.prant);
+  const query = qs.toString();
+  const url = `${API_BASE}/complaints/prant/list${query ? `?${query}` : ''}`;
+  return fetchJson<PrantComplaintsListResponse>(url, token, {}, true);
+}
+
+export async function fetchComplaintAttachmentBlob(
+  token: string,
+  attachmentUrl: string
+): Promise<Blob> {
+  const url = attachmentUrl.startsWith('/')
+    ? attachmentUrl
+    : `${API_BASE}/${attachmentUrl.replace(/^\//, '')}`;
+  const authToken = (await getAccessToken()) ?? token ?? null;
+  const res = await fetch(url, {
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to load attachment: ${res.status}`);
+  }
+  return res.blob();
 }
 
 export async function deleteComplaintViaApi(token: string, id: string): Promise<void> {
@@ -252,6 +368,7 @@ export interface AdminComplaintsListParams {
   to?: string;
   category?: string;
   prant?: string;
+  status?: string;
   q?: string;
   page?: number;
   pageSize?: number;
@@ -259,7 +376,7 @@ export interface AdminComplaintsListParams {
 
 export interface AdminComplaintsListResponse {
   complaints: ApiComplaint[];
-  filter_options: { categories: string[]; prants: string[] };
+  filter_options: { categories: string[]; prants: string[]; statuses?: string[] };
   pagination: {
     page: number;
     pageSize: number;
@@ -274,6 +391,7 @@ function buildComplaintsQuery(params: AdminComplaintsListParams): string {
   if (params.to) qs.set('to', params.to);
   if (params.category) qs.set('category', params.category);
   if (params.prant) qs.set('prant', params.prant);
+  if (params.status) qs.set('status', params.status);
   if (params.q) qs.set('q', params.q);
   if (params.page) qs.set('page', String(params.page));
   if (params.pageSize) qs.set('pageSize', String(params.pageSize));

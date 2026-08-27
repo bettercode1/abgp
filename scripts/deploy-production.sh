@@ -60,6 +60,11 @@ if [ -f "$APP_DIR/backend/migrations/011_activities.sql" ]; then
   as_app_bash "cd backend && node scripts/run-migration.cjs migrations/011_activities.sql"
 fi
 
+if [ -f "$APP_DIR/backend/migrations/012_complaints_v2.sql" ]; then
+  log "Applying complaints v2 migration (idempotent)"
+  as_app_bash "cd backend && node scripts/run-migration.cjs migrations/012_complaints_v2.sql"
+fi
+
 log "Installing frontend dependencies"
 as_app_bash "npm ci"
 

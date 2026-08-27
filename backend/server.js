@@ -39,7 +39,7 @@ app.post('/api/auth/login', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/auth', memberAuthRouter);
 
-app.use('/api/complaints', requireAuth, requireDirector, complaintsRouter);
+app.use('/api/complaints', requireAuth, complaintsRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/members', membersRouter); 
 app.use('/api/prants', requireAuth, requireDirector, prantsRouter);
