@@ -151,6 +151,11 @@ async function fetchRecentRazorpayPayments(count = 50) {
   return result.items || [];
 }
 
+async function fetchRazorpayPayment(paymentId) {
+  const razorpay = getRazorpay();
+  return razorpay.payments.fetch(String(paymentId).trim());
+}
+
 function getRazorpayDashboardPaymentsUrl() {
   return 'https://dashboard.razorpay.com/app/payments';
 }
@@ -191,6 +196,7 @@ module.exports = {
   getRazorpayKeyId,
   getRazorpayCredentials,
   fetchRazorpayOrder,
+  fetchRazorpayPayment,
   fetchRecentRazorpayPayments,
   getRazorpayDashboardPaymentsUrl,
 };

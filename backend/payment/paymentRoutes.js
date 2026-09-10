@@ -9,6 +9,7 @@ const {
   getPaymentsOverview,
   getPaymentInsightsHandler,
   exportPaymentsHandler,
+  syncFromRazorpayHandler,
 } = require('./paymentController');
 const { buildPaymentHealth } = require('./paymentHealth');
 
@@ -37,5 +38,6 @@ router.post('/payment-failed', paymentFailed);
 router.get('/admin/overview', requireAuth, requireDirector, getPaymentsOverview);
 router.get('/admin/insights', requireAuth, requireDirector, getPaymentInsightsHandler);
 router.get('/admin/export', requireAuth, requireDirector, exportPaymentsHandler);
+router.post('/admin/sync-from-razorpay', requireAuth, requireDirector, syncFromRazorpayHandler);
 
 module.exports = router;

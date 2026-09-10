@@ -28,6 +28,7 @@ const { computeMembershipStatus } = require('../member/memberAuthService');
 const { validatePaymentForm } = require('./validators');
 const { formatRazorpayError, isRazorpayAuthError, isRazorpayError } = require('./razorpayErrors');
 const { sendMembershipReceiptIfNeeded } = require('./sendMembershipReceipt');
+const { syncPaymentFromRazorpayPaymentId } = require('./syncPaymentFromRazorpay');
 const { prantKeyToDisplayName } = require('../lib/prantDisplayNames');
 const { PRANT_KEYS } = require('../lib/prantKeys');
 const { aggregatePaymentsByPrant } = require('../lib/prantNormalize');
@@ -735,6 +736,21 @@ async function exportPaymentsHandler(req, res) {
   }
 }
 
+/** POST /api/payment/admin/sync-from-razorpay — Director: mark captured Razorpay payment SUCCESS in DB */
+async function syncFromRazorpayHandler(req, res) {
+  try {
+    const paymentId = req.body?.razorpay_payment_id || req.body?.payment_id;
+    if (!paymentId) {
+      return res.status(400).json({ error: 'razorpay_payment_id is required' });
+    }
+    const result = await syncPaymentFromRazorpayPaymentId(String(paymentId).trim());
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    console.error('[payment/admin/sync-from-razorpay]', err);
+    return res.status(400).json({ error: err.message || 'Sync failed' });
+  }
+}
+
 module.exports = {
   createOrder,
   createRenewalOrder,
@@ -744,4 +760,5 @@ module.exports = {
   getPaymentsOverview,
   getPaymentInsightsHandler,
   exportPaymentsHandler,
+  syncFromRazorpayHandler,
 };

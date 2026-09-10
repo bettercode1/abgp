@@ -1,0 +1,35 @@
+name: Sync Razorpay payment (one-off)
+
+on:
+  workflow_dispatch:
+    inputs:
+      payment_id:
+        description: 'Razorpay payment id (e.g. pay_TZTEPSE3WBXPkQ)'
+        required: true
+        type: string
+
+concurrency:
+  group: sync-razorpay-payment
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync payment on VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Sync over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            set -euo pipefail
+            cd /home/deploy/apps/ABGP/abgp
+            sudo -u deploy git fetch origin main
+            sudo -u deploy git checkout main
+            sudo -u deploy git reset --hard origin/main
+            sudo -u deploy bash -lc "cd backend && npm ci --omit=dev 2>/dev/null || npm ci"
+            sudo -u deploy bash -lc "cd backend && node scripts/syncPaymentFromRazorpay.cjs '${{ github.event.inputs.payment_id }}'"
