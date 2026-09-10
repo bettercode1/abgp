@@ -605,6 +605,8 @@ export interface MemberLookupMatch {
 export interface MemberLoginLookupResponse {
   ok: boolean;
   matches: MemberLookupMatch[];
+  pending_payment?: boolean;
+  message?: string;
 }
 
 export async function memberLoginApi(email: string, phone: string): Promise<MemberLoginResponse> {

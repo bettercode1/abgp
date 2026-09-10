@@ -156,7 +156,11 @@ export const MemberLoginPage: React.FC = () => {
         phone: loginMode === 'phone' ? phoneVal : undefined,
       });
       if (!result.matches.length) {
-        setLoginError(t('login.membershipNotFound'));
+        setLoginError(
+          result.pending_payment
+            ? (result.message || t('login.membershipPaymentPending'))
+            : t('login.membershipNotFound')
+        );
         setToastOpen(true);
         return;
       }

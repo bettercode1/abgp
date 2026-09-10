@@ -65,6 +65,11 @@ if [ -f "$APP_DIR/backend/migrations/012_complaints_v2.sql" ]; then
   as_app_bash "cd backend && node scripts/run-migration.cjs migrations/012_complaints_v2.sql"
 fi
 
+if [ -f "$APP_DIR/backend/migrations/013_normalize_payment_phones.sql" ]; then
+  log "Applying phone normalization migration (idempotent)"
+  as_app_bash "cd backend && node scripts/run-migration.cjs migrations/013_normalize_payment_phones.sql"
+fi
+
 log "Installing frontend dependencies"
 as_app_bash "npm ci"
 

@@ -1,4 +1,9 @@
-const { normalizePhone, findMemberForLogin, findMembersForLoginLookup } = require('./memberAuthQueries');
+const {
+  normalizePhone,
+  findMemberForLogin,
+  findMembersForLoginLookup,
+  findPendingPaymentByPhone,
+} = require('./memberAuthQueries');
 const { computeMembershipStatus } = require('./memberAuthService');
 const { validatePhoneNumber } = require('../payment/phoneValidation');
 const { validateEmailAddress } = require('../payment/emailValidation');
@@ -93,6 +98,19 @@ async function memberLoginLookup(req, res) {
     const email = req.body?.email ? String(req.body.email).trim().toLowerCase() : '';
     const phone = req.body?.phone ? normalizePhone(req.body.phone) : '';
     const matches = await findMembersForLoginLookup({ email, phone });
+
+    if (!matches.length && phone) {
+      const pending = await findPendingPaymentByPhone(phone);
+      if (pending) {
+        return res.json({
+          ok: true,
+          matches: [],
+          pending_payment: true,
+          message:
+            'A membership payment was started but not completed. If you already paid, contact ABGP support with your payment receipt.',
+        });
+      }
+    }
 
     return res.json({
       ok: true,

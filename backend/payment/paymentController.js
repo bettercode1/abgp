@@ -75,7 +75,7 @@ async function createOrder(req, res) {
       prant: String(prant).trim(),
       location_details: String(location_details).trim(),
       pincode: String(pincode).replace(/\D/g, '').slice(0, 6),
-      phone_no: String(phone_no).trim(),
+      phone_no: normalizePhone(phone_no),
       email: String(email).trim().toLowerCase(),
     };
 

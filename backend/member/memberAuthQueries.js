@@ -7,6 +7,9 @@ function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '').slice(-10);
 }
 
+/** SQL expression: last 10 digits of phone_no (handles +91, spaces, VARCHAR truncation bugs). */
+const PHONE_NORM_SQL = `RIGHT(REGEXP_REPLACE(COALESCE(phone_no, ''), '[^0-9]', '', 'g'), 10)`;
+
 function mapPaymentRow(row) {
   return {
     source: 'payments',
@@ -30,7 +33,7 @@ async function findLatestSuccessPayment(email, phone) {
             email, phone_no, payment_date, payment_status
      FROM abgp.payments
      WHERE LOWER(email) = $1
-       AND phone_no = $2
+       AND ${PHONE_NORM_SQL} = $2
        AND UPPER(COALESCE(payment_status, '')) IN ('SUCCESS', 'SUCCESSFUL')
        AND payment_date IS NOT NULL
      ORDER BY payment_date DESC
@@ -47,7 +50,7 @@ async function findLatestExistingMember(email, phone) {
               location_details, payment_date
        FROM abgp.existing_members
        WHERE LOWER(TRIM(email)) = $1
-         AND phone_no = $2
+         AND ${PHONE_NORM_SQL} = $2
          AND payment_date IS NOT NULL
        ORDER BY payment_date DESC
        LIMIT 1`,
@@ -88,7 +91,7 @@ async function findPaymentCandidatesByIdentifier(email, phone) {
   }
   if (phone) {
     params.push(phone);
-    conditions.push(`phone_no = $${params.length}`);
+    conditions.push(`${PHONE_NORM_SQL} = $${params.length}`);
   }
   const result = await pool.query(
     `SELECT full_name, gender, state, district, prant, location_details,
@@ -122,7 +125,7 @@ async function findExistingCandidatesByIdentifier(email, phone) {
   }
   if (phone) {
     params.push(phone);
-    conditions.push(`phone_no = $${params.length}`);
+    conditions.push(`${PHONE_NORM_SQL} = $${params.length}`);
   }
   try {
     const result = await pool.query(
@@ -248,12 +251,30 @@ async function findMembersForLoginLookup(identifier) {
   );
 }
 
+/**
+ * Unverified payment row for phone (paid at Razorpay but not SUCCESS in DB, or checkout abandoned).
+ */
+async function findPendingPaymentByPhone(phone) {
+  const normalizedPhone = normalizePhone(phone);
+  if (normalizedPhone.length !== 10) return null;
+  const result = await pool.query(
+    `SELECT id, email, phone_no, payment_status, created_at, razorpay_order_id
+     FROM abgp.payments
+     WHERE ${PHONE_NORM_SQL} = $1
+       AND UPPER(COALESCE(payment_status, '')) NOT IN ('SUCCESS', 'SUCCESSFUL')
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [normalizedPhone]
+  );
+  return result.rows[0] || null;
+}
+
 async function updateExistingMemberPaymentDate(email, phone, paymentDate) {
   try {
     await pool.query(
       `UPDATE abgp.existing_members
        SET payment_date = $3, updated_at = NOW()
-       WHERE LOWER(TRIM(email)) = $1 AND phone_no = $2`,
+       WHERE LOWER(TRIM(email)) = $1 AND ${PHONE_NORM_SQL} = $2`,
       [email, phone, paymentDate]
     );
   } catch (err) {
@@ -265,7 +286,9 @@ async function updateExistingMemberPaymentDate(email, phone, paymentDate) {
 
 module.exports = {
   normalizePhone,
+  PHONE_NORM_SQL,
   findMemberForLogin,
   findMembersForLoginLookup,
+  findPendingPaymentByPhone,
   updateExistingMemberPaymentDate,
 };
