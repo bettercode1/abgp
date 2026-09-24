@@ -832,7 +832,7 @@
   "login.phoneStartInvalid": "भारतीय मोबाइल नंबर 6, 7, 8 या 9 से शुरू होने चाहिए",
   "login.pincode": "பின் கோடு ",
   "login.pincodeInvalid": "110001 மற்றும் 999999 க்கு இடையில் சரியான பின் குறியீட்டை உள்ளிடவும்.",
-  "login.pincodePlaceholder": "(वैकल्पिक)",
+  "login.pincodePlaceholder": "110001",
   "login.pincodeRequired": "பின் குறியீடு தேவை",
   "login.pleaseWait": "कृपया प्रतीक्षा करें...",
   "login.prantHubDescription": "अपने प्रांत ईमेल और पासवर्ड से साइन इन करें",

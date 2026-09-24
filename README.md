@@ -17,10 +17,14 @@ Official web portal for **Akhil Bhartiya Grahak Panchayat (ABGP)** — a multili
 
 ### Membership
 - New member registration with online payment (₹100)
+- Pincode is required (6 digits, from 110001 to 999999)
 - Existing member login / lookup
 - Membership renewal flow
 - Payment success and failure pages
 - Membership records linked to payment status
+- Welcome email after a successful payment, with the PDF receipt and the member's kshetra WhatsApp group
+
+The WhatsApp link follows the ABGP kshetra → prant chart. The member's prant picks one of the 10 region groups. West Bengal is stored as the Bihar (Uttar) prant, so that state is matched first and gets the Purva Kshetra group. Links live in `backend/payment/whatsappGroupLinks.js`. Emails already sent are not sent again.
 
 ### Donations
 - Online donation form and Razorpay checkout
@@ -196,5 +200,6 @@ Created for **Akhil Bhartiya Grahak Panchayat (ABGP)**.
 ## Notes
 
 - Membership fee is configured server-side (default ₹100).
-- Razorpay Key ID / Secret must be a matching Live pair on production.
+- Razorpay Key ID / Secret must be a matching Live pair on production. One Razorpay account is shared with another website, so the full Razorpay total is not the abgpindia.in member count. The Director dashboard database figures are this website only.
+- Kshetra WhatsApp invites are added only on new successful-payment welcome emails.
 - Admin and Prant accounts are managed in Firebase; do not store live passwords in this README.

@@ -835,7 +835,7 @@
   "login.phoneStartInvalid": "Indian mobile numbers must start with 6, 7, 8, or 9",
   "login.pincode": "Pincode",
   "login.pincodeInvalid": "Enter a valid pincode between 110001 and 999999.",
-  "login.pincodePlaceholder": "(Optional)",
+  "login.pincodePlaceholder": "110001",
   "login.pincodeRequired": "Pincode is required",
   "login.pleaseWait": "Please wait...",
   "login.prantHubDescription": "Sign in with your prant email and password",

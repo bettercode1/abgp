@@ -4,6 +4,7 @@
 const nodemailer = require('nodemailer');
 const { getReceiptConfig, isSmtpConfigured } = require('./receiptConfig');
 const { formatInrFromPaise, membershipLineLabel } = require('./membershipReceiptPdf');
+const { resolveWhatsappGroup } = require('./whatsappGroupLinks');
 
 function buildWelcomeLinks(websiteUrl) {
   const base = websiteUrl.replace(/\/$/, '');
@@ -16,6 +17,24 @@ function buildWelcomeLinks(websiteUrl) {
     { label: 'Donate', href: `${base}/donate` },
     { label: 'Contact Us', href: `${base}/contact` },
   ];
+}
+
+function buildWhatsappGroupHtml(payment) {
+  const group = resolveWhatsappGroup(payment);
+  if (!group) return '';
+
+  const name = escapeHtml(group.name);
+  const href = escapeHtml(group.url);
+  return `
+          <h2 style="margin:0 0 12px;font-size:17px;color:#FF6600;">Join your region WhatsApp group</h2>
+          <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#444;">
+            Your region is <strong>${name}</strong>. Join this group to stay connected with ABGP members from your area.
+          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
+            <tr><td align="center" bgcolor="#FF6600" style="border-radius:8px;">
+              <a href="${href}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Join WhatsApp group</a>
+            </td></tr>
+          </table>`;
 }
 
 function buildWelcomeHtml(payment) {
@@ -70,6 +89,7 @@ function buildWelcomeHtml(payment) {
             Visit our website to access member services, consumer resources, activities, and more:
           </p>
           <ul style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.6;">${linksHtml}</ul>
+          ${buildWhatsappGroupHtml(payment)}
           <p style="margin:0 0 8px;font-size:14px;line-height:1.7;">
             <strong>Member login:</strong> Use your registered email and phone at
             <a href="${config.websiteUrl}/login/member" style="color:#FF6600;">${config.websiteUrl}/login/member</a>
