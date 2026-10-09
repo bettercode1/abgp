@@ -1,0 +1,48 @@
+name: Restart web server
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/restart-web.yml
+
+jobs:
+  nginx:
+    name: Start nginx
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Start the public web server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            set -eu
+            run() {
+              if [ "$(id -u)" -eq 0 ]; then
+                "$@"
+              else
+                sudo "$@"
+              fi
+            }
+            if run systemctl list-unit-files nginx.service --no-legend | grep -q nginx; then
+              UNIT=nginx
+            elif run systemctl list-unit-files caddy.service --no-legend | grep -q caddy; then
+              UNIT=caddy
+            elif run systemctl list-unit-files apache2.service --no-legend | grep -q apache2; then
+              UNIT=apache2
+            else
+              echo "No nginx, caddy, or apache2 unit found"
+              run systemctl list-units --type=service --all --no-pager | head -n 80
+              exit 1
+            fi
+            echo "Starting $UNIT"
+            run systemctl enable "$UNIT"
+            run systemctl start "$UNIT"
+            run systemctl is-active "$UNIT"
+            run ss -tlnp | grep -E ':80|:443' || true
+            curl -sI --max-time 15 http://127.0.0.1/ | head -n 15 || true
