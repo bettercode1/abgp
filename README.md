@@ -151,6 +151,8 @@ More database/API detail: see `backend/README.md`.
 
 ## Production deploy (Contabo VPS)
 
+Login, backups, the October 2026 recovery, and what member data was restored are written in [docs/server.md](docs/server.md).
+
 App path on server: `/home/deploy/apps/ABGP/abgp`
 
 ```bash
