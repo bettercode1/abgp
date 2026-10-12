@@ -36,6 +36,7 @@ import {
   WhatsApp,
   KeyboardArrowDown,
   Email,
+  Phone,
   LocationOn,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
@@ -681,6 +682,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
                   <LocationOn sx={{ fontSize: 18, color: 'rgba(255,255,255,0.7)', flexShrink: 0, mt: 0.25 }} />
                   {t('contact.delhi.address')}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+                  <Phone sx={{ fontSize: 18, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+                  {t('contact.delhi.landline')}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+                  <Phone sx={{ fontSize: 18, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+                  {t('contact.delhi.mobile')}
                 </Typography>
               </Stack>
               <Box sx={{ display: 'flex', gap: 0.5 }}>

@@ -222,6 +222,13 @@ const executiveMembers: ExecutiveMember[] = [
     phone: '9313721325',
     prant: 'Haryana, Hissar',
   },
+  {
+    id: 28,
+    name: 'Shri Dilip Kumar Pandey',
+    responsibility: 'Kendriya Karyalay Pramukh',
+    phone: '9868180700',
+    prant: 'Delhi',
+  },
 ];
 
 export const NationalExecutiveList: React.FC = () => {

@@ -84,6 +84,14 @@ export const ContactSection: React.FC = () => {
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
                   {t('contact.delhi.address')}
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem', mt: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Phone sx={{ fontSize: 16 }} color="primary" />
+                  {t('contact.delhi.landline')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Phone sx={{ fontSize: 16 }} color="primary" />
+                  {t('contact.delhi.mobile')}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>

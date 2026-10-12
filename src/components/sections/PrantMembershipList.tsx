@@ -290,9 +290,9 @@ const prantData: PrantData[] = [
   {
     id: 37,
     name: 'W.Bengal',
-    president: { name: 'Dr. Pankaj Kumar Roy', phone: '9875520259' },
+    president: { name: 'Dr. Pankaj Roy', phone: '9875520259' },
     sanghatak: { name: 'Anjan Sinha', phone: '9990118283' },
-    sachiv: { name: 'Kaushik Dutta', phone: '8910330272' },
+    sachiv: { name: 'Jayant Bhowal', phone: '9763483391' },
   },
   {
     id: 38,
